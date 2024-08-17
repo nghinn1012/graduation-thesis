@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT_ONE || 7070;
+const PORT = process.env.USER_PORT;
 
 mongoose
   .connect("mongodb+srv://nghinn1012:Nghin1012@cluster0.8gwxcfk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
@@ -38,7 +38,7 @@ app.post("/auth/login", async (req: Request, res: Response) => {
       name: user.name,
     };
 
-    jwt.sign(payload, "secret", (err, token) => {
+    jwt.sign(payload, "secret", { expiresIn: '24h' }, (err, token) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: "Error signing token" });
