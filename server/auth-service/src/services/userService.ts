@@ -1,7 +1,14 @@
 import User from "../models/userModel";
 import bcrypt from "bcrypt"
 
-export const registerUser = async (email: string, password: string, name: string) => {
+interface ManualAccountRegisterInfo {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export const registerUser = async (info: ManualAccountRegisterInfo) => {
+  const { email, password, name } = info;
   const userExists = await User.findOne({ email });
   if (userExists) {
     throw new Error("User already exists");
