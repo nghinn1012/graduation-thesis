@@ -1,30 +1,36 @@
 import { Request, Response } from "express";
-import { registerUser } from "../services/userService";
+import {
+  TAccountRegisterMethod,
+  validateEmail,
+  validatePassword,
+  validateAccountRegisterMethod
+} from "../data";
 
-export interface IRegisterAccountBody {
-  email: string;
-  password: string;
-  name: string;
+interface IRequestAccountParams { }
+
+interface IResponseAccountBody { }
+
+interface IRequestAccountBody {
+  email?: string;
+  password?: string;
 }
 
-export const register = async (req: Request, res: Response) => {
-  console.log(req.body);
+interface IRequestAccountQuery {
+  method?: TAccountRegisterMethod;
+}
 
-  const { email, password, name } = req.body;
-  const userInfo: IRegisterAccountBody = { email, password, name };
+export const registerAccount = (request: Request<IRequestAccountParams, IResponseAccountBody, IRequestAccountBody, IRequestAccountQuery>, response: Response) => {
+  const method: TAccountRegisterMethod | undefined = request.query.method;
+  validateAccountRegisterMethod(method);
+  switch (method) {
+    case "mannual":
+      const { email, password } = request.body;
+      validateEmail(email);
+      validatePassword(password);
+    case "google-oauth":
 
-  if (!email || !password || !name) {
-    return res.status(400).json({ message: "Invalid request: Missing values" });
+    case "facebook-oauth":
+
   }
-
-  try {
-    const newUser = await registerUser(userInfo);
-    return res.status(201).json(newUser);
-  } catch (err: any) {
-    if (err.message === "User already exists") {
-      return res.status(409).json({ message: err.message });
-    }
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
+  return response.send("Loading");
+}
