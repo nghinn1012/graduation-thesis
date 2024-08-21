@@ -24,12 +24,6 @@ export const validateEmail = async (email?: string): Promise<void> => {
       message: "Invalid email format"
     });
   }
-  const existingUser = await UserModel.findOne({ email: email })
-  if (existingUser) {
-    throw new InvalidDataError({
-      message: "User already exist"
-    });
-  }
 }
 
 export const validatePassword = (password?: string): void => {

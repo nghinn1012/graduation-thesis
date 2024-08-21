@@ -7,6 +7,7 @@ export interface InternalErrorInfo {
 
 export class InternalError<T extends InternalErrorInfo> extends Error {
   protected _code: number;
+  data: any;
 
   constructor(infor?: T) {
     super(infor?.message);

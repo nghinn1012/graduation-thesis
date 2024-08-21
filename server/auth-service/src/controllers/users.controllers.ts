@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { Error } from "mongoose";
-import { registerService } from "../services/users.services";
+import { loginService, registerService } from "../services/users.services";
 
 export const registerController = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
   try {
-    const newUser = await registerService(name, email, password);
+    const newUser = await registerService({ name, email, password });
 
     return res.status(201).json({
       message: "Register success",
@@ -19,3 +19,20 @@ export const registerController = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const loginController = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  try {
+    const token = await loginService({ email, password });
+
+    return res.status(201).json({
+      message: "Login success",
+      token: token.token
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: "Login failed",
+      error: (error as Error).message
+    });
+  }
+}

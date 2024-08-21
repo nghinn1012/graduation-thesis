@@ -1,15 +1,11 @@
 import { Router } from "express";
-import { registerController } from "../controllers/users.controllers";
+import { loginController, registerController } from "../controllers/users.controllers";
+import { validateRegistration } from "../middlewares/register_checker.middlewares";
+import { checkLoginBodyAndParams } from "../middlewares/login_checker.middlewares";
 
 const userRouter = Router();
 
-userRouter.use("/posts", (req, res) => {
-  res.json({
-    id: 1,
-    name: "Nghinn"
-  });
-});
-
-userRouter.post("/register", registerController);
+userRouter.post("/register", validateRegistration, registerController);
+userRouter.post("/login", checkLoginBodyAndParams, loginController);
 
 export default userRouter;
