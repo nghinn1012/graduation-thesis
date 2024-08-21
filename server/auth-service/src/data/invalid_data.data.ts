@@ -1,5 +1,5 @@
-import { HttpResponseCode } from "./http_response_code";
-import { InternalError, InternalErrorInfo } from "./internal_error";
+import { HttpResponseCode } from "./http_response_code.data";
+import { InternalError, InternalErrorInfo } from "./internal_error.data";
 
 export interface InvalidDataErrorInfor extends InternalErrorInfo { }
 

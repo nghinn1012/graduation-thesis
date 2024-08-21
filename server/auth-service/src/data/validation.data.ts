@@ -1,4 +1,5 @@
-import { InvalidDataError } from "./invalid_data";
+import UserModel from "../db/models/schemas/User.schema";
+import { InvalidDataError } from "./invalid_data.data";
 
 export type TAccountRegisterMethod = "mannual" | "google-oauth" | "facebook-oauth";
 
@@ -11,7 +12,7 @@ export const validateAccountRegisterMethod = (method?: TAccountRegisterMethod): 
   }
 }
 
-export const validateEmail = (email?: string): void => {
+export const validateEmail = async (email?: string): Promise<void> => {
   if (email === undefined) {
     throw new InvalidDataError({
       message: "Email can not be undefined"
@@ -21,6 +22,12 @@ export const validateEmail = (email?: string): void => {
   if (!emailRegex.test(email)) {
     throw new InvalidDataError({
       message: "Invalid email format"
+    });
+  }
+  const existingUser = await UserModel.findOne({ email: email })
+  if (existingUser) {
+    throw new InvalidDataError({
+      message: "User already exist"
     });
   }
 }
@@ -50,4 +57,3 @@ export const validatePassword = (password?: string): void => {
     throw new Error("Invalid password format: Must contain at least one special character");
   }
 };
-

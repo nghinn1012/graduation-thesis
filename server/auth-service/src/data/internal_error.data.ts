@@ -1,4 +1,4 @@
-import { HttpResponseCode } from "./http_response_code";
+import { HttpResponseCode } from "./http_response_code.data";
 
 export interface InternalErrorInfo {
   code?: number;
