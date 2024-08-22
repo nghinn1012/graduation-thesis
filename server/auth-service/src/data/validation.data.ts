@@ -1,4 +1,4 @@
-import UserModel from "../db/models/schemas/User.schema";
+import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "./invalid_data.data";
 
 export type TAccountRegisterMethod = "mannual" | "google-oauth" | "facebook-oauth";

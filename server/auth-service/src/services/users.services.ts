@@ -1,11 +1,11 @@
-import UserModel from '../db/models/schemas/User.schema';
-import { validateEmail } from '../data/validation.data';
-import { validatePassword } from '../data/validation.data';
-import { InvalidDataError } from '../data/invalid_data.data';
+import UserModel from '../db/models/User.models';
+import { validateEmail, validatePassword, InvalidDataError } from '../data/index.data';
 import { compareHash, hashText } from '../utlis/bcrypt';
 import { signToken } from '../utlis/jwt';
-import axios from 'axios';
-import { GOOGLE_AUTHORIZED_REDIRECT_URI, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '../config/users.config';
+import { OAuth2Client } from 'google-auth-library';
+import { GOOGLE_CLIENT_ID, JWT_PRIVATE_KEY } from '../config/users.config';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 interface LoginInfo {
   email: string;
@@ -24,6 +24,14 @@ interface GoogleUser {
   verified_email: boolean;
   picture?: string;
 }
+
+interface GooglePayload {
+  email?: string;
+  name?: string;
+  picture?: string;
+  email_verified?: boolean;
+}
+
 
 export const registerService = async (info: ManualAccountRegisterInfo) => {
   try {
@@ -53,69 +61,6 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
   }
 };
 
-export const getOauthGoogleToken = async (code: string) => {
-  const body = {
-    code,
-    client_id: GOOGLE_CLIENT_ID,
-    client_secret: GOOGLE_CLIENT_SECRET,
-    redirect_uri: GOOGLE_AUTHORIZED_REDIRECT_URI,
-    grant_type: 'authorization_code',
-  };
-
-  const { data } = await axios.post(
-    'https://oauth2.googleapis.com/token',
-    body,
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    }
-  );
-
-  return data;
-};
-
-export const registerServiceByGoogle = async (id_token: string, access_token: string) => {
-  try {
-    const { data: googleUser } = await axios.get<GoogleUser>(
-      'https://www.googleapis.com/oauth2/v1/userinfo',
-      {
-        params: {
-          access_token,
-          alt: 'json',
-        },
-        headers: {
-          Authorization: `Bearer ${id_token}`,
-        },
-      }
-    );
-    console.log(googleUser);
-
-    if (!googleUser.verified_email) {
-      throw new InvalidDataError({ message: 'Google email not verified' });
-    }
-
-    const existingUser = await UserModel.findOne({ email: googleUser.email });
-    if (existingUser) {
-      const token = signToken({ userId: existingUser._id });
-      return { ...existingUser.toObject(), token };
-    }
-
-    const newUser = await UserModel.create({
-      name: googleUser.name,
-      email: googleUser.email,
-      password: null, // No password since this is a Google account
-      profilePicture: googleUser.picture,
-    });
-
-    const token = signToken({ userId: newUser._id });
-
-    return { ...newUser.toObject(), token };
-  } catch (error) {
-    throw new InvalidDataError({ message: (error as Error).message });
-  }
-};
-
 export const loginService = async (info: LoginInfo) => {
   const { email, password } = info;
 
@@ -139,4 +84,59 @@ export const loginService = async (info: LoginInfo) => {
     ...user,
     token,
   };
+};
+
+export const googleLoginService = async (idToken: string) => {
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload() as GooglePayload;
+
+    if (!payload || !payload.email_verified) {
+      throw new InvalidDataError({ message: 'Google authentication failed' });
+    }
+
+    const { email, name } = payload;
+
+    if (!email || !name) {
+      throw new InvalidDataError({ message: 'Missing email or name from Google account' });
+    }
+
+    let user = await UserModel.findOne({ email });
+
+    if (user) {
+      const token = signToken({ userId: user._id });
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token,
+      };
+    } else {
+      const password = hashText(JWT_PRIVATE_KEY);
+      const newUser = new UserModel({
+        name,
+        email,
+        password,
+      });
+
+      await newUser.save();
+
+      const token = signToken({ userId: newUser._id });
+
+      return {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        token,
+      };
+    }
+  } catch (error) {
+    throw new InvalidDataError({
+      message: (error as Error).message || 'Google login failed',
+    });
+  }
 };

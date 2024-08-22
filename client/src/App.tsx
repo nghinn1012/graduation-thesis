@@ -1,10 +1,29 @@
 import React from 'react';
 import './App.css';
-import { RouterProvider } from 'react-router-dom';
-import router from './router'; // This should match the export from your router.tsx
+import { GoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
 
 const App: React.FC = () => {
-  return <RouterProvider router={router} />;
+  const handleLoginSuccess = async (credentialResponse: any) => {
+    try {
+      const idToken = credentialResponse.credential;
+
+      const response = await axios.post('http://localhost:7070/users/google-login', { idToken });
+
+      console.log('Login Success:', response.data);
+    } catch (error) {
+      console.error('Login Error:', error);
+    }
+  };
+
+  return (
+    <GoogleLogin
+      onSuccess={handleLoginSuccess}
+      onError={() => {
+        console.log('Login Failed');
+      }}
+    />
+  );
 };
 
 export default App;
