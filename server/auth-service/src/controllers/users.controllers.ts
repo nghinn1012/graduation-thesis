@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
-import { loginService, registerService } from "../services/users.services";
+import { loginService, registerService, getOauthGoogleToken, registerServiceByGoogle} from "../services/users.services";
 
 export const registerController = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
@@ -36,3 +36,17 @@ export const loginController = async (req: Request, res: Response) => {
     });
   }
 }
+
+export const googleOAuthController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { code } = req.query;
+    const data = await getOauthGoogleToken(code as string);
+    const { id_token, access_token } = data;
+
+    const userWithToken = await registerServiceByGoogle(id_token, access_token);
+
+    return res.redirect(`http://localhost:3000/login/oauth?access_token=${userWithToken.token}`);
+  } catch (error) {
+    next(error);
+  }
+};
