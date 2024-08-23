@@ -1,5 +1,7 @@
 import express from "express";
+import { hello } from "../controllers/notiController";
 
-const router = express.Router();
+const notiRouter = express.Router();
+notiRouter.get("/hello", hello)
 
-export default router;
+export default notiRouter;
