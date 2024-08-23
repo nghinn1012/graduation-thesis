@@ -26,6 +26,10 @@ const UserSchema = new Schema({
     enum: UserVerifyStatus,
     default: UserVerifyStatus.Unverified,
   },
+  refreshToken: {
+    type: String,
+    required: true
+  },
   username: {
     type: String
   }, // Optional

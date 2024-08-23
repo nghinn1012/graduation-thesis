@@ -20,3 +20,7 @@ export const verifyToken = (token: string | null | undefined): string | JwtPaylo
         return result;
     }
 }
+
+export const signRefreshToken = (payload: object) => {
+    return jwt.sign(payload, JWT_PRIVATE_KEY, { expiresIn: '7d' });
+};

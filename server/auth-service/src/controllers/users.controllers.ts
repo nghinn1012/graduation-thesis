@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
-import { googleLoginService, loginService, registerService } from "../services/users.services";
+import { googleLoginService, loginService, refreshTokenService, registerService } from "../services/users.services";
+import { InvalidDataError } from "../data/index.data";
 
 export const registerController = async (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, confirmPassword } = req.body;
 
   try {
-    const newUser = await registerService({ name, email, password });
+    const newUser = await registerService({ name, email, password, confirmPassword });
 
     return res.status(201).json({
       message: "Register success",
@@ -49,3 +50,15 @@ export const googleLoginController = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const refreshTokenController = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  try {
+    const newToken = await refreshTokenService(refreshToken);
+    res.json(newToken);
+  } catch (error) {
+    console.error('Error during token refresh:', error);
+    res.status(400).json({ message: 'Could not refresh token' });
+  }
+}
