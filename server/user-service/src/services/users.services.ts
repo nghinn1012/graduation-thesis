@@ -1,10 +1,9 @@
 import UserModel from '../db/models/User.models';
-import { validateEmail, validatePassword, InvalidDataError, InternalError } from '../data/index.data';
+import { InvalidDataError } from '../data/index.data';
 import { compareHash, hashText } from '../utlis/bcrypt';
 import { signRefreshToken, signToken, verifyToken } from '../utlis/jwt';
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_CLIENT_ID, JWT_PRIVATE_KEY } from '../config/users.config';
-import { JwtPayload } from 'jsonwebtoken';
 import jwt from "jsonwebtoken";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -14,54 +13,12 @@ interface LoginInfo {
   password: string;
 }
 
-interface ManualAccountRegisterInfo {
-  email: string;
-  password: string;
-  name: string;
-  confirmPassword: string;
-}
-
 interface GooglePayload {
   email?: string;
   name?: string;
   picture?: string;
   email_verified?: boolean;
 }
-
-
-export const registerService = async (info: ManualAccountRegisterInfo) => {
-  try {
-    const { email, password, name, confirmPassword } = info;
-    const existingUser = await UserModel.findOne({ email: email })
-    if (existingUser) {
-      throw new InvalidDataError({
-        message: "User already exist"
-      });
-    }
-    await validateEmail(email);
-    await validatePassword(password);
-
-    if (password !== confirmPassword) {
-      throw new InvalidDataError({
-        message: "Password is not match"
-      });
-    }
-
-    const hashedPassword = await hashText(password);
-
-    const newUser = await UserModel.create({
-      name,
-      email,
-      password: hashedPassword
-    });
-
-    return newUser;
-  } catch (error) {
-    throw new InvalidDataError({
-      message: (error as Error).message
-    });
-  }
-};
 
 export const loginService = async (info: LoginInfo) => {
   const { email, password } = info;

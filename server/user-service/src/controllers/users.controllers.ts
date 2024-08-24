@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
-import { googleLoginService, loginService, refreshTokenService, registerService } from "../services/users.services";
-import { InvalidDataError } from "../data/index.data";
+import { googleLoginService, loginService, refreshTokenService, registerService } from "../services/index.services";
+import { verifyEmailService } from "../services/verify.services";
 
 export const registerController = async (req: Request, res: Response) => {
   const { name, email, password, confirmPassword } = req.body;
@@ -62,3 +62,15 @@ export const refreshTokenController = async (req: Request, res: Response) => {
     res.status(400).json({ message: 'Could not refresh token' });
   }
 }
+
+export const verifyUser = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.query;
+    const user = await verifyEmailService(token as string);
+    res.status(200).json({ message: 'Email verified successfully', user });
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+};

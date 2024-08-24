@@ -15,7 +15,11 @@ export interface MannualAccountInfo {
 export const sendActiveMannualAccount = async (info: MannualAccountInfo): Promise<SMTPTransport.SentMessageInfo | null> => {
   let result: SMTPTransport.SentMessageInfo | null = null;
   try {
-    const html = await renderHtmlFromTemplate(mailTemplates.ACTIVE_ACCOUNT_MANNUAL, info);
+    const { email, token } = info;
+    const html = await renderHtmlFromTemplate(mailTemplates.ACTIVE_ACCOUNT_MANNUAL, {
+      email: email,
+      activeUrl: "http://localhost:3000/active-account?token=" + token
+    });
     result = await sendMail({
       from: NODE_MAILER_SENDER,
       to: info.email,

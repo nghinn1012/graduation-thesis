@@ -36,7 +36,7 @@ export const sendMail = async (options: Mail.Options): Promise<SMTPTransport.Sen
 export const renderHtmlFromTemplate = async (name: string, data: { [key: string]: any }): Promise<string | undefined> => {
   let result: string | undefined = undefined;
   try {
-    result = await ejs.renderFile(path.resolve(__dirname, VIEWSFOLDER, name), data);
+    result = await ejs.renderFile(path.resolve(__dirname, VIEWSFOLDER, name), { data });
   } catch (error) {
     console.log("Template render failed", error);
   } finally {

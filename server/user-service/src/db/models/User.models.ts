@@ -1,5 +1,4 @@
 import { Schema, model } from "mongoose";
-import { ObjectId } from "mongodb";
 
 enum UserVerifyStatus {
   Unverified,
@@ -22,13 +21,12 @@ const UserSchema = new Schema({
     required: true
   },
   verify: {
-    type: String,
+    type: Number,
     enum: UserVerifyStatus,
     default: UserVerifyStatus.Unverified,
   },
   refreshToken: {
     type: String,
-    required: true
   },
   username: {
     type: String
