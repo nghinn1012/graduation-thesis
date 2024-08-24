@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { connectDB } from "./src/db/users.db";
 import userRouter from "./src/routes/users.routes";
 import cors from 'cors';
+import { subscribeMessage } from "./src/broker/broker";
 
 dotenv.config();
 
@@ -19,4 +20,8 @@ app.use("/users", userRouter);
 
 app.listen(PORT, () => {
   console.log(`Auth-Service running on port ${PORT}`);
+});
+
+subscribeMessage().then(() => {
+  console.log("[MESSAGE BROKER] start listening messages");
 });

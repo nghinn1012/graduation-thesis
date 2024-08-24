@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import {
   MONGO_LOCAL_URI
-} from "../config"
+} from "../config/notification.config"
 
 export const connectDB = async () => {
   mongoose.connect(MONGO_LOCAL_URI);

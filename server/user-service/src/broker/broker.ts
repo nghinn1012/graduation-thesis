@@ -1,6 +1,12 @@
-import { Channel, ConsumeMessage } from "amqplib";
+import { ConsumeMessage } from "amqplib";
 import { EXCHANGE_NAME, USER_SERVICE } from "../config/users.config";
 import { getChannel } from "./channel";
+
+export const operations = {
+  mail: {
+    ACTIVE_MANNUAL_ACCOUNT: "ACTIVE_MANNUAL_ACCOUNT"
+  }
+} as const;
 
 // Message Broker
 export const withQueue = async () => {
@@ -15,16 +21,21 @@ export const withQueue = async () => {
   }
 };
 
-export const publishMessage = (channel: Channel, targetService: string, msg: string) => {
+export const publishMessage = async (targetService: string, msg: string) => {
+  const channel = await getChannel();
   channel.publish(EXCHANGE_NAME, targetService, Buffer.from(msg));
 };
 
-export const subscribeMessage = async (channel: Channel) => {
+export const subscribeMessage = async () => {
+  const channel = await getChannel();
   await channel.assertExchange(EXCHANGE_NAME, "direct", { durable: true });
+  console.log(`[MESSAGE BROKER] [EXCHANGE] Create exchange with name ${EXCHANGE_NAME}`)
   const q = await channel.assertQueue("", { exclusive: true });
-  console.log(` Waiting for messages in queue: ${q.queue}`);
+  console.log(`[MESSAGE BROKER] [QUEUE] Create queue with name ${q.queue}`);
+  console.log(`[MESSAGE BROKER] [QUEUE] Waiting for messages in queue ${q.queue}`)
 
   channel.bindQueue(q.queue, EXCHANGE_NAME, USER_SERVICE);
+  console.log(`[MESSAGE BROKER] [BINDING] Biding exchange ${EXCHANGE_NAME} and queue ${q.queue} with name ${USER_SERVICE}`);
 
   channel.consume(
     q.queue,
