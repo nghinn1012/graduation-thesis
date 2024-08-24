@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
 import { googleLoginService, loginService, refreshTokenService, registerService } from "../services/index.services";
 import { verifyEmailService } from "../services/verify.services";
+import UserModel from "../db/models/User.models";
+import { InvalidDataError } from "../data/invalid_data.data";
 
 export const registerController = async (req: Request, res: Response) => {
   const { name, email, password, confirmPassword } = req.body;
@@ -74,3 +76,20 @@ export const verifyUser = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new InvalidDataError({
+        message: "Can't find this user!"
+      })
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
