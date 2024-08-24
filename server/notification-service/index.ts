@@ -22,5 +22,5 @@ app.listen(NOTIFICATION_PORT, () => {
 });
 
 subscribeMessage().then(() => {
-  publishMessage(USER_SERVICE, "Hello from Message service");
+  publishMessage(USER_SERVICE, "Test gui tu notifi service");
 });
