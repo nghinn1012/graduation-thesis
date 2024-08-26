@@ -23,5 +23,5 @@ app.listen(PORT, () => {
 });
 
 subscribeMessage().then(() => {
-  console.log("[MESSAGE BROKER] start listening messages");
+  console.log(" start listening messages");
 });
