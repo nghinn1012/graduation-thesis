@@ -12,7 +12,7 @@ export const registerController = async (req: Request, res: Response) => {
     const newUser = await registerService({ name, email, password, confirmPassword });
 
     return res.status(201).json({
-      message: "Register success",
+      message: "Register success. A verify email sent to your mail address",
       user: newUser
     });
   } catch (error) {
@@ -26,11 +26,12 @@ export const registerController = async (req: Request, res: Response) => {
 export const loginController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
-    const token = await loginService({ email, password });
+    const {token, refreshToken, ...user} = await loginService({ email, password });
 
     return res.status(201).json({
       message: "Login success",
-      token: token.token
+      token,
+      user: user
     });
   } catch (error) {
     return res.status(400).json({

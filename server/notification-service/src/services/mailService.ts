@@ -18,7 +18,7 @@ export const sendActiveMannualAccount = async (info: MannualAccountInfo): Promis
     const { email, token } = info;
     const html = await renderHtmlFromTemplate(mailTemplates.ACTIVE_ACCOUNT_MANNUAL, {
       email: email,
-      activeUrl: "http://localhost:3000/active-account?token=" + token
+      activeUrl: "http://localhost:3000/verify?token=" + token
     });
     result = await sendMail({
       from: NODE_MAILER_SENDER,

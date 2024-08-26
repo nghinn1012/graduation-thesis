@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { message } from "antd";
+import { useNavigate } from 'react-router-dom';
 
 interface RegisterValues {
   name: string;
@@ -16,7 +17,7 @@ interface UseSignUpReturn {
 }
 
 const useSignUp = (): UseSignUpReturn => {
-  const { login } = useAuth();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -42,7 +43,7 @@ const useSignUp = (): UseSignUpReturn => {
 
       if (res.status === 201) {
         message.success(data.message);
-        login(data.token);
+        navigate("/home");
       } else if (res.status === 400) {
         setError(data.message);
       } else {

@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextProps {
   token: string | null;
   isAuthenticated: boolean;
-  login: (newToken: string) => void;
+  login: (newToken: string, newUser: string) => void;
   logout: () => void;
   userData: any;
 }
@@ -29,10 +30,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const login = (newToken: string) => {
+  const login = (newToken: string, newUser: Object) => {
     localStorage.setItem(
       "user_data",
-      JSON.stringify({ userToken: newToken })
+      JSON.stringify({ userToken: newToken, userData: newUser })
     );
     setToken(newToken);
     setIsAuthenticated(true);

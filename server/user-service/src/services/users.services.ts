@@ -37,6 +37,12 @@ export const loginService = async (info: LoginInfo) => {
     });
   }
 
+  if (user.verify == 0) {
+    throw new InvalidDataError({
+      message: "User is not verify!"
+    });
+  }
+
   const token = signToken({ userId: user._id });
   const refreshToken = signRefreshToken({ userId: user._id });
 

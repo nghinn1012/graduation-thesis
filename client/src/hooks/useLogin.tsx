@@ -32,13 +32,13 @@ const useLogin = (): UseLoginReturn => {
       });
 
       const data = await res.json();
-      console.log(data);
+      console.log(res);
 
       if (res.status === 201) {
         message.success("Login successful!");
-        login(data.token);
+        login(data.token, data.user);
       } else if (res.status === 401 || res.status === 400) {
-        setError(data.message);
+        message.error(data.error);
       } else {
         message.error("Login failed");
       }
