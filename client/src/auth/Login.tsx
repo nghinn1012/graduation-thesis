@@ -1,8 +1,9 @@
 import { Card, Form, Input, Typography, Button, Flex } from "antd";
 import { FunctionComponent } from "react";
-import registerImage from "../assets/register.webp"
+import registerImage from "../assets/register.jpg"
 import { Link } from "react-router-dom";
 import useLogin from "../hooks/useLogin";
+import { GoogleLogin } from "@react-oauth/google";
 interface RegisterProps {}
 
 const Login: FunctionComponent<RegisterProps> = () => {
@@ -56,6 +57,17 @@ const Login: FunctionComponent<RegisterProps> = () => {
                   {error}
                 </Typography.Text>
               )}
+
+            <Form.Item>
+               <GoogleLogin
+                  onSuccess={credentialResponse => {
+                    console.log(credentialResponse);
+                  }}
+                  onError={() => {
+                    console.log('Login Failed');
+                  }}
+                  />
+            </Form.Item>
 
               <Form.Item>
                 <Link to="/">

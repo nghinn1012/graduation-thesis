@@ -8,9 +8,9 @@ import { AuthProvider } from './contexts/AuthContext';
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <AuthProvider>
-    {/* <GoogleOAuthProvider clientId='703442721289-hup7m1n49sjm9dmd9tn97jqojdum3pol.apps.googleusercontent.com'> */}
+    <GoogleOAuthProvider clientId='703442721289-hup7m1n49sjm9dmd9tn97jqojdum3pol.apps.googleusercontent.com'>
       <App />
-    {/* </GoogleOAuthProvider> */}
+    </GoogleOAuthProvider>
     </AuthProvider>
   </React.StrictMode>
 );

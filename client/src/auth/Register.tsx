@@ -1,8 +1,9 @@
 import { Card, Form, Input, Typography, Button, Flex } from "antd";
 import { FunctionComponent } from "react";
-import registerImage from "../assets/register.webp";
+import registerImage from "../assets/register.jpg";
 import { Link } from "react-router-dom";
 import useSignUp from "../hooks/useSignUp";
+import { GoogleLogin } from '@react-oauth/google';
 
 interface RegisterProps {}
 
@@ -112,6 +113,7 @@ const Register: FunctionComponent<RegisterProps> = () => {
                 {error}
               </Typography.Text>
             )}
+
 
             {/* Login Link */}
             <Form.Item>

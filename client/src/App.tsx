@@ -18,7 +18,7 @@ const App: FunctionComponent<AppProps> = () => {
         <Route path="/verify" element={<VerifyEmail />} />
         <Route path="/" element={!isAuthenticated ? <Register /> : <Navigate to="/profile"/>} />
         <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/profile"/>} />
-        <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="home/"/>} />
+        <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/"/>} />
       </Routes>
     </BrowserRouter>
   );
