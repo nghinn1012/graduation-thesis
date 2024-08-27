@@ -5,10 +5,10 @@ import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "../data/invalid_data.data";
 
 export const registerController = async (req: Request, res: Response) => {
-  const { name, email, password, confirmPassword } = req.body;
+  const { email, password, name, confirmPassword, username, avatar, coverImage, bio } = req.body;
 
   try {
-    const newUser = await registerService({ name, email, password, confirmPassword });
+    const newUser = await registerService({ email, password, name, confirmPassword, username, avatar, coverImage, bio });
 
     return res.status(201).json({
       message: "Register success. A verify email sent to your mail address",

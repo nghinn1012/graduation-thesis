@@ -3,6 +3,11 @@ import { Error } from "mongoose";
 import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "../data/invalid_data.data";
 import { searchUserByNameService, updateUserService } from "../services/users.services";
+import { followAndUnFollowUserService } from "../services/follow.services";
+
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 export const getUser = async (req: Request, res: Response) => {
   try {
@@ -49,6 +54,33 @@ export const updateUserControler = async (req: Request, res: Response) => {
     else {
       return res.status(400).json({
         message: "Updated fail!",
+      })
+    }
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const followAndUnFollowUserController = async (req: AuthenticatedRequest, res: Response) => {
+  const currentUserId = req.userId;
+  const followId = req.params.id
+  try {
+    if (!currentUserId) {
+      res.status(400).json({
+        message: "Current user not found!",
+      })
+    }
+    const result = await followAndUnFollowUserService(currentUserId as string, followId);
+    if (result) {
+      res.status(200).json({
+        message: result,
+      })
+    }
+    else {
+      res.status(400).json({
+        message: "Bad Request: Invalid action",
       })
     }
   } catch (error) {

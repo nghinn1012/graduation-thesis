@@ -10,11 +10,15 @@ interface ManualAccountRegisterInfo {
   password: string;
   name: string;
   confirmPassword: string;
+  username: string;
+  avatar: string;
+  coverImage: string;
+  bio: string;
 }
 
 export const registerService = async (info: ManualAccountRegisterInfo) => {
   try {
-    const { email, password, name, confirmPassword } = info;
+    const { email, password, name, confirmPassword, username, avatar, coverImage, bio } = info;
     const existingUser = await UserModel.findOne({ email: email });
 
     if (existingUser) {
@@ -39,6 +43,13 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
       email,
       password: hashedPassword,
       verify: 0,
+      refreshToken: "",
+      followers: [],
+      following: [],
+      username,
+      avatar,
+      coverImage,
+      bio,
     });
 
     const token = signToken({
@@ -47,14 +58,14 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
     }, "1h");
 
     const message = JSON.stringify({
-        email: info.email,
-        operation: operations.mail.ACTIVE_MANNUAL_ACCOUNT,
-        token: token,
-        from: USER_SERVICE
+      email: info.email,
+      operation: operations.mail.ACTIVE_MANNUAL_ACCOUNT,
+      token: token,
+      from: USER_SERVICE
     });
 
-  // Send verification email
-  await brokerChannel.toMessageServiceQueue(message);
+    // Send verification email
+    await brokerChannel.toMessageServiceQueue(message);
 
     return newUser;
   } catch (error) {

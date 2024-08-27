@@ -1,8 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWT_PRIVATE_KEY } from '../config/users.config';
+import UserModel from '../db/models/User.models';
 
-export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
+
+export const protectedRequest = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -11,13 +16,28 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
 
   try {
     const decoded: any = jwt.verify(token, JWT_PRIVATE_KEY);
-    if (req.params.userId == decoded.data.userId) {
-      next();
+    const currentUser = await UserModel.findById(decoded.data.userId);
+
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid user' });
     }
-    else {
-      res.status(401).json({ message: 'Unauthorized: Not have access to update data' });
-    }
+
+    req.userId = currentUser._id.toString();
+    next();
   } catch (error) {
-    res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
+};
+
+export const authenticateUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  await protectedRequest(req, res, async () => {
+    const userIdFromParams = req.params.userId;
+    const userIdFromToken = req.userId;
+
+    if (userIdFromParams === userIdFromToken) {
+      next();
+    } else {
+      return res.status(401).json({ message: 'Unauthorized: No access to update data' });
+    }
+  });
 };

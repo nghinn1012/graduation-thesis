@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 
 enum UserVerifyStatus {
   Unverified,
@@ -28,13 +28,38 @@ const UserSchema = new Schema({
   refreshToken: {
     type: String,
   },
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: [],
+    }
+  ],
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: []
+    }
+  ],
   username: {
-    type: String
+    type: String,
+    default: "",
   }, // Optional
   avatar: {
-    type: String
+    type: String,
+    default: "",
   }, // Optional
-});
+  coverImage: {
+    type: String,
+    default: "",
+  },
+  bio: {
+    type: String,
+    default: "",
+  },
+},
+  { timestamps: true });
 
 UserSchema.index({ name: "text" });
 
