@@ -6,6 +6,7 @@ import {
 } from '../controllers/index.controllers';
 import { validateRegistration, checkLoginBodyAndParams } from '../middlewares/index.middlewares';
 import { authenticateUser, protectedRequest } from '../middlewares/check_authorization.middlewares';
+import { followAndUnFollowHashtagController } from '../controllers/users.controllers';
 
 const userRouter = Router();
 
@@ -20,6 +21,9 @@ userRouter.post('/verifyUser', verifyUser);
 userRouter.get('/getUser/:id', protectedRequest, getUser)
 userRouter.get('/search', searchUserByNameController);
 userRouter.patch('/update/:id', authenticateUser, updateUserControler)
-userRouter.post('/follow/:id', protectedRequest, followAndUnFollowUserController)
+
+// Follow routes
+userRouter.post('/followUser/:id', protectedRequest, followAndUnFollowUserController)
 userRouter.get('/suggest', protectedRequest, getSuggestUserController)
+userRouter.post('/followHashtag/:id', protectedRequest, followAndUnFollowHashtagController)
 export default userRouter;

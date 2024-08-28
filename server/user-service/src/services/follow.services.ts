@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { InvalidDataError } from "../data/invalid_data.data";
 import UserModel from "../db/models/User.models"
 import FollowerModel from "../db/models/Follower.models";
+import HashtagModel from "../db/models/Hashtag.models";
 
 export const followAndUnFollowUserService = async (currentUserId: string, userId: string) => {
   if (userId == currentUserId) {
@@ -59,4 +60,32 @@ export const getSuggestUserService = async (currentUserId: string) => {
   });
 
   return suggestedUsers;
+}
+
+export const followAndUnFollowHashtagService = async (currentUserId: string, hashtagId: string) => {
+  const user = await UserModel.findById(currentUserId);
+  if (!user) {
+    throw new InvalidDataError({
+      message: "User not found"
+    })
+  }
+  const currentUser = await UserModel.findById(currentUserId);
+  const hashtag = await HashtagModel.findById(hashtagId);
+  if (!hashtag || !currentUser) {
+    throw new InvalidDataError({
+      message: "Hashtag or current user not found"
+    })
+  }
+  const isFollowing = await FollowerModel.find({ hashtag: hashtagId, subscriber: currentUserId });
+  if (isFollowing.length > 0) {
+    await FollowerModel.findByIdAndDelete(isFollowing[0]._id);
+    return "Hashtag unfollowed successfully!"
+  } else {
+    await FollowerModel.create({
+      followType: 1,
+      hashtag: hashtagId,
+      subscriber: currentUserId
+    });
+    return "Hashtag followed successfully!"
+  }
 }

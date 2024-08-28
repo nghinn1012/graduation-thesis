@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
 import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "../data/invalid_data.data";
-import { followAndUnFollowUserService, getSuggestUserService, searchUserByNameService, updateUserService, ManualAccountRegisterInfo } from "../services/index.services";
+import { followAndUnFollowHashtagService, followAndUnFollowUserService, getSuggestUserService, searchUserByNameService, updateUserService, ManualAccountRegisterInfo } from "../services/index.services";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -101,6 +101,33 @@ export const getSuggestUserController = async (req: AuthenticatedRequest, res: R
     if (users) {
       res.status(200).json(users)
     } else {
+      res.status(400).json({
+        message: "Bad Request: Invalid action",
+      })
+    }
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const followAndUnFollowHashtagController = async (req: AuthenticatedRequest, res: Response) => {
+  const currentUserId = req.userId;
+  const hashtagId = req.params.id
+  try {
+    if (!currentUserId) {
+      res.status(400).json({
+        message: "Current user not found!",
+      })
+    }
+    const result = await followAndUnFollowHashtagService(currentUserId as string, hashtagId);
+    if (result) {
+      res.status(200).json({
+        message: result,
+      })
+    }
+    else {
       res.status(400).json({
         message: "Bad Request: Invalid action",
       })
