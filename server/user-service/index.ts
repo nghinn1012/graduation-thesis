@@ -5,8 +5,11 @@ import { connectDB } from "./src/db/users.db";
 import userRouter from "./src/routes/users.routes";
 import cors from 'cors';
 import { subscribeMessage } from "./src/broker/broker";
+import { connectCloudinary } from "./src/db/cloudinary.db";
 
 dotenv.config();
+
+connectCloudinary();
 
 const app = express();
 app.use(cors());

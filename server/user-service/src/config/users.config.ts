@@ -17,3 +17,7 @@ export const NOTIFICATION_SERVICE = process.env.NOTIFICATION_SERVICE as string;
 export const AMQP_PATH = process.env.AMQP_PATH as string;
 export const RPC_QUEUE_NAME = process.env.RPC_QUEUE_NAME as string;
 export const RPC_REQUEST_TIME_OUT = +(process.env.RPC_REQUEST_TIME_OUT || 2000) as number;
+
+export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME as string;
+export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY as string;
+export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET as string;

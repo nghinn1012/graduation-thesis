@@ -4,6 +4,7 @@ import { hashText } from '../utlis/bcrypt';
 import { signToken } from '../utlis/jwt';  // Function to sign JWT token
 import { operations, brokerChannel } from "../broker/index";
 import { USER_SERVICE } from '../config/users.config';
+import { v2 as cloudinary } from "cloudinary";
 
 export interface ManualAccountRegisterInfo {
   email: string;
@@ -45,10 +46,17 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
       verify: 0,
       refreshToken: "",
       username,
-      avatar,
-      coverImage,
       bio,
     });
+
+    if (avatar) {
+      const uploadedRespone = await cloudinary.uploader.upload(avatar);
+      newUser.avatar = uploadedRespone.secure_url;
+    }
+    if (coverImage) {
+      const uploadedRespone = await cloudinary.uploader.upload(coverImage);
+      newUser.coverImage = uploadedRespone.secure_url
+    }
 
     const token = signToken({
       ...info,

@@ -3,6 +3,8 @@ import { InvalidDataError } from "../data/invalid_data.data";
 import UserModel from "../db/models/User.models";
 import { validatePassword } from "../data/validation.data";
 import { hashText } from "../utlis/bcrypt";
+import { v2 as cloudinary } from "cloudinary";
+import passport from "passport";
 
 export interface UpdateDataInfo {
   password: string;
@@ -30,6 +32,8 @@ export const searchUserByNameService = async (searchTerm: string) => {
 
 export const updateUserService = async (userId: string, updateData: UpdateDataInfo) => {
   try {
+    const { avatar, coverImage, ...textData } = updateData;
+
     validatePassword(updateData.password);
     if (updateData.password !== updateData.confirmPassword) {
       throw new InvalidDataError({
@@ -38,16 +42,40 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
     }
 
     const hashedPassword = await hashText(updateData.password);
-    const user = await UserModel.findByIdAndUpdate(
+    let user = await UserModel.findByIdAndUpdate(
       userId,
       {
-        ...updateData,
-      password: hashedPassword,
+        ...textData,
+        password: hashedPassword,
       },
       {
         new: true, runValidators: true
 
       });
+    user = await UserModel.findById(userId);
+    if (!user) {
+      throw new InvalidDataError({
+        message: "User not found"
+      });
+    }
+    if (avatar) {
+      if (user.avatar) {
+        await cloudinary.uploader.destroy(user.avatar.split("/").pop()!.split(".")![0]);
+      }
+      const uploadedRespone = await cloudinary.uploader.upload(avatar);
+      await UserModel.findByIdAndUpdate(userId, {
+        avatar: uploadedRespone.secure_url
+      }, { new: true, runValidators: true });
+    }
+    if (coverImage) {
+      if (user.coverImage) {
+        await cloudinary.uploader.destroy(user.coverImage.split("/").pop()!.split(".")![0]);
+      }
+      const uploadedRespone = await cloudinary.uploader.upload(coverImage);
+      await UserModel.findByIdAndUpdate(userId, {
+        coverImage: uploadedRespone.secure_url
+      }, { new: true, runValidators: true });
+    }
     const updatedUser = await UserModel.findById(userId);
 
     if (user) {
