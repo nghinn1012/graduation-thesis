@@ -5,7 +5,7 @@ import { signToken } from '../utlis/jwt';  // Function to sign JWT token
 import { operations, brokerChannel } from "../broker/index";
 import { USER_SERVICE } from '../config/users.config';
 
-interface ManualAccountRegisterInfo {
+export interface ManualAccountRegisterInfo {
   email: string;
   password: string;
   name: string;
@@ -44,8 +44,6 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
       password: hashedPassword,
       verify: 0,
       refreshToken: "",
-      followers: [],
-      following: [],
       username,
       avatar,
       coverImage,

@@ -31,13 +31,17 @@ export const protectedRequest = async (req: AuthenticatedRequest, res: Response,
 
 export const authenticateUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   await protectedRequest(req, res, async () => {
-    const userIdFromParams = req.params.userId;
+    const userIdFromParams = req.params.id;
     const userIdFromToken = req.userId;
 
-    if (userIdFromParams === userIdFromToken) {
+    if (userIdFromParams == userIdFromToken) {
       next();
     } else {
-      return res.status(401).json({ message: 'Unauthorized: No access to update data' });
+      return res.status(401).json({
+        message: 'Unauthorized: No access to update data',
+        userIdFromParams,
+        userIdFromToken,
+      });
     }
   });
 };

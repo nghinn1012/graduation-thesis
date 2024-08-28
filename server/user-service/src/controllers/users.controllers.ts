@@ -2,8 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
 import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "../data/invalid_data.data";
-import { searchUserByNameService, updateUserService } from "../services/users.services";
-import { followAndUnFollowUserService } from "../services/follow.services";
+import { followAndUnFollowUserService, getSuggestUserService, searchUserByNameService, updateUserService, ManualAccountRegisterInfo } from "../services/index.services";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -44,7 +43,7 @@ export const searchUserByNameController = async (req: Request, res: Response) =>
 
 export const updateUserControler = async (req: Request, res: Response) => {
   try {
-    const user = await updateUserService(req.params.userId, req.body);
+    const user = await updateUserService(req.params.id, req.body);
     if (user) {
       return res.status(200).json({
         message: "Updated successfully!",
@@ -79,6 +78,29 @@ export const followAndUnFollowUserController = async (req: AuthenticatedRequest,
       })
     }
     else {
+      res.status(400).json({
+        message: "Bad Request: Invalid action",
+      })
+    }
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getSuggestUserController = async (req: AuthenticatedRequest, res: Response) => {
+  const currentUserId = req.userId;
+  try {
+    if (!currentUserId) {
+      res.status(400).json({
+        message: "Current user not found!",
+      })
+    }
+    const users = await getSuggestUserService(currentUserId as string);
+    if (users) {
+      res.status(200).json(users)
+    } else {
       res.status(400).json({
         message: "Bad Request: Invalid action",
       })
