@@ -2,7 +2,7 @@ import UserModel from '../db/models/User.models';
 import { validateEmail, validatePassword, InvalidDataError } from '../data/index.data';
 import { hashText } from '../utlis/bcrypt';
 import { signToken } from '../utlis/jwt';  // Function to sign JWT token
-import { operations, brokerChannel } from "../broker/index";
+import { BrokerSource, RabbitMQ, brokerOperations } from "../broker/index";
 import { USER_SERVICE } from '../config/users.config';
 import { v2 as cloudinary } from "cloudinary";
 
@@ -63,15 +63,14 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
       password: hashText(info.password)
     }, "1h");
 
-    const message = JSON.stringify({
-      email: info.email,
-      operation: operations.mail.ACTIVE_MANNUAL_ACCOUNT,
-      token: token,
-      from: USER_SERVICE
-    });
-
-    // Send verification email
-    await brokerChannel.toMessageServiceQueue(message);
+    RabbitMQ.instance.publicMessage(
+      BrokerSource.NOTIFICATION,
+      brokerOperations.mail.ACTIVE_MANUAL_ACCOUNT,
+      {
+        email: info.email,
+        token: token,
+      }
+    );
 
     return newUser;
   } catch (error) {

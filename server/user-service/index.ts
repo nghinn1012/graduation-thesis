@@ -4,12 +4,17 @@ import jwt from "jsonwebtoken";
 import { connectDB } from "./src/db/users.db";
 import userRouter from "./src/routes/users.routes";
 import cors from 'cors';
-import { subscribeMessage } from "./src/broker/broker";
+import { RabbitMQ, initBrokerConsumners, initRpcConsumers } from "./src/broker";
 import { connectCloudinary } from "./src/db/cloudinary.db";
 
 dotenv.config();
 
 connectCloudinary();
+
+const rabbit = RabbitMQ.instance;
+initRpcConsumers(rabbit);
+initBrokerConsumners(rabbit);
+
 
 const app = express();
 app.use(cors());
@@ -23,8 +28,4 @@ app.use("/users", userRouter);
 
 app.listen(PORT, () => {
   console.log(`Auth-Service running on port ${PORT}`);
-});
-
-subscribeMessage().then(() => {
-  console.log(" start listening messages");
 });
