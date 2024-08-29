@@ -10,8 +10,14 @@ export const NODE_MAILER_CONFIG_PORT = +(process.env.NODE_MAILER_CONFIG_PORT || 
 export const NODE_MAILER_SENDER = process.env.NODE_MAILER_SENDER as string;
 
 export const EXCHANGE_NAME = process.env.EXCHANGE_NAME as string;
-export const NOTIFICATION_SERVICE = process.env.NOTIFICATION_SERVICE as string;
 export const AMQP_PATH = process.env.AMQP_PATH as string;
 export const RPC_QUEUE_NAME = process.env.RPC_QUEUE_NAME as string;
 export const RPC_REQUEST_TIME_OUT = +(process.env.RPC_REQUEST_TIME_OUT || 2000) as number;
+
+export const NOTIFICATION_SERVICE = process.env.NOTIFICATION_SERVICE as string;
 export const USER_SERVICE = process.env.USER_SERVICE as string;
+export const POST_SERVICE = process.env.POST_SERVICE as string;
+
+export const USER_SERVICE_RPC_QUEUE = process.env.USER_SERVICE_RPC_QUEUE as string;
+export const NOTIFICATION_SERVICE_RPC_QUEUE = process.env.NOTIFICATION_SERVICE_RPC_QUEUE as string;
+export const POST_SERVICE_RPC_QUEUE = process.env.POST_SERVICE_RPC_QUEUE as string;
