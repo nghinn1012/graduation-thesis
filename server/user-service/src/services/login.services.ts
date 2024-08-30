@@ -43,8 +43,8 @@ export const loginService = async (info: LoginInfo) => {
     });
   }
 
-  const token = signToken({ userId: user._id });
-  const refreshToken = signRefreshToken({ userId: user._id });
+  const token = signToken({ userId: user._id, email: user.email });
+  const refreshToken = signRefreshToken({ userId: user._id, email: user.email });
 
   user.refreshToken = refreshToken;
   await user.save();
