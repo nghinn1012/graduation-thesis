@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 
-const InstructionSchema = new Schema({
-  stepNumber: {
+export const InstructionSchema = new Schema({
+  step: {
     type: Number,
     required: true,
   },

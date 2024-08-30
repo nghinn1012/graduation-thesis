@@ -26,3 +26,4 @@ export {
   UnauthorizationErrorInfo
 } from "./error_handler/unauthorization_error";
 export { IPost, IIngredient, IInstruction } from "./interface/post_create_interface";
+export { IAuthContent } from "./interface/auth_interface";

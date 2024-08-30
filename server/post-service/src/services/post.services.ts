@@ -1,57 +1,85 @@
-import { HydratedDocument } from "mongoose";
+import { Types } from "mongoose";
 import postModel from "../models/postModel";
 import { rpcGetUser, Id } from "../services/rpc.services";
+import IngredientModel from "../models/ingredientModel";
+import InstructionModel from "../models/instructionModel";
+import { IPost, IIngredient, IInstruction, InternalError } from "../data/index";
 
-export interface IFoodPost {
-  user: string;
-  images: string[];
-  title: string;
-}
+export const createPostService = async (data: IPost) => {
+  try {
+    const author = await rpcGetUser<Id>(data.author, "_id");
 
-export interface IPostFoodResponse {
-  _id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+    if (!author) {
+      console.log("rpc-author", "unknown");
+      throw new InternalError({
+        data: {
+          target: "rpc-author",
+          reason: "unknown",
+        },
+      });
+    }
 
-const toFoodPostResponse = (data: IPostFoodResponse)=> {
-  return {
-    _id: data._id.toString(),
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
-  };
-};
+    const ingredientsData: IIngredient[] = data.ingredients;
+    const responseIngredients: Types.ObjectId[] = [];
 
+    for (const ingredient of ingredientsData) {
+      if (!ingredient || !ingredient.name || !ingredient.quantity) {
+        throw new InternalError({
+          data: {
+            target: "ingredients",
+            reason: "invalid-ingredient",
+          },
+        });
+      }
 
-export const postFood = async (
-  data: IFoodPost
-): Promise<IPostFoodResponse> => {
-  // Check user and place existed
-  const user = await Promise.all([
-    rpcGetUser<Id>(data.user, "_id"),
-  ]);
-  console.log(user);
-  // if (user == null) {
-  //   throw new InternalError({
-  //     data: {
-  //       target: "rpc-user",
-  //       reason: "unknown",
-  //     },
-  //   });
-  // }
-  // if (data.place != null && place == null) {
-  //   throw new InternalError({
-  //     data: {
-  //       target: "rpc-user",
-  //       reason: "unknown",
-  //     },
-  //   });
-  // }
+      const ingredientData = await IngredientModel.create({
+        name: ingredient.name,
+        quantity: ingredient.quantity,
+      });
 
-  // await foodPost.save();
-  return toFoodPostResponse({
-    _id: "123",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+      responseIngredients.push(ingredientData._id);
+    }
+
+    const instructionsData: IInstruction[] = data.instructions;
+    const responseInstructions: Types.ObjectId[] = [];
+
+    for (const instruction of instructionsData) {
+      if (!instruction || !instruction.step || !instruction.description) {
+        throw new InternalError({
+          data: {
+            target: "instructions",
+            reason: "invalid-instruction",
+          },
+        });
+      }
+
+      const instructionData = await InstructionModel.create({
+        step: instruction.step,
+        description: instruction.description,
+      });
+
+      responseInstructions.push(instructionData._id);
+    }
+
+    const post = await postModel.create({
+      author: data.author,
+      images: data.images,
+      title: data.title,
+      hashtags: data.hashtags,
+      timeToTake: data.timeToTake,
+      servings: data.servings,
+      ingredients: responseIngredients,
+      instructions: responseInstructions,
+    });
+
+    return post;
+
+  } catch (error) {
+    throw new InternalError({
+      data: {
+        target: "post-food",
+        reason: (error as Error).message,
+      },
+    });
+  }
 };

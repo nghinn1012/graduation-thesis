@@ -1,7 +1,10 @@
 import express from "express";
-import { createPost, hello } from "../controllers/post.controllers";
+import { createPostController, hello } from "../controllers/post.controllers";
+import { tokenValidate } from "../middlewares/authenticate_token";
+import { errorHandler } from "../middlewares/error_handler";
 
-const notiRouter = express.Router();
-notiRouter.get("/hello", hello);
-notiRouter.post("/create", createPost);
-export default notiRouter;
+const postRouter = express.Router();
+postRouter.get("/hello", hello);
+postRouter.post("/create", tokenValidate, createPostController);
+postRouter.use(errorHandler);
+export default postRouter;

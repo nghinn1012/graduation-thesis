@@ -1,7 +1,6 @@
-import { hash } from "crypto";
-import { Schema, model, Document } from "mongoose";
-import IngredientModel from "./ingredientModel";
-import InstructionModel from "./instructionModel";
+import { Schema, model, Document, Types } from "mongoose";
+import { IngredientSchema } from "./ingredientModel";
+import { InstructionSchema } from "./instructionModel";
 
 const postSchema = new Schema({
   title: {
@@ -30,14 +29,14 @@ const postSchema = new Schema({
     required: true
   },
   ingredients: [
-    {
-      type: IngredientModel,
-      required: true,
-    }
-  ],
+      {
+        type: Types.ObjectId,
+        required: true,
+      }
+    ],
   instructions: [
     {
-      type: InstructionModel,
+      type: Types.ObjectId,
       required: true,
     }
   ],
