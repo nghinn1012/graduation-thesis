@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use(postRouter);
+app.use("/posts", postRouter);
 
 app.listen(NOTIFICATION_PORT, () => {
   console.log(`Post-Service running on port ${NOTIFICATION_PORT}`);

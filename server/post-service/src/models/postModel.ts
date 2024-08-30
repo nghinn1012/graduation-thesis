@@ -1,6 +1,4 @@
 import { Schema, model, Document, Types } from "mongoose";
-import { IngredientSchema } from "./ingredientModel";
-import { InstructionSchema } from "./instructionModel";
 
 const postSchema = new Schema({
   title: {
@@ -28,18 +26,28 @@ const postSchema = new Schema({
     type: Number,
     required: true
   },
-  ingredients: [
-      {
-        type: Types.ObjectId,
-        required: true,
-      }
-    ],
-  instructions: [
-    {
-      type: Types.ObjectId,
+  ingredients: [{
+    name: {
+      type: String,
+      required: true,
+    },
+    quantity: {
+      type: String,
       required: true,
     }
-  ],
+  }],
+  instructions: [{
+    step: {
+      type: Number,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    image: {
+      type: String,
+    },
+  }],
   createdAt: {
     type: Date,
     default: Date.now,

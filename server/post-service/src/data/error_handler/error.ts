@@ -21,7 +21,7 @@ export const toInvalidFormatError = (field: string): InvalidDataError => {
 }
 
 export const throwErrorIfNotFound = (field: string, value: any,): void => {
-  if (value == null) throw toNotFoundError(field);
+  if (!value) throw toNotFoundError(field);
 }
 
 type IFnChecker = (value: any) => boolean;
