@@ -1,10 +1,6 @@
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 import { createPostService, getPostService, updatePostService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
-
-export const hello = (_request: Request, response: Response): Response => {
-  return response.send("Hello from Post Service");
-}
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
   try {
