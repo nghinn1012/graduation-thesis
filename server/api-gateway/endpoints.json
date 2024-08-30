@@ -1,0 +1,37 @@
+[
+  {
+      "path": "/api/user",
+      "host": "http://localhost",
+      "port": 7070,
+      "domain": "",
+      "token": {
+          "exclude": [
+              "/users/register",
+              "/users/login",
+              "/users/active"
+          ]
+      }
+  },
+  {
+      "path": "/api/notification",
+      "host": "http://localhost",
+      "port": 8080,
+      "domain": "",
+      "token": {
+          "exclude": [
+              ""
+          ]
+      }
+  },
+  {
+      "path": "/api/post",
+      "host": "http://localhost",
+      "port": 9090,
+      "domain": "",
+      "token": {
+          "exclude": [
+              ""
+          ]
+      }
+  }
+]
