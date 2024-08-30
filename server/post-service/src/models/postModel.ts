@@ -1,17 +1,55 @@
+import { hash } from "crypto";
 import { Schema, model, Document } from "mongoose";
+import IngredientModel from "./ingredientModel";
+import InstructionModel from "./instructionModel";
 
-interface IUser extends Document {
-  email: string;
-  name: string;
-  password: string;
-}
-
-const userSchema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  password: { type: String, required: true },
+const postSchema = new Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  author: {
+    type: String,
+    required: true,
+    index: true
+  },
+  images: {
+    type: [String],
+    required: true,
+  },
+  hashtags: {
+    type: [String],
+    required: true
+  },
+  timeToTake: {
+    type: Number,
+    required: true
+  },
+  servings: {
+    type: Number,
+    required: true
+  },
+  ingredients: [
+    {
+      type: IngredientModel,
+      required: true,
+    }
+  ],
+  instructions: [
+    {
+      type: InstructionModel,
+      required: true,
+    }
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-const User = model<IUser>("User", userSchema);
-
-export default User;
+const postModel = model("Post", postSchema);
+export default postModel;
