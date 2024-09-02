@@ -48,9 +48,9 @@ export const loginService = async (info: LoginInfo) => {
 
   user.refreshToken = refreshToken;
   await user.save();
-
+  const { password: userPassword, ...userWithoutPassword } = user.toJSON();
   return {
-    ...user.toJSON(),
+    ...userWithoutPassword,
     token,
     refreshToken,
   };
@@ -120,8 +120,10 @@ export const googleLoginService = async (idToken: string) => {
 
 export const refreshTokenService = async (refreshToken: string) => {
   try {
-    const decoded = jwt.verify(refreshToken, JWT_PRIVATE_KEY) as { userId: string };
-    const user = await UserModel.findById(decoded.userId);
+    const decoded = jwt.verify(refreshToken, JWT_PRIVATE_KEY) as {
+      data: { userId: string, email: string }
+    };
+    const user = await UserModel.findById(decoded?.data?.userId);
 
     if (!user) {
       throw new InvalidDataError({
@@ -138,7 +140,7 @@ export const refreshTokenService = async (refreshToken: string) => {
     return { token: newToken };
   } catch (error) {
     throw new InvalidDataError({
-      message: "Could not refresh token"
+      message: "Could not refresh token",
     });
   }
 };

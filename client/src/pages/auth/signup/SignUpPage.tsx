@@ -15,7 +15,7 @@ const SignUpPage: React.FC = () => {
     e.preventDefault();
     userFetcher
       .manualRegister(formData)
-      .then(() => navigate("/verify/signup", { state: formData }))
+      .then(() => navigate("/verify", { state: formData }))
       .catch((error) => {
         const target = error?.data?.target;
         const reason = error?.data?.reason;
@@ -39,7 +39,6 @@ const SignUpPage: React.FC = () => {
             Please fill in the details to create your account
           </span>
 
-          {/* Combine Name and Email into one row */}
           <div className="flex space-x-4">
             <div className="w-1/2">
               <label htmlFor="name" className="mb-2 text-md block">

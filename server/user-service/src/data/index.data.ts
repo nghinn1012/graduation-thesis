@@ -1,6 +1,4 @@
 export {
-  TAccountRegisterMethod,
-  validateAccountRegisterMethod,
   validateEmail,
   validatePassword
 } from "./validation.data";

@@ -7,12 +7,18 @@ import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 export const userEndpoints = {
   // users
   signup: "/users/register",
+  verify: "/users/verifyUser",
+  login: "users/login",
+  refeshToken: "/users/refresh-token",
 } as const;
 
 export interface UserResponseError
-  extends ResponseErrorLike<UserErrorTarget, UserErrorReason> {}
+  extends ResponseErrorLike<UserErrorTarget, UserErrorReason> { }
 export interface UserResponse<DataLike>
-  extends ResponseLike<DataLike, UserResponseError> {}
+  extends ResponseLike<DataLike, UserResponseError> {
+  token(token: any): unknown;
+  user: any;
+}
 
 const userUrl = `${PROXY_URL}/${USER_PATH}`;
 
@@ -57,8 +63,16 @@ interface ManualRegisterInfo {
   confirmPassword: string;
 }
 
+interface LoginInfo {
+  email: string;
+  password: string;
+}
+
 export interface UserFetcher {
   manualRegister(data: ManualRegisterInfo): Promise<UserResponse<AccountInfo>>;
+  verifyEmail(token: string): Promise<UserResponse<AccountInfo>>;
+  login(data: LoginInfo): Promise<UserResponse<AccountInfo>>;
+  refreshToken(token: string): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -67,4 +81,13 @@ export const userFetcher: UserFetcher = {
   ): Promise<UserResponse<AccountInfo>> => {
     return userInstance.post(userEndpoints.signup, data);
   },
+  verifyEmail: async (token: string): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(`${userEndpoints.verify}?token=${token}`);
+  },
+  login: async (data: LoginInfo): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(userEndpoints.login, data);
+  },
+  refreshToken: async (token: string): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(userEndpoints.refeshToken, { token });
+  }
 };

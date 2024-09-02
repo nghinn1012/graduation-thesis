@@ -1,16 +1,6 @@
 import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "./invalid_data.data";
 
-export type TAccountRegisterMethod = "mannual" | "google-oauth" | "facebook-oauth";
-
-export const validateAccountRegisterMethod = (method?: TAccountRegisterMethod): void => {
-  const methods = ["mannual", "google-oauth", "facebook-oauth"];
-  if (method == undefined || !methods.includes(method)) {
-    throw new InvalidDataError({
-      message: `Invalid method "${method}" for Account register.`
-    })
-  }
-}
 
 export const validateEmail = async (email?: string): Promise<void> => {
   if (email === undefined) {
