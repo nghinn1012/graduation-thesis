@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { userFetcher } from "../../../api/user";
+import toast, { Toaster } from "react-hot-toast";
 
 const SignUpPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -15,13 +16,14 @@ const SignUpPage: React.FC = () => {
     e.preventDefault();
     userFetcher
       .manualRegister(formData)
-      .then(() => navigate("/verify", { state: formData }))
+      .then(() => {
+        toast.success(
+          "Account created successfully. Please verify your email"
+        );
+        setTimeout(() => navigate("/verify", { state: formData }), 2000)}
+      )
       .catch((error) => {
-        const target = error?.data?.target;
-        const reason = error?.data?.reason;
-        if (target === "email" && reason === "email-existed") {
-          console.log("Email existed");
-        }
+        toast.error(error);
       });
   };
 
@@ -33,6 +35,7 @@ const SignUpPage: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
         {/* Left Side */}
+        <Toaster />
         <div className="flex flex-col justify-center p-8 md:p-14">
           <span className="mb-3 text-4xl font-bold">Create an account</span>
           <span className="font-light text-gray-400 mb-8">

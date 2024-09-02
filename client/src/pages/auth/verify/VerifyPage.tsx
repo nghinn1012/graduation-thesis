@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import React from 'react';
 import { userFetcher } from '../../../api/user';
+import toast, { Toaster } from 'react-hot-toast';
+import { response } from 'express';
 
 interface IAccountInfo {
   email: string;
@@ -26,9 +28,10 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
         password: account.password,
         confirmPassword: account.password,
       });
-      console.log("Email sent successfully!");
+      toast.success("Email sent successfully!");
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.log(error);
+      toast.error("A email was sent before. Please check your email");
     } finally {
       setLoading(false);
     }
@@ -37,8 +40,9 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
 
   return (
     <div className="container mx-auto p-6 max-w-lg bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">{("verify-your-account")}</h1>
-      <p className="text-gray-600 mb-4">{("all-done-sent-active")}</p>
+      <Toaster />
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">Verify your account</h1>
+      <p className="text-gray-600 mb-4">All done. Email was sent to your email.</p>
       <a
         href={`mailto:${account.email}`}
         className="text-blue-500 hover:underline mb-4 block"
@@ -46,13 +50,13 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
         {account.email}
       </a>
       <div className="flex items-center space-x-2">
-        <p className="text-gray-600">not-recieved-email</p>
+        <p className="text-gray-600">Not received mail?</p>
         <button
           onClick={handleClick}
           disabled={loading}
           className={`btn ${loading ? 'btn-disabled' : 'btn-primary'}`}
         >
-          {loading ? 'Trying again...' : ("try-again")}
+          {loading ? 'Trying again...' : "Resend"}
         </button>
       </div>
     </div>
@@ -66,26 +70,38 @@ function AccountTokenVerify() {
 
 
   useEffect(() => {
-      if (!token) {
-        console.error("Token not found");
-        navigate("/error/page-wrong", { replace: true });
-        return;
-      }
+    let isMounted = true;
+    if (!token) {
+      navigate("/error/page-wrong", { replace: true });
+      return;
+    }
 
-      userFetcher.verifyEmail(token)
-        .then((response: any) => {
+    userFetcher.verifyEmail(token)
+      .then((response: any) => {
+        if (isMounted) {
           const account = response.data;
-          navigate("/login", { state: account, replace: true });
-        })
-        .catch((error: any) => {
-          console.error("Error verifying email:", error);
+          toast.success("Email verified successfully! Please login to continue");
+          setTimeout(() => navigate("/login"), 2000);
+        }
+      })
+      .catch((error: any) => {
+        if (isMounted) {
+          toast.error("Error verifying email: " + error.message);
           navigate("/error/page-wrong", { replace: true });
-        });
-    });
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, navigate]);
   return (
-    <div className="container mx-auto p-6 max-w-lg bg-white shadow-md rounded-lg text-center">
-      <p className="text-gray-800">{("verifying")}...</p>
-    </div>
+    <>
+      <Toaster />
+      <div className="container mx-auto p-6 max-w-lg bg-white shadow-md rounded-lg text-center">
+        <p className="text-gray-800">{("verifying")}...</p>
+      </div>
+    </>
   );
 }
 

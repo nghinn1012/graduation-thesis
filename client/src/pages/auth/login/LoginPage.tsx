@@ -18,12 +18,13 @@ const LoginPage: React.FC = () => {
       .login(formData)
       .then((response) => {
         const account = response;
-        console.log(account.user, account.token);
-        auth.setAccount(account.user);
-        auth.setToken(account?.token.toString() || "");
-        console.log(auth);
         toast.success("Login successful");
-        setTimeout(() => navigate("/"), 3000);
+        setTimeout(() => {
+          navigate("/")
+          auth.setAccount(account.user)
+          auth.setToken(account?.token.toString() || "")
+        }, 3000);
+
       })
       .catch((error) => {
         toast.error(error);
