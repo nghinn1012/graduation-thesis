@@ -11,15 +11,11 @@ export interface ManualAccountRegisterInfo {
   password: string;
   name: string;
   confirmPassword: string;
-  username: string;
-  avatar: string;
-  coverImage: string;
-  bio: string;
 }
 
 export const registerService = async (info: ManualAccountRegisterInfo) => {
   try {
-    const { email, password, name, confirmPassword, username, avatar, coverImage, bio } = info;
+    const { email, password, name, confirmPassword } = info;
     const existingUser = await UserModel.findOne({ email: email });
 
     if (existingUser) {
@@ -45,18 +41,7 @@ export const registerService = async (info: ManualAccountRegisterInfo) => {
       password: hashedPassword,
       verify: 0,
       refreshToken: "",
-      username,
-      bio,
     });
-
-    if (avatar) {
-      const uploadedRespone = await cloudinary.uploader.upload(avatar);
-      newUser.avatar = uploadedRespone.secure_url;
-    }
-    if (coverImage) {
-      const uploadedRespone = await cloudinary.uploader.upload(coverImage);
-      newUser.coverImage = uploadedRespone.secure_url
-    }
 
     const token = signToken({
       ...info,

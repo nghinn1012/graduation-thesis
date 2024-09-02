@@ -1,13 +1,11 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Error } from "mongoose";
 import { verifyEmailService, googleLoginService, loginService, refreshTokenService, registerService, ManualAccountRegisterInfo } from "../services/index.services";
-import UserModel from "../db/models/User.models";
-import { InvalidDataError } from "../data/invalid_data.data";
 
 export const registerController = async (req: Request, res: Response) => {
-  const { email, password, name, confirmPassword, username, avatar, coverImage, bio } = req.body;
-  const userData: ManualAccountRegisterInfo = { email, password, name, confirmPassword, username, avatar, coverImage, bio };
-  
+  const { email, password, name, confirmPassword } = req.body;
+  const userData: ManualAccountRegisterInfo = { email, password, name, confirmPassword };
+
   try {
     const newUser = await registerService(userData);
 
