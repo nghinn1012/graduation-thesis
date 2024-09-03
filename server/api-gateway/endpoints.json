@@ -8,7 +8,8 @@
           "exclude": [
               "/users/register",
               "/users/login",
-              "/users/verifyUser"
+              "/users/verifyUser",
+              "/users/google-login"
           ]
       }
   },

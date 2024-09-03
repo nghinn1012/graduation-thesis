@@ -10,6 +10,7 @@ export const userEndpoints = {
   verify: "/users/verifyUser",
   login: "users/login",
   refeshToken: "/users/refresh-token",
+  loginWithGoogle: "/users/google-login",
 } as const;
 
 export interface UserResponseError
@@ -68,11 +69,13 @@ interface LoginInfo {
   password: string;
 }
 
+
 export interface UserFetcher {
   manualRegister(data: ManualRegisterInfo): Promise<UserResponse<AccountInfo>>;
   verifyEmail(token: string): Promise<UserResponse<AccountInfo>>;
   login(data: LoginInfo): Promise<UserResponse<AccountInfo>>;
   refreshToken(token: string): Promise<UserResponse<AccountInfo>>;
+  loginWithGoogle(token: string): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -89,5 +92,8 @@ export const userFetcher: UserFetcher = {
   },
   refreshToken: async (token: string): Promise<UserResponse<AccountInfo>> => {
     return userInstance.post(userEndpoints.refeshToken, { token });
-  }
+  },
+  loginWithGoogle: async (token: string): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(userEndpoints.loginWithGoogle, { idToken: token });
+  },
 };

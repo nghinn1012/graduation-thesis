@@ -7,9 +7,12 @@ import VerifyPage from "./pages/auth/verify/VerifyPage";
 import AppContextProviders from "./context/AppContextProvider";
 import IsNotAuthenticated from "./common/auth/IsNotAuthenticated";
 import IsAuthenticated from "./common/auth/IsAuthenticated";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { GOOGLE_CLIENT_ID } from "./config/config";
 export function App() {
 	return (
 		<AppContextProviders>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <Routes>
           <Route
             path="/"
@@ -39,6 +42,7 @@ export function App() {
 
           <Route path="/verify/*" element={<VerifyPage />} />
         </Routes>
+      </GoogleOAuthProvider>
 		</AppContextProviders>
 	);
 }

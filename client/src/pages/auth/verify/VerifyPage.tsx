@@ -81,7 +81,7 @@ function AccountTokenVerify() {
         if (isMounted) {
           const account = response.data;
           toast.success("Email verified successfully! Please login to continue");
-          setTimeout(() => navigate("/login"), 2000);
+          setTimeout(() => navigate("/login"), 1000);
         }
       })
       .catch((error: any) => {

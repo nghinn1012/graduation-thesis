@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { userFetcher } from "../../../api/user";
 import toast, { Toaster } from "react-hot-toast";
+import { useGoogleLogin } from "@react-oauth/google";
+import { useAuthContext } from "../../../hooks/useAuthContext";
 
 const SignUpPage: React.FC = () => {
+  const auth = useAuthContext();
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -26,6 +29,31 @@ const SignUpPage: React.FC = () => {
         toast.error(error);
       });
   };
+  const handleSuccess = (tokenResponse: any) => {
+    console.log(tokenResponse);
+    try {
+      userFetcher
+      .loginWithGoogle(tokenResponse.credential)
+      .then((response) => {
+        console.log(response);
+        toast.success("Account created successfully");
+        setTimeout(() => {
+          navigate("/"),
+          auth.setAccount(response.user);
+          auth.setToken(response.token.toString() || "")
+        }, 2000);
+      })
+      .catch((error) => {
+        toast.error(error);
+      });
+    } catch (error) {
+      toast.error(error as string);
+    }
+  }
+  const handleOAuth = useGoogleLogin({
+    onSuccess: handleSuccess,
+    onError: () => console.log('Login Failed'),
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -104,7 +132,10 @@ const SignUpPage: React.FC = () => {
           <button className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300" type="submit" onClick={handleSubmit}>
             Sign up
           </button>
-          <button className="w-full border border-gray-300 text-md p-2 rounded-lg mb-6 hover:bg-black hover:text-white">
+          <button
+            onClick={() => handleOAuth()}
+            className="w-full border border-gray-300 text-md p-2 rounded-lg mb-6 hover:bg-black hover:text-white flex items-center justify-center"
+          >
             <img
               src="google.svg"
               alt="Google Sign Up"

@@ -62,6 +62,7 @@ export const googleLoginService = async (idToken: string) => {
       idToken,
       audience: GOOGLE_CLIENT_ID,
     });
+    console.log(ticket);
 
     const payload = ticket.getPayload() as GooglePayload;
 
@@ -85,11 +86,13 @@ export const googleLoginService = async (idToken: string) => {
       await user.save();
 
       return {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+        },
         token,
-        refreshToken,
       };
     } else {
       const password = await hashText(JWT_PRIVATE_KEY);
@@ -99,16 +102,19 @@ export const googleLoginService = async (idToken: string) => {
         email,
         password,
         refreshToken,
+        avatar: payload.picture,
       });
 
       await newUser.save();
 
       return {
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
+        user: {
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          avatar: newUser.avatar,
+        },
         token,
-        refreshToken,
       };
     }
   } catch (error) {

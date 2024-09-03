@@ -4,11 +4,10 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "types": ["vite/client"]
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "vite.config.ts",
-    "src/**/*.ts",
-  ],
+    "src/**/*.ts" 
+  ]
 }
