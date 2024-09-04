@@ -1,0 +1,21 @@
+{
+  "LoginPage": {
+    "l-email": "Email",
+    "l-password": "Mật khẩu",
+    "login-now": "Đăng nhập",
+    "signup": "Đăng ký",
+    "or": "Hoặc",
+    "not-account-yet": "Chưa có tài khoản? ",
+    "invalid-email": "Email không hợp lệ",
+    "require-email": "Email là bắt buộc",
+    "require-password": "Mật khẩu là bắt buộc",
+    "invalid-length-password": "Mật khẩu phải dài ít nhất {0} ký tự",
+    "at-least-one-lower-case": "Mật khẩu phải chứa ít nhất 1 ký tự thường",
+    "at-least-one-upper-case": "Mật khẩu phải chứa ít nhất 1 ký tự in hoa",
+    "at-least-one-digit": "Mật khẩu phải chứa ít nhất 1 ký tự số",
+    "at-least-one-special": "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt",
+    "no-white-space": "Mật khẩu không được chứa khoảng trắng",
+    "no-email-found": "Email không tồn tại",
+    "incorrect-password": "Mật khẩu không chính xác"
+}
+}

@@ -1,39 +1,57 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { userFetcher } from "../../../api/user";
-import toast, { Toaster } from "react-hot-toast";
-import { useAuthContext } from "../../../hooks/useAuthContext";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { userFetcher } from '../../../api/user';
+import toast, { Toaster } from 'react-hot-toast';
+import { useAuthContext } from '../../../hooks/useAuthContext';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import { useI18nContext } from '../../../hooks/useI18nContext';
 
 const LoginPage: React.FC = () => {
   const auth = useAuthContext();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
   const navigate = useNavigate();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of(LoginPage);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    userFetcher
-      .login(formData)
-      .then((response) => {
-        const account = response;
-        toast.success("Login successful");
-        setTimeout(() => {
-          navigate("/")
-          auth.setAccount(account.user)
-          auth.setToken(account?.token.toString() || "")
-        }, 3000);
+  const loginSchema = yup.object({
+    email: yup
+      .string()
+      .required(lang("require-email"))
+      .email(lang("invalid-email")),
+    password: yup
+      .string()
+      .required(lang("require-password"))
+      .matches(/[a-z]/, lang("at-least-one-lower-case"))
+      .matches(/[A-Z]/, lang("at-least-one-upper-case"))
+      .matches(/[0-9]/, lang("at-least-one-digit"))
+      .matches(/[!@#$%^&*(),.?":{}|<>]/, lang("at-least-one-special"))
+      .matches(/^\S*$/, lang("no-white-space"))
+      .min(8, lang("invalid-length-password")),
+  });
 
-      })
-      .catch((error) => {
-        toast.error(error);
-      });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      userFetcher
+        .login(values)
+        .then((response) => {
+          const account = response;
+          toast.success('Login successful');
+          setTimeout(() => {
+            navigate('/');
+            auth.setAccount(account.user);
+            auth.setToken(account?.token.toString() || '');
+          }, 3000);
+        })
+        .catch((error) => {
+          toast.error(error);
+        });
+    },
+  });
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -45,46 +63,56 @@ const LoginPage: React.FC = () => {
           <span className="font-light text-gray-400 mb-8">
             Welcome back! Please enter your details
           </span>
-          <div className="py-4">
-            <label htmlFor="email" className="mb-2 text-md">
-              Email
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md placeholder:font-light placeholder:text-gray-500"
-              name="email"
-              id="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="py-4">
-            <label htmlFor="password" className="mb-2 text-md">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="pass"
-              className="w-full p-2 border border-gray-300 rounded-md placeholder:font-light placeholder:text-gray-500"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="flex justify-between w-full py-4">
-            <div className="mr-24">
-              <input type="checkbox" name="ch" id="ch" className="mr-2" />
-              <span className="text-md">Remember for 30 days</span>
+          <form onSubmit={formik.handleSubmit}>
+            <div className="py-4">
+              <label htmlFor="email" className="mb-2 text-md">
+                Email
+              </label>
+              <input
+                type="text"
+                className={`w-full p-2 border ${formik.touched.email && formik.errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md placeholder:font-light placeholder:text-gray-500`}
+                name="email"
+                id="email"
+                placeholder="Enter your email"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.email && formik.errors.email ? (
+                <div className="text-red-500 text-sm">{formik.errors.email}</div>
+              ) : null}
             </div>
-            <span className="font-bold text-md cursor-pointer">
-              Forgot password
-            </span>
-          </div>
-          <button className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300" onClick={handleSubmit}>
-            Sign in
-          </button>
+            <div className="py-4">
+              <label htmlFor="password" className="mb-2 text-md">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                className={`w-full p-2 border ${formik.touched.password && formik.errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md placeholder:font-light placeholder:text-gray-500`}
+                placeholder="Enter your password"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.password && formik.errors.password ? (
+                <div className="text-red-500 text-sm">{formik.errors.password}</div>
+              ) : null}
+            </div>
+            <div className="flex justify-between w-full py-4">
+              <div className="mr-24">
+                <input type="checkbox" name="remember" id="remember" className="mr-2" />
+                <span className="text-md">Remember for 30 days</span>
+              </div>
+              <span className="font-bold text-md cursor-pointer text-white">
+                Forgot password
+              </span>
+            </div>
+            <button type="submit" className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300">
+              Sign in
+            </button>
+          </form>
           <button className="w-full border border-gray-300 text-md p-2 rounded-lg mb-6 hover:bg-black hover:text-white">
             <img
               src="google.svg"

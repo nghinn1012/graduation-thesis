@@ -1,5 +1,6 @@
 import React from "react";
 import AuthContextProvider from "./AuthContext";
+import I18nContextProvider, { I18nContext } from "./I18nContext";
 
 interface IAppContextProvidersProps {
   children?: React.ReactNode;
@@ -7,8 +8,10 @@ interface IAppContextProvidersProps {
 
 export default function AppContextProviders({ children }: IAppContextProvidersProps) {
   return (
-    <AuthContextProvider>
-      {children}
-    </AuthContextProvider>
+    <I18nContextProvider>
+      <AuthContextProvider>
+        {children}
+      </AuthContextProvider>
+    </I18nContextProvider>
   );
 }
