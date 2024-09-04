@@ -1,6 +1,6 @@
 import React from "react";
 import AuthContextProvider from "./AuthContext";
-import I18nContextProvider, { I18nContext } from "./I18nContext";
+import I18nContextProvider from "./I18nContext";
 
 interface IAppContextProvidersProps {
   children?: React.ReactNode;

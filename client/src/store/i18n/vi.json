@@ -17,5 +17,9 @@
     "no-white-space": "Mật khẩu không được chứa khoảng trắng",
     "no-email-found": "Email không tồn tại",
     "incorrect-password": "Mật khẩu không chính xác"
-}
+  },
+  "Footer": {
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  }
 }

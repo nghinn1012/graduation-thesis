@@ -4,8 +4,9 @@ import { userFetcher } from "../../../api/user";
 import toast, { Toaster } from "react-hot-toast";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useAuthContext } from "../../../hooks/useAuthContext";
+import ContentFooter from "../../../components/footer/ContentFooter";
 
-const SignUpPage: React.FC = () => {
+const SignUpPage = () => {
   const auth = useAuthContext();
   const [formData, setFormData] = useState({
     email: "",
@@ -60,7 +61,8 @@ const SignUpPage: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="min-h-screen">
+    <div className="flex items-center justify-center min-h-[91vh] bg-gray-100">
       <div className="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
         {/* Left Side */}
         <Toaster />
@@ -160,6 +162,8 @@ const SignUpPage: React.FC = () => {
           />
         </div>
       </div>
+    </div>
+    <ContentFooter/>
     </div>
   );
 };

@@ -10,6 +10,7 @@ export type I18nReactComponent =
   | "SignUpForm"
   | "LoginForm"
   | "VerifyForm"
+  | "Footer"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

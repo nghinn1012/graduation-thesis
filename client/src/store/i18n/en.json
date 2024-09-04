@@ -1,0 +1,26 @@
+{
+
+  "LoginPage": {
+    "l-email": "Email",
+    "l-password": "Password",
+    "login-now": "Log In",
+    "signup": "Sign Up",
+    "or": "Or",
+    "not-account-yet": "Don’t have an account? ",
+    "invalid-email": "Invalid email address",
+    "require-email": "Email is required",
+    "require-password": "Password is required",
+    "invalid-length-password": "Password must be at least {0} characters long",
+    "at-least-one-lower-case": "Password must contain at least 1 lowercase letter",
+    "at-least-one-upper-case": "Password must contain at least 1 uppercase letter",
+    "at-least-one-digit": "Password must contain at least 1 digit",
+    "at-least-one-special": "Password must contain at least 1 special character",
+    "no-white-space": "Password must not contain any whitespace",
+    "no-email-found": "Email not found",
+    "incorrect-password": "Incorrect password"
+  },
+  "Footer": {
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  }
+}
