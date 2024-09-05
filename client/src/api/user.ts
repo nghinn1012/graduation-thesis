@@ -91,7 +91,7 @@ export const userFetcher: UserFetcher = {
     return userInstance.post(userEndpoints.login, data);
   },
   refreshToken: async (token: string): Promise<UserResponse<AccountInfo>> => {
-    return userInstance.post(userEndpoints.refeshToken, { token });
+    return userInstance.post(userEndpoints.refeshToken, { refreshToken: token });
   },
   loginWithGoogle: async (token: string): Promise<UserResponse<AccountInfo>> => {
     return userInstance.post(userEndpoints.loginWithGoogle, { idToken: token });

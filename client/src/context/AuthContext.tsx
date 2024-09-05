@@ -70,6 +70,7 @@ export default function AuthContextProvider({
   const logout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("account");
+    localStorage.removeItem("acccount");
     sessionStorage.clear();
     setAccount(undefined);
     setAuth(undefined);

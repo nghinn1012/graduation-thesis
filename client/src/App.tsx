@@ -8,6 +8,8 @@ import IsNotAuthenticated from "./common/auth/IsNotAuthenticated";
 import IsAuthenticated from "./common/auth/IsAuthenticated";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GOOGLE_CLIENT_ID } from "./config/config";
+import Sidebar from "./components/common/Sidebar";
+import RightPanel from "./components/common/RightPanel";
 export function App() {
 	return (
 		<AppContextProviders>
@@ -17,7 +19,11 @@ export function App() {
             path="/"
             element={
               <IsAuthenticated>
-								<HomePage />
+                <div className='flex max-w-7xl mx-auto'>
+                  <Sidebar/>
+                  <HomePage />
+                  <RightPanel/>
+                </div>
               </IsAuthenticated>
             }
           />
