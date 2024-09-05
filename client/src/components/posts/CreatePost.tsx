@@ -40,11 +40,16 @@ const CreatePost: React.FC = () => {
     };
 
     const removeImage = (index: number) => {
-        // e.preventDefault();
-        setImages((prevImages) => prevImages.filter((_, i) => i !== index));
-        if (images.length === 1 && imgRef.current) {
-            imgRef.current.value = '';
-        }
+        setImages((prevImages) => {
+            const newImages = prevImages.filter((_, i) => i !== index);
+
+            // Clear input file if no images are left
+            if (newImages.length === 0 && imgRef.current) {
+                imgRef.current.value = ''; // Clear the file input
+            }
+
+            return newImages;
+        });
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,10 +58,16 @@ const CreatePost: React.FC = () => {
         setAbout("");
         setImages([]);
         if (imgRef.current) {
-          imgRef.current.value = '';
+            imgRef.current.value = '';
         }
         alert("Post created successfully");
         setIsModalOpen(false);
+    };
+
+    const handleClick = () => {
+      if (imgRef.current) {
+          imgRef.current.click();
+      }
     };
 
     return (
@@ -76,93 +87,110 @@ const CreatePost: React.FC = () => {
                 />
             </div>
 
-            {/* DaisyUI Multi-Tab Modal */}
-            <input type="checkbox" id="create-post-modal" className="modal-toggle" checked={isModalOpen} onChange={() => setIsModalOpen(prev => !prev)} />
-            <label htmlFor="create-post-modal" className="modal cursor-pointer">
-                <label className="modal-box relative w-full max-w-3xl" htmlFor="">
-                    <div className='tabs'>
-                        <a
-                            className={`tab tab-lifted ${activeTab === 0 ? 'tab-active' : ''}`}
-                            onClick={() => setActiveTab(0)}
+            {/* Modal with close button */}
+            {isModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="modal-overlay fixed inset-0 bg-black opacity-50" onClick={() => setIsModalOpen(false)}></div>
+                    <div className="modal-content relative bg-white p-6 rounded-lg max-w-3xl w-full">
+                        <button
+                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                            onClick={() => setIsModalOpen(false)}
                         >
-                            The basics
-                        </a>
-                        <a
-                            className={`tab tab-lifted ${activeTab === 1 ? 'tab-active' : ''}`}
-                            onClick={() => setActiveTab(1)}
-                        >
-                            Recipe
-                        </a>
-                    </div>
-                    <form className='flex flex-col gap-4 w-full mt-4' onSubmit={handleSubmit}>
-                        {activeTab === 0 && (
-                            <div>
-                              <div className="mt-4">
-                                <label className="block mb-2 text-sm">Upload Photos</label>
-                                <input
-                                    type="file"
-                                    className="file-input file-input-bordered w-full"
-                                    onChange={handleImgChange}
-                                    multiple
-                                    ref={imgRef}
-                                />
-                                <div className='flex justify-center items-center mt-4 '>
-                                    <div className={`carousel rounded-box w {images.length? > 0 ! "h-[400px]" : ""}`}>
-                                        {images.map((img, index) => (
-                                            <div key={index} className='carousel-item relative w-full'>
-                                                <IoCloseSharp
-                                                    className='absolute top-2 right-3 z-50 text-white bg-gray-300 rounded-full w-5 h-5 cursor-pointer'
-                                                    onClick={() => removeImage(index)}
-                                                />
-                                                <img src={img} alt={`Selected ${index}`} className='w-full mx-auto h-[400px] object-contain' />
+                            <IoCloseSharp className="w-6 h-6" />
+                        </button>
+                        <div className='tabs'>
+                            <a
+                                className={`tab tab-lifted ${activeTab === 0 ? 'tab-active' : ''}`}
+                                onClick={() => setActiveTab(0)}
+                            >
+                                The basics
+                            </a>
+                            <a
+                                className={`tab tab-lifted ${activeTab === 1 ? 'tab-active' : ''}`}
+                                onClick={() => setActiveTab(1)}
+                            >
+                                Recipe
+                            </a>
+                        </div>
+                        <form className='flex flex-col gap-4 w-full mt-4' onSubmit={handleSubmit}>
+                            {activeTab === 0 && (
+                                <div>
+                                    <div className="mt-4">
+                                      <div className="flex flex-row gap-4">
+                                        {/* <input
+                                            type="file"
+                                            className="file-input file-input-bordered w-full"
+                                            onChange={handleImgChange}
+                                            multiple
+                                            ref={imgRef}
+                                        /> */}
+                                         <div>
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary justify-center align-center"
+                                                onClick={handleClick}
+                                            >
+                                              Add Photos
+                                            </button>
+                                          </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                onChange={handleImgChange}
+                                                multiple
+                                                ref={imgRef}
+                                            />
+                                        </div>
+                                        <div className='flex justify-center items-center mt-4'>
+                                          <div className={`carousel rounded-box w-full ${images.length > 0 ? "h-[400px]" : ""}`}>
+                                                {images.map((img, index) => (
+                                                    <div key={index} className='carousel-item relative w-full'>
+                                                        <IoCloseSharp
+                                                            className='absolute top-2 right-3 z-50 text-white bg-gray-300 rounded-full w-5 h-5 cursor-pointer'
+                                                            onClick={() => removeImage(index)}
+                                                        />
+                                                        <img src={img} alt={`Selected ${index}`} className='w-full h-[400px] object-contain' />
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <label className="block mb-2 text-sm">Title</label>
+                                        <input
+                                            type="text"
+                                            className="input input-bordered w-full"
+                                            placeholder="Enter post title"
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="mt-4">
+                                        <label className="block mb-2 text-sm">About</label>
+                                        <textarea
+                                            className="textarea textarea-bordered w-full"
+                                            placeholder="Tell us about your post"
+                                            value={about}
+                                            onChange={(e) => setAbout(e.target.value)}
+                                        />
                                     </div>
                                 </div>
-                              </div>
-                                <div className="mt-4">
-                                    <label className="block mb-2 text-sm">Title</label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered w-full"
-                                        placeholder="Enter post title"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                    />
+                            )}
+                            {activeTab === 1 && (
+                                <div className='flex flex-wrap gap-4'>
+                                    {/* Content for Recipe tab */}
                                 </div>
-                                <div className="mt-4">
-                                    <label className="block mb-2 text-sm">About</label>
-                                    <textarea
-                                        className="textarea textarea-bordered w-full"
-                                        placeholder="Tell us about your post"
-                                        value={about}
-                                        onChange={(e) => setAbout(e.target.value)}
-                                    />
-                                </div>
+                            )}
+                            <div className='flex ml-[90%] justify-between py-2 border-t-gray-300'>
+                                <button className='btn btn-primary rounded-full btn-sm text-white px-4' type='submit'>
+                                    {isPending ? "Posting..." : "Post"}
+                                </button>
                             </div>
-                        )}
-                        {activeTab === 1 && (
-                            <div className='flex flex-wrap gap-4'>
-                            {/* //     {images.map((img, index) => (
-                            //         <div key={index} className='relative w-72 mx-auto'>
-                            //             <IoCloseSharp
-                            //                 className='absolute top-0 right-0 text-white bg-gray-300 rounded-full w-5 h-5 cursor-pointer'
-                            //                 onClick={() => removeImage(index)}
-                            //             />
-                            //             <img src={img} alt={`Selected ${index}`} className='w-full mx-auto h-72 object-contain rounded' />
-                            //         </div>
-                            //     ))} */}
-                            </div>
-                        )}
-                        <div className='flex justify-between border-t py-2 border-t-gray-300'>
-                            <button className='ml-[90%] btn btn-primary rounded-full btn-sm text-white px-4' type='submit'>
-                                {isPending ? "Posting..." : "Post"}
-                            </button>
-                        </div>
-                        {isError && <div className='text-red-500'>Something went wrong</div>}
-                    </form>
-                </label>
-            </label>
+                            {isError && <div className='text-red-500'>Something went wrong</div>}
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

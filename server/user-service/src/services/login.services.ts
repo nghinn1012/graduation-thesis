@@ -143,10 +143,10 @@ export const refreshTokenService = async (refreshToken: string) => {
     user.refreshToken = newRefreshToken;
     await user.save();
 
-    return { token: newToken };
+    return { user, token: newToken };
   } catch (error) {
     throw new InvalidDataError({
-      message: "Could not refresh token",
+      message: (error as Error).message || "Could not refresh token",
     });
   }
 };

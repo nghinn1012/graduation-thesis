@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { userFetcher } from "../api/user";
+import { LoginInfo, userFetcher } from "../api/user";
 import { IAccountInfo } from "../data/interface_data/account_info";
 
 interface IAuthContextProviderProps {
@@ -70,7 +70,6 @@ export default function AuthContextProvider({
   const logout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("account");
-    localStorage.removeItem("acccount");
     sessionStorage.clear();
     setAccount(undefined);
     setAuth(undefined);
@@ -101,8 +100,8 @@ export default function AuthContextProvider({
     userFetcher
       .refreshToken(auth.token)
       .then((result) => {
-        const account = result.data;
-        setAccount(account);
+        const account = result.data as unknown as IAccountInfo;
+        setAccount(account.user as unknown as IAccountInfo);
         setToken(account?.token);
         localStorage.setItem("account", JSON.stringify(account));
         localStorage.setItem("auth", JSON.stringify(auth));
@@ -114,7 +113,7 @@ export default function AuthContextProvider({
 
   useEffect(() => {
     const timeOut = timeOutRef.current;
-    if (timeOut != null) {
+    if (timeOut != undefined) {
       clearTimeout(timeOut);
     }
     if (auth && account) {
@@ -125,6 +124,7 @@ export default function AuthContextProvider({
           refreshToken();
         }, 40 * 60 * 1000 - auth.updatedAt);
       } else if (delta > 59 * 60 * 1000) {
+        console.log("LOGOUT");
         logout();
       }
     }

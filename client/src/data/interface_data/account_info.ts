@@ -9,10 +9,11 @@ export interface IUserCredential {
   verify: number;
 }
 
-export interface IUser extends IUserPersonal, IUserCredential {}
+export interface IUser extends IUserPersonal, IUserCredential { }
 
 export interface IAccountInfo
   extends Partial<Pick<IUserCredential, "email">>,
-    Partial<Pick<IUserPersonal, "avatar" | "name">> {
+  Partial<Pick<IUserPersonal, "avatar" | "name">> {
   token: string;
+  user: unknown;
 }

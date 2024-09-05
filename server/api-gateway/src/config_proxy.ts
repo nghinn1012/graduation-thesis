@@ -40,7 +40,7 @@ export const withProxy = (app: Express): void => {
       return next();
     }
     if (!excludeList.has(pathName)) {
-      const verified = verifyToken(req.headers.authorization);
+      const verified = verifyToken(req.headers.authorization?.split(" ")[1]);
       if (verified == null || typeof verified === "string") {
         return res.status(400).json({
           err: {

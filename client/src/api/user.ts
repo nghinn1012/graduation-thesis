@@ -55,6 +55,7 @@ interface AccountInfo {
   token: string;
   categories: string[];
   avatar?: string;
+  refreshToken: string;
 }
 
 interface ManualRegisterInfo {
@@ -64,7 +65,7 @@ interface ManualRegisterInfo {
   confirmPassword: string;
 }
 
-interface LoginInfo {
+export interface LoginInfo {
   email: string;
   password: string;
 }
@@ -91,7 +92,14 @@ export const userFetcher: UserFetcher = {
     return userInstance.post(userEndpoints.login, data);
   },
   refreshToken: async (token: string): Promise<UserResponse<AccountInfo>> => {
-    return userInstance.post(userEndpoints.refeshToken, { refreshToken: token });
+    return userInstance.post(userEndpoints.refeshToken,
+      { refreshToken: token },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
   },
   loginWithGoogle: async (token: string): Promise<UserResponse<AccountInfo>> => {
     return userInstance.post(userEndpoints.loginWithGoogle, { idToken: token });
