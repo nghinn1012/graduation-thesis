@@ -124,7 +124,6 @@ export default function AuthContextProvider({
           refreshToken();
         }, 40 * 60 * 1000 - auth.updatedAt);
       } else if (delta > 59 * 60 * 1000) {
-        console.log("LOGOUT");
         logout();
       }
     }

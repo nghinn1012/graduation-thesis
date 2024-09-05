@@ -1,5 +1,5 @@
 import { useState } from "react";
-import CreatePost from "../../components/posts/CreatePost";
+import CreatePostBox from "../../components/posts/CreatePostBox";
 
 const HomePage = () => {
 	const [feedType, setFeedType] = useState("forYou");
@@ -32,7 +32,7 @@ const HomePage = () => {
 				</div>
 
 				{/*  CREATE POST INPUT */}
-				<CreatePost />
+				<CreatePostBox />
 
 				{/* POSTS */}
 				{/* <Posts /> */}
