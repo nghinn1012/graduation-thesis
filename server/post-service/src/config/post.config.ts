@@ -24,3 +24,7 @@ export const POST_SERVICE_RPC_QUEUE = process.env.POST_SERVICE_RPC_QUEUE as stri
 
 export const JWT_PRIVATE_KEY = (process.env.JWT_PRIVATE_KEY || "json-web-token") as string;
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+
+export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME as string;
+export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY as string;
+export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET as string;

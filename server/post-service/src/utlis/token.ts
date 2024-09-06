@@ -4,7 +4,8 @@ import { JWT_PRIVATE_KEY } from "../config/post.config";
 
 export const verifyToken = (request: AuthRequest): IAuthContent => {
   const jsonToken = request.headers.authorization?.split(" ")[1];
-  if (!jsonToken) {
+  console.log(jsonToken == undefined);
+  if (jsonToken == undefined) {
     throw new UnauthorizationError({
       message: "No token found",
       data: {
@@ -16,9 +17,10 @@ export const verifyToken = (request: AuthRequest): IAuthContent => {
 
   try {
     const decoded = jwt.verify(jsonToken, JWT_PRIVATE_KEY) as IAuthContent;
+    console.log(decoded);
     if (!decoded.data.userId || !decoded.data.email) {
       throw new UnauthorizationError({
-        message: "Invalid token",
+        message: "Invalid token check server",
         data: {
           reason: "invalid-token",
           target: "token",
@@ -29,11 +31,7 @@ export const verifyToken = (request: AuthRequest): IAuthContent => {
     return decoded;
   } catch (error) {
     throw new UnauthorizationError({
-      message: "Invalid token",
-      data: {
-        reason: (error as Error).message,
-        target: "token",
-      },
+      message: (error as Error).message,
     });
   }
 };

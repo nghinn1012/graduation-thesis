@@ -4,11 +4,15 @@ import cors from 'cors';
 import { connectDB } from "./src/db";
 import { NOTIFICATION_PORT } from "./src/config/post.config";
 import postRouter from "./src/routes/postRoutes";
+import { connectCloudinary } from "./src/db/cloudinary.db";
 
 const app = express();
 app.use(cors());
 
 connectDB();
+
+connectCloudinary();
+
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));

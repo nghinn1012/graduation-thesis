@@ -1,7 +1,7 @@
-import { Types } from "mongoose";
 import postModel from "../models/postModel";
 import { rpcGetUser, Id } from "../services/rpc.services";
 import { IPost, InternalError, autoAssignSteps } from "../data/index";
+import { uploadImageToCloudinary } from "./imagesuploader.services";
 
 export const createPostService = async (data: IPost) => {
   try {
@@ -15,6 +15,31 @@ export const createPostService = async (data: IPost) => {
         },
       });
     }
+
+    if (data.images) {
+      const uploadedImages = await Promise.all(
+        data.images.map((image) => uploadImageToCloudinary(image))
+      );
+      data.images = uploadedImages;
+    }
+
+    if (data.instructions) {
+      data.instructions = await Promise.all(
+        data.instructions.map(async (instruction) => {
+          if (instruction.image) {
+            const uploadedImage = await uploadImageToCloudinary(
+              instruction.image
+            );
+            return {
+              ...instruction,
+              image: uploadedImage,
+            };
+          }
+          return instruction;
+        })
+      );
+    }
+
     data.instructions = autoAssignSteps(data.instructions);
 
     const post = await postModel.create({
@@ -22,7 +47,6 @@ export const createPostService = async (data: IPost) => {
     });
 
     return post;
-
   } catch (error) {
     throw new InternalError({
       data: {

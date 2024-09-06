@@ -4,7 +4,6 @@ import UserModel from "../db/models/User.models";
 import { validatePassword } from "../data/validation.data";
 import { hashText } from "../utlis/bcrypt";
 import { v2 as cloudinary } from "cloudinary";
-import passport from "passport";
 
 export interface UpdateDataInfo {
   password: string;
@@ -62,7 +61,9 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
       if (user.avatar) {
         await cloudinary.uploader.destroy(user.avatar.split("/").pop()!.split(".")![0]);
       }
-      const uploadedRespone = await cloudinary.uploader.upload(avatar);
+      const uploadedRespone = await cloudinary.uploader.upload(avatar, {
+        folder: "users",
+      });
       await UserModel.findByIdAndUpdate(userId, {
         avatar: uploadedRespone.secure_url
       }, { new: true, runValidators: true });
@@ -71,7 +72,9 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
       if (user.coverImage) {
         await cloudinary.uploader.destroy(user.coverImage.split("/").pop()!.split(".")![0]);
       }
-      const uploadedRespone = await cloudinary.uploader.upload(coverImage);
+      const uploadedRespone = await cloudinary.uploader.upload(coverImage, {
+        folder: "users",
+      });
       await UserModel.findByIdAndUpdate(userId, {
         coverImage: uploadedRespone.secure_url
       }, { new: true, runValidators: true });

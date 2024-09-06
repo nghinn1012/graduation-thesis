@@ -9,7 +9,7 @@ const app: Express = express();
 app.use(cors());
 app.use(
   express.json({
-    limit: "10000kb",
+    limit: "800000kb",
   })
 );
 withProxy(app);

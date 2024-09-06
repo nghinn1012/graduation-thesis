@@ -52,7 +52,6 @@ export const withProxy = (app: Express): void => {
           },
         });
       }
-      req.headers.authorization = JSON.stringify(verified.data);
       console.log(req.originalUrl, req.url, req.baseUrl);
     }
     return next();

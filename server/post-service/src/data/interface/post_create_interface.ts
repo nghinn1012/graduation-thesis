@@ -1,3 +1,14 @@
+export interface IIngredient {
+  name: string;
+  quantity: string;
+}
+
+export interface IInstruction {
+  step: number;
+  description: string;
+  image?: string;
+}
+
 export interface IPost {
   _id: string;
   author: string;
@@ -10,14 +21,4 @@ export interface IPost {
   instructions: IInstruction[];
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface IIngredient {
-  name: string;
-  quantity: string;
-}
-
-export interface IInstruction {
-  step: number;
-  description: string;
 }

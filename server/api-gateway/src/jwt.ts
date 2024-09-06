@@ -7,8 +7,9 @@ export const verifyToken = (
   if (token == null) return null;
   let result: string | JwtPayload | null = null;
   try {
-    result = jwt.verify(token, JWT_PRIVATE_KEY);
+    result = jwt.verify(token ?? "", JWT_PRIVATE_KEY);
   } catch (error) {
+    console.error(error);
   } finally {
     return result;
   }
