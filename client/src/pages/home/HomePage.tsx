@@ -1,5 +1,6 @@
 import { useState } from "react";
 import CreatePostBox from "../../components/posts/CreatePostBox";
+import React from "react";
 
 const HomePage = () => {
 	const [feedType, setFeedType] = useState("forYou");

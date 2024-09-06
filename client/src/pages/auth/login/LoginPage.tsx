@@ -7,6 +7,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import ContentFooter from '../../../components/footer/ContentFooter';
+import React from 'react';
 
 const LoginPage = () => {
   const auth = useAuthContext();
@@ -44,11 +45,8 @@ const LoginPage = () => {
         .then((response) => {
           const account = response;
           toast.success('Login successful');
-          setTimeout(() => {
-            navigate('/');
-            auth.setAccount(account.user);
-            auth.setToken(account?.token.toString() || '');
-          }, 3000);
+          auth.setAccount(account.user);
+          auth.setToken(account?.token.toString() || '');
         })
         .catch((error) => {
           toast.error(error);

@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { LoginInfo, userFetcher } from "../api/user";
+import { userFetcher } from "../api/user";
 import { IAccountInfo } from "../data/interface_data/account_info";
 
 interface IAuthContextProviderProps {
@@ -100,11 +100,10 @@ export default function AuthContextProvider({
     userFetcher
       .refreshToken(auth.token)
       .then((result) => {
-        const account = result.data as unknown as IAccountInfo;
-        setAccount(account.user as unknown as IAccountInfo);
-        setToken(account?.token);
-        localStorage.setItem("account", JSON.stringify(account));
-        localStorage.setItem("auth", JSON.stringify(auth));
+        setAccount(result.user as unknown as IAccountInfo);
+        setToken(result?.token as unknown as string);
+        localStorage.setItem("account", JSON.stringify(result.user));
+        localStorage.setItem("auth", JSON.stringify(result?.token));
       })
       .catch((error) => {
         console.error(error);
@@ -113,21 +112,42 @@ export default function AuthContextProvider({
 
   useEffect(() => {
     const timeOut = timeOutRef.current;
-    if (timeOut != undefined) {
+    console.log(timeOut);
+    if (timeOut) {
       clearTimeout(timeOut);
     }
+
     if (auth && account) {
       const delta = Date.now() - auth.updatedAt;
-      if (delta >= 40 * 60 * 1000 && delta <= 59 * 60 * 1000) {
+      const refreshTime = 45 * 60 * 1000;
+      const expiryTime = 59 * 60 * 1000;
+
+      if (delta >= refreshTime && delta <= expiryTime) {
         refreshToken();
+        console.log("Token refreshed");
+
         timeOutRef.current = setTimeout(() => {
           refreshToken();
-        }, 40 * 60 * 1000 - auth.updatedAt);
-      } else if (delta > 59 * 60 * 1000) {
+          console.log("Token refreshed again");
+        }, refreshTime);
+      } else if (delta > expiryTime) {
+        console.log("Token expired");
         logout();
+      } else {
+        timeOutRef.current = setTimeout(() => {
+          refreshToken();
+          console.log("Token refreshed from initial setup");
+        }, refreshTime - delta);
       }
     }
-  }, [account, auth, refreshToken]);
+
+    return () => {
+      const timeOut = timeOutRef.current;
+      if (timeOut) {
+        clearTimeout(timeOut);
+      }
+    };
+  });
 
   return (
     <AuthenticationContext.Provider

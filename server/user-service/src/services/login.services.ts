@@ -137,8 +137,8 @@ export const refreshTokenService = async (refreshToken: string) => {
       });
     }
 
-    const newToken = signToken({ userId: user._id });
-    const newRefreshToken = signRefreshToken({ userId: user._id });
+    const newToken = signToken({ userId: user._id, email: user.email });
+    const newRefreshToken = signRefreshToken({ userId: user._id, email: user.email });
 
     user.refreshToken = newRefreshToken;
     await user.save();

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import React from 'react';
 import { userFetcher } from '../../../api/user';
 import toast, { Toaster } from 'react-hot-toast';
-import { response } from 'express';
 
 interface IAccountInfo {
   email: string;
