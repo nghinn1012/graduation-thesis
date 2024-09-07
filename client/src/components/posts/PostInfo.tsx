@@ -1,11 +1,14 @@
-import { FaRegComment, FaRegHeart, FaRegBookmark, FaTrash } from "react-icons/fa";
+import {
+  FaRegComment,
+  FaRegHeart,
+  FaRegBookmark,
+  FaTrash,
+} from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import React from "react";
-import { UserInfo } from "os";
-import { AccountInfo, userFetcher, UserResponse } from "../../api/user";
-import { useAuthContext } from "../../hooks/useAuthContext";
+import { AccountInfo, userFetcher } from "../../api/user";
 
 interface Ingredient {
   name: string;
@@ -44,6 +47,22 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const formattedDate = "1h";
   const isCommenting = false;
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const goToPrevious = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    const newIndex =
+      currentIndex === 0 ? post.images.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
+  };
+
+  const goToNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    const newIndex =
+      currentIndex === post.images.length - 1 ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+  };
+
   const handleDeletePost = () => {};
   const handlePostComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +88,10 @@ const Post: React.FC<PostProps> = ({ post }) => {
           console.log("Token not found");
           return;
         }
-        const response = await userFetcher.getUserById(post.author, JSON.parse(token).token);
+        const response = await userFetcher.getUserById(
+          post.author,
+          JSON.parse(token).token
+        );
         setPostAuthor(response as unknown as AccountInfo);
       } catch (error) {
         console.error("Failed to fetch post author:", error);
@@ -77,14 +99,16 @@ const Post: React.FC<PostProps> = ({ post }) => {
     };
 
     fetchAuthor();
-  }, [isReady, post.author]); 
-
+  }, [isReady, post.author]);
 
   return (
     <>
       <div className="flex gap-2 items-start p-4 border-b border-gray-300">
         <div className="avatar">
-          <Link to={`/profile/${postAuthor?.username}`} className="w-8 rounded-full overflow-hidden">
+          <Link
+            to={`/profile/${postAuthor?.username}`}
+            className="w-8 rounded-full overflow-hidden"
+          >
             <img src={postAuthor?.avatar || "/boy1.png"} alt="Profile" />
           </Link>
         </div>
@@ -94,41 +118,76 @@ const Post: React.FC<PostProps> = ({ post }) => {
               {postAuthor?.name}
             </Link>
             <span className="text-gray-300 flex gap-1 text-sm">
-              <Link to={`/profile/${postAuthor?.username}`}>@{postAuthor?.username}</Link>
+              <Link to={`/profile/${postAuthor?.username}`}>
+                @{postAuthor?.username}
+              </Link>
               <span>·</span>
               <span>{formattedDate}</span>
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                <FaTrash className="cursor-pointer hover:text-red-500" onClick={handleDeletePost} />
+                <FaTrash
+                  className="cursor-pointer hover:text-red-500"
+                  onClick={handleDeletePost}
+                />
               </span>
             )}
           </div>
           <div className="flex flex-col gap-3 overflow-hidden">
             <span>{post.title}</span>
-            <div className="carousel rounded-box">
+            <div className="carousel rounded-box w-full relative">
               {post.images.map((img, index) => (
-                <img
+                <div
                   key={index}
-                  src={img}
-                  className="carousel-item h-80 object-contain rounded-lg border border-gray-300"
-                  alt={`Post Image ${index + 1}`}
-                />
+                  id={`slide${index + 1}`}
+                  className={`carousel-item w-full ${
+                    currentIndex === index ? "block" : "hidden"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    className="h-80 w-full rounded-lg border border-gray-300"
+                    alt={`Post Image ${index + 1}`}
+                  />
+                </div>
               ))}
+
+              {/* Navigation Buttons */}
+              {post.images.length > 1 && (
+                <div className="absolute inset-0 flex items-center justify-between px-2">
+                  <button
+                    onClick={goToPrevious}
+                    className="btn btn-sm btn-circle"
+                  >
+                    ❮
+                  </button>
+                  <button onClick={goToNext} className="btn btn-sm btn-circle">
+                    ❯
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
           <div className="flex justify-between mt-3">
             <div className="flex gap-4 items-center w-2/3 justify-between">
               <div className="flex gap-1 items-center cursor-pointer group">
                 <FaRegComment className="w-4 h-4 text-slate-500 group-hover:text-sky-400" />
-                <span className="text-sm text-slate-500 group-hover:text-sky-400">0</span>
+                <span className="text-sm text-slate-500 group-hover:text-sky-400">
+                  0
+                </span>
               </div>
 
-              <dialog id={`comments_modal${post._id}`} className="modal border-none outline-none">
+              <dialog
+                id={`comments_modal${post._id}`}
+                className="modal border-none outline-none"
+              >
                 <div className="modal-box rounded border border-gray-600">
                   <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
                   <div className="flex flex-col gap-3 max-h-60 overflow-auto">
-                    <p className="text-sm text-slate-500">No comments yet 🤔 Be the first one 😉</p>
+                    <p className="text-sm text-slate-500">
+                      No comments yet 🤔 Be the first one 😉
+                    </p>
                   </div>
                   <form
                     className="flex gap-2 items-center mt-4 border-t border-gray-600 pt-2"
@@ -155,13 +214,20 @@ const Post: React.FC<PostProps> = ({ post }) => {
               </dialog>
               <div className="flex gap-1 items-center group cursor-pointer">
                 <BiRepost className="w-6 h-6 text-slate-500 group-hover:text-green-500" />
-                <span className="text-sm text-slate-500 group-hover:text-green-500">0</span>
+                <span className="text-sm text-slate-500 group-hover:text-green-500">
+                  0
+                </span>
               </div>
-              <div className="flex gap-1 items-center group cursor-pointer" onClick={handleLikePost}>
+              <div
+                className="flex gap-1 items-center group cursor-pointer"
+                onClick={handleLikePost}
+              >
                 {!isLiked && (
                   <FaRegHeart className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500" />
                 )}
-                {isLiked && <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500" />}
+                {isLiked && (
+                  <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500" />
+                )}
                 <span
                   className={`text-sm text-slate-500 group-hover:text-pink-500 ${
                     isLiked ? "text-pink-500" : ""

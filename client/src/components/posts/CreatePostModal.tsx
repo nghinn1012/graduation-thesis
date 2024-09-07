@@ -10,6 +10,7 @@ interface PostModalProps {
     title: string,
     about: string,
     images: string[],
+    hashtags: string[],
     timeToTake: number,
     servings: number,
     ingredients: { name: string; quantity: string }[],
@@ -31,7 +32,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [title, setTitle] = useState<string>("");
   const [about, setAbout] = useState<string>("");
   const [images, setImages] = useState<string[]>([]);
-  const imgRef = useRef<HTMLInputElement | null>(null);
+  const imgRef = useRef<HTMLInputElement>(null);
 
   const [ingredients, setIngredients] = useState<
     { name: string; quantity: string }[]
@@ -47,6 +48,10 @@ const CreatePostModal: React.FC<PostModalProps> = ({
 
   const [timeToTake, setTimeToTake] = useState<number>(0);
   const [servings, setServings] = useState<number>(0);
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [newHashtag, setNewHashtag] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null); // Fixed ref type
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleInstructionChange = (
     index: number,
@@ -110,16 +115,41 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     });
   };
 
+  const goToPrevious = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
+  };
+
+  const goToNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+  };
+
   const removeImage = (index: number) => {
     setImages((prevImages) => {
       const newImages = prevImages.filter((_, i) => i !== index);
 
       if (newImages.length === 0 && imgRef.current) {
         imgRef.current.value = "";
+        setCurrentIndex(0);
+      } else if (currentIndex >= newImages.length) {
+        setCurrentIndex(newImages.length - 1);
       }
 
       return newImages;
     });
+  };
+
+
+  const removeImageInstruction = (index: number) => {
+    const updatedInstructions = instructions.map((instruction, i) =>
+      i === index
+        ? { ...instruction, image: undefined }
+        : instruction
+    );
+    setInstructions(updatedInstructions);
   };
 
   const handleRemoveInputField = (index: number) => {
@@ -129,11 +159,28 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   };
 
   const handleTimeToTake = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTimeToTake(parseInt(e.target.value));
+    setTimeToTake(parseInt(e.target.value, 10));
   };
 
   const handleServings = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setServings(parseInt(e.target.value));
+    setServings(parseInt(e.target.value, 10));
+  };
+
+  const addHashtag = () => {
+    if (newHashtag && !hashtags.includes(newHashtag)) {
+      setHashtags([...hashtags, newHashtag]);
+      setNewHashtag("");
+    }
+  };
+
+  const removeHashtag = (index: number) => {
+    setHashtags(hashtags.filter((_, i) => i !== index));
+  };
+
+  const handleClickIcon = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -144,12 +191,12 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         title,
         about,
         images,
+        hashtags,
         timeToTake,
         servings,
         ingredients,
         instructions
       );
-      isOpen = !isOpen;
       setTitle("");
       setAbout("");
       setImages([]);
@@ -158,12 +205,13 @@ const CreatePostModal: React.FC<PostModalProps> = ({
       setInstructions([{ description: "", image: "" }]);
       setTimeToTake(0);
       setServings(0);
+      setHashtags([]);
+      setNewHashtag("");
       setActiveTab(0);
     } catch (error) {
       console.error("Error during submit:", error);
     }
   };
-
 
   const handleClick = () => {
     if (imgRef.current) {
@@ -186,14 +234,14 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         <div className="tabs tabs-boxed mt-6" role="tablist">
           <a
             role="tab"
-            className={`tab tab-lifted ${activeTab === 0 ? "tab-active" : ""}`}
+            className={`tab tab-lifted ${activeTab === 0 ? "tab-active active-tab" : ""}`}
             onClick={() => setActiveTab(0)}
           >
             The basics
           </a>
           <a
             role="tab"
-            className={`tab tab-lifted ${activeTab === 1 ? "tab-active" : ""}`}
+            className={`tab tab-lifted ${activeTab === 1 ? "tab-active active-tab" : ""}`}
             onClick={() => setActiveTab(1)}
           >
             Recipe
@@ -214,7 +262,16 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               handleClick={handleClick}
               handleImgChange={handleImgChange}
               removeImage={removeImage}
+              hashtags={hashtags}
+              newHashtag={newHashtag}
               isSubmitting={isSubmitting}
+              addHashtag={addHashtag}
+              setNewHashtag={setNewHashtag}
+              setHashtags={setHashtags}
+              removeHashtag={removeHashtag}
+              currentIndex={currentIndex}
+              goToPrevious={goToPrevious}
+              goToNext={goToNext}
             />
           )}
           {activeTab === 1 && (
@@ -232,6 +289,9 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               handleImageChange={handleImageChange}
               addInstruction={addInstruction}
               isSubmitting={isSubmitting}
+              fileInputRef={fileInputRef}
+              handleClickIcon={handleClickIcon}
+              removeImageInstruction={removeImageInstruction}
             />
           )}
           <button

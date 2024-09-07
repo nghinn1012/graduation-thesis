@@ -1,4 +1,5 @@
 import React from 'react';
+import { IoIosCamera } from "react-icons/io";
 import { IoAddCircleOutline, IoTrashOutline, IoCloseSharp } from 'react-icons/io5';
 
 interface RecipeDetailsTabProps {
@@ -15,6 +16,9 @@ interface RecipeDetailsTabProps {
   handleImageChange: (index: number, file: File | null) => void;
   addInstruction: () => void;
   isSubmitting: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  handleClickIcon: () => void;
+  removeImageInstruction: (index: number) => void;
 }
 
 const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
@@ -31,6 +35,9 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   handleImageChange,
   addInstruction,
   isSubmitting,
+  fileInputRef,
+  handleClickIcon,
+  removeImageInstruction,
 }) => (
   <div className="flex flex-col w-full">
     <div className="mb-4">
@@ -121,17 +128,26 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           />
           <input
             type="file"
-            className="file-input file-input-bordered w-full mb-2"
-            onChange={(e) =>
-              handleImageChange(index, e.target.files?.[0] || null)
-            }
+            className="hidden"
+            ref={fileInputRef} 
+            onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
             disabled={isSubmitting}
           />
+
+          <button
+            type="button"
+            className="mx-auto z-50 rounded-full w-10 h-10 flex flex-col items-center justify-center text-center leading-none"
+            onClick={handleClickIcon}
+            disabled={isSubmitting}
+          >
+            <IoIosCamera className='w-6 h-6 mx-auto' />
+          </button>
+
           {instruction.image && (
-            <div className="relative">
+            <div className="relative mt-2">
               <IoCloseSharp
                 className="absolute top-2 right-3 z-50 text-white bg-gray-300 rounded-full w-5 h-5 cursor-pointer"
-                onClick={() => handleImageChange(index, null)}
+                onClick={() => removeImageInstruction(index)}
               />
               <img
                 src={instruction.image}

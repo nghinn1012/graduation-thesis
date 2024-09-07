@@ -24,6 +24,7 @@ const CreatePostBox: React.FC = () => {
     title: string,
     about: string,
     images: string[],
+    hashtags: string[],
     timeToTake: number,
     servings: number,
     ingredients: { name: string; quantity: string }[],
@@ -38,7 +39,6 @@ const CreatePostBox: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      // Gửi dữ liệu bài viết
       await postFetcher.createPost(
         {
           title,
@@ -47,7 +47,7 @@ const CreatePostBox: React.FC = () => {
           ingredients,
           timeToTake,
           servings,
-          hashtags: ["general"],
+          hashtags,
         },
         JSON.parse(token).token
       );
@@ -59,6 +59,7 @@ const CreatePostBox: React.FC = () => {
     } catch (error) {
       toast.error(`Failed to create post: ${(error as Error)?.message || 'Unknown error'}`);
       console.log("Error creating post:", error);
+      setIsSubmitting(false);
     }
   };
 
