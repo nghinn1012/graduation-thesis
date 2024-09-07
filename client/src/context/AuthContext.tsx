@@ -112,7 +112,6 @@ export default function AuthContextProvider({
 
   useEffect(() => {
     const timeOut = timeOutRef.current;
-    console.log(timeOut);
     if (timeOut) {
       clearTimeout(timeOut);
     }

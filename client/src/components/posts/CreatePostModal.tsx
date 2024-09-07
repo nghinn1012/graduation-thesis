@@ -18,12 +18,14 @@ interface PostModalProps {
       image?: string;
     }[]
   ) => void;
+  isSubmitting: boolean;
 }
 
 const CreatePostModal: React.FC<PostModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  isSubmitting,
 }) => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [title, setTitle] = useState<string>("");
@@ -40,10 +42,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   >([{ name: "", quantity: "" }]);
 
   const [instructions, setInstructions] = useState<
-    {
-      description: string;
-      image?: string;
-    }[]
+    { description: string; image?: string }[]
   >([{ description: "", image: "" }]);
 
   const [timeToTake, setTimeToTake] = useState<number>(0);
@@ -137,26 +136,34 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setServings(parseInt(e.target.value));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(
-      title,
-      about,
-      images,
-      timeToTake,
-      servings,
-      ingredients,
-      instructions
-    );
-    setTitle("");
-    setAbout("");
-    setImages([]);
-    setInputFields([{ name: "", quantity: "" }]);
-    setIngredients([]);
-    setInstructions([{ description: "", image: "" }]);
-    setTimeToTake(0);
-    setServings(0);
+
+    try {
+      await onSubmit(
+        title,
+        about,
+        images,
+        timeToTake,
+        servings,
+        ingredients,
+        instructions
+      );
+      isOpen = !isOpen;
+      setTitle("");
+      setAbout("");
+      setImages([]);
+      setInputFields([{ name: "", quantity: "" }]);
+      setIngredients([]);
+      setInstructions([{ description: "", image: "" }]);
+      setTimeToTake(0);
+      setServings(0);
+      setActiveTab(0);
+    } catch (error) {
+      console.error("Error during submit:", error);
+    }
   };
+
 
   const handleClick = () => {
     if (imgRef.current) {
@@ -167,9 +174,9 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="inset-0 flex items-start justify-center z-50">
+    <div className="inset-0 flex items-start justify-center">
       <div className="modal-overlay fixed inset-0 bg-black opacity-40"></div>
-      <div className="responsive modal-content absolute top-0 bg-white p-6 rounded-lg w-full max-w-lg z-60 overflow-y-auto max-h-[800px]">
+      <div className="responsive modal-content absolute top-0 bg-white p-6 rounded-lg w-full max-w-lg z-50 overflow-y-auto max-h-[800px]">
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           onClick={onClose}
@@ -207,6 +214,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               handleClick={handleClick}
               handleImgChange={handleImgChange}
               removeImage={removeImage}
+              isSubmitting={isSubmitting}
             />
           )}
           {activeTab === 1 && (
@@ -223,6 +231,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               handleInstructionChange={handleInstructionChange}
               handleImageChange={handleImageChange}
               addInstruction={addInstruction}
+              isSubmitting={isSubmitting}
             />
           )}
           <button

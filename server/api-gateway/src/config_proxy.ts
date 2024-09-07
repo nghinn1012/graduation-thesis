@@ -41,6 +41,7 @@ export const withProxy = (app: Express): void => {
     }
     if (!excludeList.has(pathName)) {
       const verified = verifyToken(req.headers.authorization?.split(" ")[1]);
+      console.log(verified == null || typeof verified === "string");
       if (verified == null || typeof verified === "string") {
         return res.status(400).json({
           err: {

@@ -31,3 +31,4 @@ export const rpcGetUser = async <T>(
   if (response == null || response.data == null) return null;
   return response.data;
 };
+

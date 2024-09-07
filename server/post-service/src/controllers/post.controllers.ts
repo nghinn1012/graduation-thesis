@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPostService, getPostService, updatePostService } from "../services/post.services";
+import { createPostService, getAllPostsService, getPostService, updatePostService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
@@ -62,6 +62,23 @@ export const updatePostController = async (request: AuthRequest, response: Respo
   } catch (error) {
     return response.status(400).json({
       message: "Cannot update post",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const getAllPostsController = async (request: Request, response: Response) => {
+  try {
+    const posts = await getAllPostsService();
+    if (!posts) {
+      return response.status(400).json({
+        message: "Cannot get posts"
+      });
+    }
+    return response.status(200).json(posts);
+  } catch (error) {
+    return response.status(400).json({
+      message: "Cannot get posts",
       error: (error as Error).message
     });
   }

@@ -111,6 +111,7 @@ const SignUpPage = () => {
             Please fill in the details to create your account
           </span>
 
+          <form onSubmit={formik.handleSubmit}> {/* Thêm thẻ form */}
           <div className="flex space-x-4">
             <div className="w-1/2">
               <label htmlFor="name" className="mb-2 text-md block">
@@ -212,6 +213,7 @@ const SignUpPage = () => {
           <button className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300" type="submit">
             Sign up
           </button>
+          </form>
           <button
             onClick={() => handleOAuth()}
             className="w-full border border-gray-300 text-md p-2 rounded-lg mb-6 hover:bg-black hover:text-white flex items-center justify-center"
@@ -230,6 +232,7 @@ const SignUpPage = () => {
             </span>
           </div>
         </div>
+
 
         {/* Right Side */}
         <div className="relative">

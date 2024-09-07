@@ -49,7 +49,7 @@
 
 // 	return (
 // 		<>
-// 			<div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
+// 			<div className='flex-[4_4_0]  border-r border-gray-300 min-h-screen '>
 // 				{/* HEADER */}
 // 				{isLoading && <ProfileHeaderSkeleton />}
 // 				{!isLoading && !user && <p className='text-center text-lg mt-4'>User not found</p>}
@@ -167,7 +167,7 @@
 // 									</div>
 // 								</div>
 // 							</div>
-// 							<div className='flex w-full border-b border-gray-700 mt-4'>
+// 							<div className='flex w-full border-b border-gray-300 mt-4'>
 // 								<div
 // 									className='flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 relative cursor-pointer'
 // 									onClick={() => setFeedType("posts")}

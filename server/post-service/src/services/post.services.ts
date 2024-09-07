@@ -15,36 +15,76 @@ export const createPostService = async (data: IPost) => {
         },
       });
     }
-
-    if (data.images) {
-      const uploadedImages = await Promise.all(
-        data.images.map((image) => uploadImageToCloudinary(image))
-      );
-      data.images = uploadedImages;
-    }
-
     if (data.instructions) {
-      data.instructions = await Promise.all(
-        data.instructions.map(async (instruction) => {
-          if (instruction.image) {
-            const uploadedImage = await uploadImageToCloudinary(
-              instruction.image
-            );
-            return {
-              ...instruction,
-              image: uploadedImage,
-            };
-          }
-          return instruction;
-        })
-      );
+      data.instructions = autoAssignSteps(data.instructions);
     }
-
-    data.instructions = autoAssignSteps(data.instructions);
-
     const post = await postModel.create({
       ...data,
     });
+
+    if (data.images) {
+      const uploadImages = async (imageUrls: string[]) => {
+        const limit = 5;
+        const chunks = [];
+        for (let i = 0; i < imageUrls.length; i += limit) {
+          chunks.push(imageUrls.slice(i, i + limit));
+        }
+
+        try {
+          const uploadedImages = await Promise.all(chunks.map(chunk =>
+            Promise.all(chunk.map(async (image) => {
+              try {
+                return await uploadImageToCloudinary(image);
+              } catch (error) {
+                console.error(`Error uploading image: }`, error);
+                throw new Error(`Failed to upload image:`);
+              }
+            }))
+          )).then(results => results.flat());
+
+          await postModel.updateOne(
+            { _id: post._id },
+            { $set: { images: uploadedImages } }
+          );
+        } catch (error) {
+          console.error("Error uploading images chunk:", error);
+        }
+      };
+      uploadImages(data.images);
+    }
+
+    if (data.instructions) {
+      const uploadInstructionsImages = async () => {
+        try {
+          const updatedInstructions = await Promise.all(
+            data.instructions.map(async (instruction) => {
+              if (instruction.image) {
+                try {
+                  const uploadedImage = await uploadImageToCloudinary(instruction.image);
+                  return {
+                    ...instruction,
+                    image: uploadedImage,
+                  };
+                } catch (error) {
+                  console.error(`Error uploading instruction image: `, error);
+                  throw new Error(`Failed to upload instruction image: `);
+                }
+              }
+              return instruction;
+            })
+          );
+
+          await postModel.updateOne(
+            { _id: post._id },
+            { $set: { instructions: updatedInstructions } }
+          );
+        } catch (error) {
+          console.error("Error uploading instruction images:", error);
+        }
+      };
+
+      uploadInstructionsImages();
+    }
 
     return post;
   } catch (error) {
@@ -99,6 +139,20 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
     });
     return postUpdate;
 
+  } catch (error) {
+    throw new InternalError({
+      data: {
+        target: "post-food",
+        reason: (error as Error).message,
+      },
+    });
+  }
+}
+
+export const getAllPostsService = async () => {
+  try {
+    const posts = await postModel.find().sort({ createdAt: -1 });
+    return posts;
   } catch (error) {
     throw new InternalError({
       data: {

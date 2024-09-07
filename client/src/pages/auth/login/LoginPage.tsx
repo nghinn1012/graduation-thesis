@@ -11,7 +11,6 @@ import React from 'react';
 
 const LoginPage = () => {
   const auth = useAuthContext();
-  const navigate = useNavigate();
   const languageContext = useI18nContext();
   const lang = languageContext.of(LoginPage);
 

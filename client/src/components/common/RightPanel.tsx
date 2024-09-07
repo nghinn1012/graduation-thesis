@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeleton/RightPanelSkeleton";
+import React from "react";
 
 
 const USERS_FOR_RIGHT_PANEL = [

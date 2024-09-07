@@ -7,6 +7,7 @@ import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 export const postEndpoints = {
   // users
   createPost: "/posts/create",
+  getAllPosts: "/posts",
 } as const;
 
 export interface PostResponseError
@@ -21,7 +22,7 @@ const userUrl = `${PROXY_URL}/${POST_PATH}`;
 
 export const postInstance = axios.create({
   baseURL: userUrl,
-  timeout: 2000,
+  timeout: 10000,
 });
 
 postInstance.interceptors.response.use(
@@ -42,32 +43,50 @@ postInstance.interceptors.response.use(
     return Promise.reject(_error);
   }
 );
+
+export interface PostInfo {
+  _id: string;
+  title: string;
+  author: string;
+  images: string[];
+  hashtags: string[];
+  timeToTake: number;
+  servings: number;
+  ingredients: Ingredient[];
+  instructions: InstructionInfo[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface InstructionInfo {
+  step: number;
   description: string;
   image?: string;
 }
 
-export interface IngredientInfo {
+export interface createPostInfo extends Omit<PostInfo, '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions'> {
+  instructions: {
+    description: string;
+    image?: string;
+  }[];
+}
+
+export interface Ingredient {
   name: string;
   quantity: string;
 }
 
-export interface PostInfo {
-  title: string;
-  images: string[];
-  instructions: InstructionInfo[];
-  ingredients: IngredientInfo[];
-  hashtags: string[];
-  timeToTake: number;
-  servings: number;
-}
+type PartialInstructionInfo = Partial<InstructionInfo> & {
+  description: string;
+};
 
 export interface PostFetcher {
-  createPost: (data: PostInfo, token: string) => Promise<PostResponse<PostInfo>>;
+  createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
+  getAllPosts: (token: string) => Promise<PostResponse<PostInfo[]>>;
 }
 
 export const postFetcher: PostFetcher = {
-  createPost: async (data: PostInfo, token: string): Promise<PostResponse<PostInfo>> => {
+  createPost: async (data: createPostInfo, token: string): Promise<PostResponse<createPostInfo>> => {
     return postInstance.post(postEndpoints.createPost, data,
       {
         headers: {
@@ -76,4 +95,13 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
+  getAllPosts: async (token: string): Promise<PostResponse<PostInfo[]>> => {
+    return postInstance.get(postEndpoints.getAllPosts,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  }
 };

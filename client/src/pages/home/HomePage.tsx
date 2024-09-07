@@ -1,6 +1,7 @@
 import { useState } from "react";
 import CreatePostBox from "../../components/posts/CreatePostBox";
 import React from "react";
+import Posts from "../../components/posts/PostsList";
 
 const HomePage = () => {
 	const [feedType, setFeedType] = useState("forYou");
@@ -36,7 +37,7 @@ const HomePage = () => {
 				<CreatePostBox />
 
 				{/* POSTS */}
-				{/* <Posts /> */}
+				<Posts />
 			</div>
 		</>
 	);

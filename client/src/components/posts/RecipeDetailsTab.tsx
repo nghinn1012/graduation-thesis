@@ -14,6 +14,7 @@ interface RecipeDetailsTabProps {
   handleInstructionChange: (index: number, field: "description" | "image", value: string) => void;
   handleImageChange: (index: number, file: File | null) => void;
   addInstruction: () => void;
+  isSubmitting: boolean;
 }
 
 const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
@@ -29,6 +30,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   handleInstructionChange,
   handleImageChange,
   addInstruction,
+  isSubmitting,
 }) => (
   <div className="flex flex-col w-full">
     <div className="mb-4">
@@ -43,6 +45,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           placeholder="Time to take"
           value={timeToTake || ""}
           onChange={handleTimeToTake}
+          disabled={isSubmitting}
         />
       </div>
       <div className="flex-1 ml-4">
@@ -53,6 +56,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           placeholder="Servings"
           value={servings || ""}
           onChange={handleServings}
+          disabled={isSubmitting}
         />
       </div>
     </div>
@@ -69,6 +73,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
               onChange={(e) =>
                 handleInputChange(index, "name", e.target.value)
               }
+              disabled={isSubmitting}
             />
             <input
               type="text"
@@ -78,11 +83,13 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
               onChange={(e) =>
                 handleInputChange(index, "quantity", e.target.value)
               }
+              disabled={isSubmitting}
             />
             <button
               type="button"
               className="text-red-500"
               onClick={() => handleRemoveInputField(index)}
+              disabled={isSubmitting}
             >
               <IoTrashOutline />
             </button>
@@ -92,6 +99,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           type="button"
           className="btn btn-outline w-full"
           onClick={handleAddInputField}
+          disabled={isSubmitting}
         >
           <IoAddCircleOutline className="mr-2" />
           Add Ingredient
@@ -109,6 +117,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             onChange={(e) =>
               handleInstructionChange(index, "description", e.target.value)
             }
+            disabled={isSubmitting}
           />
           <input
             type="file"
@@ -116,6 +125,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             onChange={(e) =>
               handleImageChange(index, e.target.files?.[0] || null)
             }
+            disabled={isSubmitting}
           />
           {instruction.image && (
             <div className="relative">
@@ -137,6 +147,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
         type="button"
         className="btn btn-outline w-full"
         onClick={addInstruction}
+        disabled={isSubmitting}
       >
         <IoAddCircleOutline className="mr-2" />
         Add Instruction

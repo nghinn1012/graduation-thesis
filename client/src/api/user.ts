@@ -11,6 +11,7 @@ export const userEndpoints = {
   login: "users/login",
   refeshToken: "/users/refresh-token",
   loginWithGoogle: "/users/google-login",
+  getUserById: "/users/getUser",
 } as const;
 
 export interface UserResponseError
@@ -47,13 +48,12 @@ userInstance.interceptors.response.use(
   }
 );
 
-interface AccountInfo {
+export interface AccountInfo {
   _id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string;
+  username: string;
   token: string;
-  categories: string[];
   avatar?: string;
   refreshToken: string;
 }
@@ -77,6 +77,7 @@ export interface UserFetcher {
   login(data: LoginInfo): Promise<UserResponse<AccountInfo>>;
   refreshToken(token: string): Promise<UserResponse<AccountInfo>>;
   loginWithGoogle(token: string): Promise<UserResponse<AccountInfo>>;
+  getUserById(id: string, token: string): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -104,4 +105,12 @@ export const userFetcher: UserFetcher = {
   loginWithGoogle: async (token: string): Promise<UserResponse<AccountInfo>> => {
     return userInstance.post(userEndpoints.loginWithGoogle, { idToken: token });
   },
+  getUserById: async (id: string, token: string): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.get(`${userEndpoints.getUserById}/${id}`,
+      {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
 };

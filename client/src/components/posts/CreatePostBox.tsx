@@ -2,13 +2,16 @@
 import React, { useState, useEffect } from "react";
 import PostModal from "./CreatePostModal";
 import { postFetcher } from "../../api/post";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import usePostContext from "../../hooks/usePostContext";
 
 const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const auth = useAuthContext();
+  const { fetchPosts } = usePostContext();
 
   useEffect(() => {
     const accountData = localStorage.getItem("account");
@@ -17,30 +20,26 @@ const CreatePostBox: React.FC = () => {
     }
   }, []);
 
-  const handlePostSubmit = (
+  const handlePostSubmit = async (
     title: string,
     about: string,
     images: string[],
     timeToTake: number,
     servings: number,
     ingredients: { name: string; quantity: string }[],
-    instructions: {
-        description: string;
-        image?: string;
-      }[]
+    instructions: { description: string; image?: string }[]
   ) => {
-    // Handle post submission logic here
-    // console.log("Title:", title);
-    // console.log("About:", about);
-    console.log("Images:", images);
-    // console.log("Ingredients:", ingredients);
-    // console.log("Instructions:", instructions);
-    // console.log("Time to take:", timeToTake);
-    // console.log("Servings:", servings);
     const token = localStorage.getItem("auth");
 
-    if (token) {
-      postFetcher.createPost(
+    if (!token) {
+      toast.error("Token not found");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      // Gửi dữ liệu bài viết
+      await postFetcher.createPost(
         {
           title,
           images,
@@ -51,23 +50,22 @@ const CreatePostBox: React.FC = () => {
           hashtags: ["general"],
         },
         JSON.parse(token).token
-      )
-        .then(() => {
-          toast.success("Created post successfully");
-        })
-        .catch((error) => {
-          toast.error(error);
-        });
-    } else {
-      toast.error("Token not found");
+      );
+      setIsModalOpen(false);
+      toast.success("Created post successfully");
+
+      fetchPosts();
+      setIsSubmitting(false);
+    } catch (error) {
+      toast.error(`Failed to create post: ${(error as Error)?.message || 'Unknown error'}`);
+      console.log("Error creating post:", error);
     }
-    setIsModalOpen(false);
-    alert("Post created successfully");
   };
 
   return (
     <div className="relative">
       {/* Main Interface */}
+      <Toaster/>
       <div className="flex p-4 items-start gap-4 border-b border-gray-300">
         <div className="avatar">
           <div className="w-8 rounded-full">
@@ -89,6 +87,7 @@ const CreatePostBox: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handlePostSubmit}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

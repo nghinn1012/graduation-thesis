@@ -11,6 +11,7 @@ interface BasicInfoTabProps {
   removeImage: (index: number) => void;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   setAbout: React.Dispatch<React.SetStateAction<string>>;
+  isSubmitting: boolean;
 }
 
 const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
@@ -23,6 +24,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   removeImage,
   setTitle,
   setAbout,
+  isSubmitting,
 }) => (
   <div>
     <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">NEW POST.</h1>
@@ -35,6 +37,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
           type="button"
           className="w-full py-3 bg-red-500 text-white font-semibold rounded-lg mb-6"
           onClick={handleClick}
+          disabled={isSubmitting}
         >
           Add Photos
         </button>
@@ -44,6 +47,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
           onChange={handleImgChange}
           multiple
           ref={imgRef}
+          disabled={isSubmitting}
         />
       </div>
       <div className="flex justify-center items-center mt-4">
@@ -73,6 +77,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
         placeholder="Enter post title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        disabled={isSubmitting}
       />
     </div>
     <div className="mt-4">
@@ -82,6 +87,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
         placeholder="Tell us about your post"
         value={about}
         onChange={(e) => setAbout(e.target.value)}
+        disabled={isSubmitting}
       />
     </div>
   </div>
