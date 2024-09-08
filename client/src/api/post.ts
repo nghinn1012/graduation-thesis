@@ -50,8 +50,8 @@ export interface PostInfo {
   author: string;
   images: string[];
   hashtags: string[];
-  timeToTake: number;
-  servings: number;
+  timeToTake: string;
+  servings: string;
   ingredients: Ingredient[];
   instructions: InstructionInfo[];
   createdAt: string;

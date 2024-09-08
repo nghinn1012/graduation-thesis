@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import BasicInfoTab from "./BasicInfoTab";
 import RecipeDetailsTab from "./RecipeDetailsTab";
+import imageCompression from 'browser-image-compression';
+import * as yup from 'yup';
 
 interface PostModalProps {
   isOpen: boolean;
@@ -11,8 +13,8 @@ interface PostModalProps {
     about: string,
     images: string[],
     hashtags: string[],
-    timeToTake: number,
-    servings: number,
+    timeToTake: string,
+    servings: string,
     ingredients: { name: string; quantity: string }[],
     instructions: {
       description: string;
@@ -21,6 +23,27 @@ interface PostModalProps {
   ) => void;
   isSubmitting: boolean;
 }
+
+const validationSchema = yup.object({
+  title: yup.string().required('Title is required'),
+  about: yup.string().required('About is required'),
+  images: yup.array().of(yup.string()).min(1, 'At least one image is required'),
+  hashtags: yup.array().of(yup.string()).optional(),
+  timeToTake: yup.number().positive('Time must be a positive number').required('Time to take is required'),
+  servings: yup.number().positive('Servings must be a positive number').required('Servings is required'),
+  ingredients: yup.array().of(
+    yup.object({
+      name: yup.string().required('Ingredient name is required'),
+      quantity: yup.string().required('Ingredient quantity is required')
+    })
+  ).min(1, 'At least one ingredient is required'),
+  instructions: yup.array().of(
+    yup.object({
+      description: yup.string().required('Instruction description is required'),
+      image: yup.string().optional()
+    })
+  ).min(1, 'At least one instruction is required')
+});
 
 const CreatePostModal: React.FC<PostModalProps> = ({
   isOpen,
@@ -46,11 +69,11 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     { description: string; image?: string }[]
   >([{ description: "", image: "" }]);
 
-  const [timeToTake, setTimeToTake] = useState<number>(0);
-  const [servings, setServings] = useState<number>(0);
+  const [timeToTake, setTimeToTake] = useState<string>("0");
+  const [servings, setServings] = useState<string>("0");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtag, setNewHashtag] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null); // Fixed ref type
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleInstructionChange = (
@@ -64,18 +87,30 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setInstructions(updatedInstructions);
   };
 
-  const handleImageChange = (index: number, file: File | null) => {
+  const handleImageChange = async (index: number, file: File | null) => {
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const updatedInstructions = instructions.map((instruction, i) =>
-          i === index
-            ? { ...instruction, image: reader.result as string }
-            : instruction
-        );
-        setInstructions(updatedInstructions);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressOptions = {
+          maxSizeMB: 1, // Tối đa kích thước file là 1MB
+          maxWidthOrHeight: 1920, // Tối đa chiều dài hoặc chiều rộng
+        };
+
+        const compressedFile = await imageCompression(file, compressOptions);
+
+        // Đọc ảnh đã nén
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const updatedInstructions = instructions.map((instruction, i) =>
+            i === index
+              ? { ...instruction, image: reader.result as string }
+              : instruction
+          );
+          setInstructions(updatedInstructions);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+      }
     }
   };
 
@@ -99,20 +134,30 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setIngredients(updatedFields);
   };
 
-  const handleImgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImgChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const imageUrls: string[] = [];
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        imageUrls.push(reader.result as string);
-        if (imageUrls.length === files.length) {
-          setImages((prevImages) => [...prevImages, ...imageUrls]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    const compressOptions = {
+      maxSizeMB: 1, // Tối đa kích thước file là 1MB
+      maxWidthOrHeight: 1920, // Tối đa chiều dài hoặc chiều rộng
+    };
+
+    for (const file of files) {
+      try {
+        const compressedFile = await imageCompression(file, compressOptions);
+        const reader = new FileReader();
+        reader.onload = () => {
+          imageUrls.push(reader.result as string);
+          if (imageUrls.length === files.length) {
+            setImages((prevImages) => [...prevImages, ...imageUrls]);
+          }
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+      }
+    }
   };
 
   const goToPrevious = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -142,7 +187,6 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     });
   };
 
-
   const removeImageInstruction = (index: number) => {
     const updatedInstructions = instructions.map((instruction, i) =>
       i === index
@@ -159,11 +203,11 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   };
 
   const handleTimeToTake = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTimeToTake(parseInt(e.target.value, 10));
+    setTimeToTake(e.target.value);
   };
 
   const handleServings = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setServings(parseInt(e.target.value, 10));
+    setServings(e.target.value);
   };
 
   const addHashtag = () => {
@@ -203,8 +247,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
       setInputFields([{ name: "", quantity: "" }]);
       setIngredients([]);
       setInstructions([{ description: "", image: "" }]);
-      setTimeToTake(0);
-      setServings(0);
+      setTimeToTake("0");
+      setServings("0");
       setHashtags([]);
       setNewHashtag("");
       setActiveTab(0);
@@ -228,6 +272,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           onClick={onClose}
+          disabled={isSubmitting}
         >
           <IoCloseSharp className="w-6 h-6" />
         </button>

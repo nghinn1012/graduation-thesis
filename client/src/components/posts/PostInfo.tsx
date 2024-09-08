@@ -6,9 +6,10 @@ import {
 } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import { AccountInfo, userFetcher } from "../../api/user";
+import PostDetails from "../../pages/post/PostDetail";
 
 interface Ingredient {
   name: string;
@@ -28,8 +29,8 @@ interface PostProps {
     author: string;
     images: string[];
     hashtags: string[];
-    timeToTake: number;
-    servings: number;
+    timeToTake: string;
+    servings: string;
     ingredients: Ingredient[];
     instructions: Instruction[];
     createdAt: string;
@@ -43,9 +44,10 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const [postAuthor, setPostAuthor] = useState<AccountInfo | null>(null);
   const [isReady, setIsReady] = useState(false);
   const isLiked = false;
-  const isMyPost = true;
+  const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";
   const isCommenting = false;
+  const navigate = useNavigate();
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -99,7 +101,16 @@ const Post: React.FC<PostProps> = ({ post }) => {
     };
 
     fetchAuthor();
-  }, [isReady, post.author]);
+  }, [isReady, postAuthor]);
+
+  useEffect(() => {
+    const account = JSON.parse(localStorage.getItem("account") || "{}");
+    setIsMyPost(account._id === post.author);
+  }, [post.author]);
+
+  const handleImageClick = (id: string) => {
+    navigate(`/post/${id}`, { state: { post, postAuthor } });
+  };
 
   return (
     <>
@@ -139,14 +150,14 @@ const Post: React.FC<PostProps> = ({ post }) => {
               {post.images.map((img, index) => (
                 <div
                   key={index}
-                  id={`slide${index + 1}`}
                   className={`carousel-item w-full ${
                     currentIndex === index ? "block" : "hidden"
                   }`}
+                  onClick={() => handleImageClick(post._id)}
                 >
                   <img
                     src={img}
-                    className="h-80 w-full rounded-lg border border-gray-300"
+                    className="h-96 w-full rounded-lg border border-gray-300"
                     alt={`Post Image ${index + 1}`}
                   />
                 </div>
@@ -154,17 +165,20 @@ const Post: React.FC<PostProps> = ({ post }) => {
 
               {/* Navigation Buttons */}
               {post.images.length > 1 && (
-                <div className="absolute inset-0 flex items-center justify-between px-2">
+                <>
                   <button
                     onClick={goToPrevious}
-                    className="btn btn-sm btn-circle"
+                    className="absolute top-1/2 left-2 transform -translate-y-1/2 z-10 bg-white bg-opacity-50 rounded-full p-2 shadow"
                   >
                     ❮
                   </button>
-                  <button onClick={goToNext} className="btn btn-sm btn-circle">
+                  <button
+                    onClick={goToNext}
+                    className="absolute top-1/2 right-2 transform -translate-y-1/2 z-10 bg-white bg-opacity-50 rounded-full p-2 shadow"
+                  >
                     ❯
                   </button>
-                </div>
+                </>
               )}
             </div>
           </div>

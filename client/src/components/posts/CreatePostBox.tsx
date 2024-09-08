@@ -25,8 +25,8 @@ const CreatePostBox: React.FC = () => {
     about: string,
     images: string[],
     hashtags: string[],
-    timeToTake: number,
-    servings: number,
+    timeToTake: string,
+    servings: string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[]
   ) => {

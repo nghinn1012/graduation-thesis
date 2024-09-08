@@ -11,19 +11,21 @@ import { GOOGLE_CLIENT_ID } from "./config/config";
 import Sidebar from "./components/common/Sidebar";
 import RightPanel from "./components/common/RightPanel";
 import React from "react";
+import PostDetail from "./pages/post/PostDetail";
+import AppMainCenter from "./context/MainContext";
 export function App() {
-	return (
-		<AppContextProviders>
+  return (
+    <AppContextProviders>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <Routes>
           <Route
-            path="/"
+            path="/*"
             element={
               <IsAuthenticated>
-                <div className='flex max-w-7xl mx-auto'>
-                  <Sidebar/>
-                  <HomePage />
-                  <RightPanel/>
+                <div className="flex max-w-7xl mx-auto">
+                  <Sidebar />
+                  <AppMainCenter/>
+                  <RightPanel />
                 </div>
               </IsAuthenticated>
             }
@@ -49,6 +51,6 @@ export function App() {
           <Route path="/verify/*" element={<VerifyPage />} />
         </Routes>
       </GoogleOAuthProvider>
-		</AppContextProviders>
-	);
+    </AppContextProviders>
+  );
 }

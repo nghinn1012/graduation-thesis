@@ -6,3 +6,11 @@
   background-color: black !important;
   color: white !important;
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5); /* Màu tối */
+  backdrop-filter: blur(20px); /* Độ mờ */
+  z-index: 40; /* Đảm bảo lớp phủ nằm phía sau modal */
+}
