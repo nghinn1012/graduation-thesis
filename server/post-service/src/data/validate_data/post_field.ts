@@ -6,6 +6,7 @@ export const validatePostFoodBody = (data: IPost) => {
     author,
     images,
     title,
+    about,
     hashtags,
     timeToTake,
     servings,
@@ -19,6 +20,7 @@ export const validatePostFoodBody = (data: IPost) => {
   throwErrorIfNotFound("hashtags", hashtags);
   throwErrorIfNotFound("timeToTake", timeToTake);
   throwErrorIfNotFound("servings", servings);
+  throwErrorIfNotFound("about", about);
   ingredients.forEach((ingredient) => {
     throwErrorIfNotFound("ingredients", ingredient.name);
     throwErrorIfNotFound("ingredients", ingredient.quantity);

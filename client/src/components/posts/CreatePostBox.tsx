@@ -42,6 +42,7 @@ const CreatePostBox: React.FC = () => {
       await postFetcher.createPost(
         {
           title,
+          about,
           images,
           instructions,
           ingredients,

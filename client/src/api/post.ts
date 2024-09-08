@@ -47,6 +47,7 @@ postInstance.interceptors.response.use(
 export interface PostInfo {
   _id: string;
   title: string;
+  about: string;
   author: string;
   images: string[];
   hashtags: string[];

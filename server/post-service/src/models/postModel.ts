@@ -5,6 +5,10 @@ const postSchema = new Schema({
     type: String,
     required: true
   },
+  about: {
+    type: String,
+    required: true
+  },
   author: {
     type: String,
     required: true,

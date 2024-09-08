@@ -69,8 +69,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     { description: string; image?: string }[]
   >([{ description: "", image: "" }]);
 
-  const [timeToTake, setTimeToTake] = useState<string>("0");
-  const [servings, setServings] = useState<string>("0");
+  const [timeToTake, setTimeToTake] = useState<string>("");
+  const [servings, setServings] = useState<string>("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtag, setNewHashtag] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -247,8 +247,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
       setInputFields([{ name: "", quantity: "" }]);
       setIngredients([]);
       setInstructions([{ description: "", image: "" }]);
-      setTimeToTake("0");
-      setServings("0");
+      setTimeToTake("");
+      setServings("");
       setHashtags([]);
       setNewHashtag("");
       setActiveTab(0);

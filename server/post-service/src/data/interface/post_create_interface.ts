@@ -14,6 +14,7 @@ export interface IPost {
   author: string;
   images: string[];
   title: string;
+  about: string;
   hashtags: string[];
   timeToTake: number;
   servings: number;

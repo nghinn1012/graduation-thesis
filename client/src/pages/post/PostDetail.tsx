@@ -32,8 +32,10 @@ const PostDetails: React.FC = () => {
           className="w-full h-64 object-cover"
         />
 
-        <button className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center"
-        onClick={handleBackClick}>
+        <button
+          className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center"
+          onClick={handleBackClick}
+        >
           ❮
         </button>
 
@@ -50,13 +52,13 @@ const PostDetails: React.FC = () => {
       {/* Text Content */}
       <div className="px-4 py-2">
         <div className="flex items-center justify-between text-gray-500">
-          <span className="text-lg font-bold">SKILLET POTATOES</span>
+          <span className="text-lg font-bold">{post.title}</span>
 
           <span className="text-sm">⏰ {post.timeToTake} mins</span>
         </div>
 
         {/* Tags */}
-        <div className="flex flex-wrap mt-2 gap-2">
+        <div className="flex mt-2 gap-2">
           {post.hashtags.map((tag, index) => (
             <span
               key={index}
@@ -65,6 +67,10 @@ const PostDetails: React.FC = () => {
               {tag}
             </span>
           ))}
+        </div>
+        
+        <div className="flex mt-2 gap-2">
+          <span className="py-2 px-2">{post.about}</span>
         </div>
 
         {/* Social Interaction Section */}
