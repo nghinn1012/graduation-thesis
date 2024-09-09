@@ -7,16 +7,16 @@ import {
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const PostDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
   );
   const location = useLocation();
   const post = location.state?.post as PostInfo;
   const postAuthor = location.state?.postAuthor;
+  const { account } = useAuthContext();
   const navigate = useNavigate();
 
   const handleBackClick = () => {
@@ -28,7 +28,7 @@ const PostDetails: React.FC = () => {
       <div className="relative">
         <img
           src={post.images[0]}
-          alt="Skillet Potatoes"
+          alt={post.title}
           className="w-full h-64 object-cover"
         />
 
@@ -41,9 +41,6 @@ const PostDetails: React.FC = () => {
 
         <div className="absolute top-4 right-4 space-x-2 flex">
           <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center">
-            🖨️
-          </button>
-          <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center">
             ...
           </button>
         </div>
@@ -54,7 +51,7 @@ const PostDetails: React.FC = () => {
         <div className="flex items-center justify-between text-gray-500">
           <span className="text-lg font-bold">{post.title}</span>
 
-          <span className="text-sm">⏰ {post.timeToTake} mins</span>
+          <span className="text-sm">⏰ {post.timeToTake}</span>
         </div>
 
         {/* Tags */}
@@ -68,7 +65,7 @@ const PostDetails: React.FC = () => {
             </span>
           ))}
         </div>
-        
+
         <div className="flex mt-2 gap-2">
           <span className="py-2 px-2">{post.about}</span>
         </div>
@@ -115,9 +112,10 @@ const PostDetails: React.FC = () => {
             <h2 className="font-semibold">{postAuthor.name}</h2>
             <p className="text-sm text-gray-500">{postAuthor.username}</p>
           </div>
-          <button className="ml-auto btn btn-sm btn-outline">Follow</button>
+          {account?.email !== postAuthor.email && (
+            <button className="ml-auto btn btn-sm btn-outline">Follow</button>
+          )}
         </div>
-
         <div className="tabs tabs-boxed" role="tablist">
           <a
             className={`tab ${activeTab === "recipe" ? "tab-active" : ""}`}

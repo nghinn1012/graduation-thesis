@@ -23,7 +23,7 @@ const postSchema = new Schema({
     required: true
   },
   timeToTake: {
-    type: Number,
+    type: String,
     required: true
   },
   servings: {

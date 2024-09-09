@@ -7,10 +7,9 @@ import {
 } from "react-icons/io5";
 import * as Yup from "yup";
 
-// Define validation schema
 const validationSchema = Yup.object({
   timeToTake: Yup.string().required("Time to take is required"),
-  servings: Yup.string().required("Servings are required"),
+  servings: Yup.number().typeError("Servings must be a number").required("Servings are required").positive("Servings must be a positive number").integer("Servings must be an integer"),
   inputFields: Yup.array()
     .of(
       Yup.object({
@@ -33,7 +32,7 @@ const validationSchema = Yup.object({
 
 interface RecipeDetailsTabProps {
   timeToTake: string;
-  servings: string;
+  servings: number | string;
   inputFields: { name: string; quantity: string }[];
   instructions: { description: string; image?: string }[];
   handleTimeToTake: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -180,10 +179,10 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
         <div className="flex-1 ml-4">
           <label className="block text-sm font-semibold mb-1">SERVINGS</label>
           <input
-            type="text"
+            type="number"
             className="w-full input input-bordered"
             placeholder="Servings"
-            value={servings || ""}
+            value={servings}
             onChange={handleServings}
             disabled={isSubmitting}
           />

@@ -26,7 +26,7 @@ const CreatePostBox: React.FC = () => {
     images: string[],
     hashtags: string[],
     timeToTake: string,
-    servings: string,
+    servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[]
   ) => {
@@ -46,7 +46,7 @@ const CreatePostBox: React.FC = () => {
           instructions,
           ingredients,
           timeToTake,
-          servings,
+          servings: Number(servings),
           hashtags,
         },
         JSON.parse(token).token

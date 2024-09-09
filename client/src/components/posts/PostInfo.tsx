@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import { AccountInfo, userFetcher } from "../../api/user";
-import PostDetails from "../../pages/post/PostDetail";
+import { usePostContext } from "../../context/PostContext";
 
 interface Ingredient {
   name: string;
@@ -30,7 +30,7 @@ interface PostProps {
     images: string[];
     hashtags: string[];
     timeToTake: string;
-    servings: string;
+    servings: number;
     ingredients: Ingredient[];
     instructions: Instruction[];
     createdAt: string;
@@ -39,9 +39,9 @@ interface PostProps {
 }
 
 const Post: React.FC<PostProps> = ({ post }) => {
+  const { authors, isLoading } = usePostContext();
+  const postAuthor = authors.get(post.author);
   const [comment, setComment] = useState<string>("");
-
-  const [postAuthor, setPostAuthor] = useState<AccountInfo | null>(null);
   const [isReady, setIsReady] = useState(false);
   const isLiked = false;
   const [isMyPost, setIsMyPost] = useState(false);
@@ -70,38 +70,6 @@ const Post: React.FC<PostProps> = ({ post }) => {
     e.preventDefault();
   };
   const handleLikePost = () => {};
-
-  useEffect(() => {
-    const token = localStorage.getItem("auth");
-    if (token) {
-      setIsReady(true);
-    } else {
-      console.log("Token not found");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isReady) return;
-
-    const fetchAuthor = async () => {
-      try {
-        const token = localStorage.getItem("auth");
-        if (!token) {
-          console.log("Token not found");
-          return;
-        }
-        const response = await userFetcher.getUserById(
-          post.author,
-          JSON.parse(token).token
-        );
-        setPostAuthor(response as unknown as AccountInfo);
-      } catch (error) {
-        console.error("Failed to fetch post author:", error);
-      }
-    };
-
-    fetchAuthor();
-  }, [isReady]);
 
   useEffect(() => {
     const account = JSON.parse(localStorage.getItem("account") || "{}");

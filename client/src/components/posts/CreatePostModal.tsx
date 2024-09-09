@@ -9,10 +9,8 @@ import toast, { Toaster } from "react-hot-toast";
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
   about: yup.string().required("About is required"),
-  images: yup.array().of(yup.string().url()).min(1, "At least one image is required"),
-  hashtags: yup.array().of(yup.string()).min(1, "At least one hashtag is required"),
   timeToTake: yup.string().required("Time to take is required"),
-  servings: yup.string().required("Servings are required"),
+  servings: yup.number().required("Servings are required").min(1, "Servings must be at least 1"),
   ingredients: yup.array()
     .of(
       yup.object({
@@ -40,7 +38,7 @@ interface PostModalProps {
     images: string[],
     hashtags: string[],
     timeToTake: string,
-    servings: string,
+    servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: {
       description: string;
@@ -75,7 +73,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   >([{ description: "", image: "" }]);
 
   const [timeToTake, setTimeToTake] = useState<string>("");
-  const [servings, setServings] = useState<string>("");
+  const [servings, setServings] = useState<number | string>("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtag, setNewHashtag] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -211,7 +209,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   };
 
   const handleServings = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setServings(e.target.value);
+    setServings(parseInt(e.target.value,10));
   };
 
   const addHashtag = () => {
@@ -293,7 +291,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         setIngredients([]);
         setInstructions([{ description: "", image: "" }]);
         setTimeToTake("");
-        setServings("");
+        setServings(0);
         setHashtags([]);
         setNewHashtag("");
         setActiveTab(0);

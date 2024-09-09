@@ -12,6 +12,7 @@ export const userEndpoints = {
   refeshToken: "/users/refresh-token",
   loginWithGoogle: "/users/google-login",
   getUserById: "/users/getUser",
+  getAllUsers: "/users",
 } as const;
 
 export interface UserResponseError
@@ -78,6 +79,7 @@ export interface UserFetcher {
   refreshToken(token: string): Promise<UserResponse<AccountInfo>>;
   loginWithGoogle(token: string): Promise<UserResponse<AccountInfo>>;
   getUserById(id: string, token: string): Promise<UserResponse<AccountInfo>>;
+  getAllUsers(token: string): Promise<UserResponse<AccountInfo[]>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -112,5 +114,14 @@ export const userFetcher: UserFetcher = {
         'Authorization': `Bearer ${token}`
       }
     });
+  },
+  getAllUsers: async (token: string): Promise<UserResponse<AccountInfo[]>> => {
+    return userInstance.get(userEndpoints.getAllUsers,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
   }
 };

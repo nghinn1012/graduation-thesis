@@ -52,7 +52,7 @@ export interface PostInfo {
   images: string[];
   hashtags: string[];
   timeToTake: string;
-  servings: string;
+  servings: number;
   ingredients: Ingredient[];
   instructions: InstructionInfo[];
   createdAt: string;

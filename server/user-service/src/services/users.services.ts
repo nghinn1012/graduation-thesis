@@ -90,3 +90,14 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
     });
   }
 }
+
+export const getAllUsersService = async () => {
+  try {
+    const users = await UserModel.find();
+    return users;
+  } catch (error) {
+    throw new InvalidDataError({
+      message: (error as Error).message || 'Get all users failed!',
+    });
+  }
+}
