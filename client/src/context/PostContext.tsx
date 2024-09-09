@@ -18,7 +18,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchPosts = async () => {
     const token = localStorage.getItem("auth");
     if (!token) {
-      toast.error("Token not found");
       setIsLoading(false);
       return;
     }

@@ -1,9 +1,35 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import BasicInfoTab from "./BasicInfoTab";
 import RecipeDetailsTab from "./RecipeDetailsTab";
-import imageCompression from 'browser-image-compression';
-import * as yup from 'yup';
+import imageCompression from "browser-image-compression";
+import * as yup from "yup";
+import toast, { Toaster } from "react-hot-toast";
+
+const validationSchema = yup.object({
+  title: yup.string().required("Title is required"),
+  about: yup.string().required("About is required"),
+  images: yup.array().of(yup.string().url()).min(1, "At least one image is required"),
+  hashtags: yup.array().of(yup.string()).min(1, "At least one hashtag is required"),
+  timeToTake: yup.string().required("Time to take is required"),
+  servings: yup.string().required("Servings are required"),
+  ingredients: yup.array()
+    .of(
+      yup.object({
+        name: yup.string().required("Ingredient name is required"),
+        quantity: yup.string().required("Quantity is required"),
+      })
+    )
+    .min(1, "At least one ingredient is required"),
+  instructions: yup.array()
+    .of(
+      yup.object({
+        description: yup.string().required("Instruction description is required"),
+        image: yup.string().nullable(),
+      })
+    )
+    .min(1, "At least one instruction is required"),
+});
 
 interface PostModalProps {
   isOpen: boolean;
@@ -23,27 +49,6 @@ interface PostModalProps {
   ) => void;
   isSubmitting: boolean;
 }
-
-const validationSchema = yup.object({
-  title: yup.string().required('Title is required'),
-  about: yup.string().required('About is required'),
-  images: yup.array().of(yup.string()).min(1, 'At least one image is required'),
-  hashtags: yup.array().of(yup.string()).optional(),
-  timeToTake: yup.number().positive('Time must be a positive number').required('Time to take is required'),
-  servings: yup.number().positive('Servings must be a positive number').required('Servings is required'),
-  ingredients: yup.array().of(
-    yup.object({
-      name: yup.string().required('Ingredient name is required'),
-      quantity: yup.string().required('Ingredient quantity is required')
-    })
-  ).min(1, 'At least one ingredient is required'),
-  instructions: yup.array().of(
-    yup.object({
-      description: yup.string().required('Instruction description is required'),
-      image: yup.string().optional()
-    })
-  ).min(1, 'At least one instruction is required')
-});
 
 const CreatePostModal: React.FC<PostModalProps> = ({
   isOpen,
@@ -75,6 +80,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [newHashtag, setNewHashtag] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
   const handleInstructionChange = (
     index: number,
@@ -109,7 +115,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
-        console.error('Error compressing image:', error);
+        console.error("Error compressing image:", error);
       }
     }
   };
@@ -155,7 +161,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
-        console.error('Error compressing image:', error);
+        console.error("Error compressing image:", error);
       }
     }
   };
@@ -189,9 +195,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
 
   const removeImageInstruction = (index: number) => {
     const updatedInstructions = instructions.map((instruction, i) =>
-      i === index
-        ? { ...instruction, image: undefined }
-        : instruction
+      i === index ? { ...instruction, image: undefined } : instruction
     );
     setInstructions(updatedInstructions);
   };
@@ -226,12 +230,14 @@ const CreatePostModal: React.FC<PostModalProps> = ({
       fileInputRef.current.click();
     }
   };
+  const removeInstruction = (index: number) => {
+    const updatedInstructions = instructions.filter((_, i) => i !== index);
+    setInstructions(updatedInstructions);
+  };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const validateData = async () => {
     try {
-      await onSubmit(
+      await validationSchema.validate({
         title,
         about,
         images,
@@ -239,24 +245,66 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         timeToTake,
         servings,
         ingredients,
-        instructions
-      );
-      setTitle("");
-      setAbout("");
-      setImages([]);
-      setInputFields([{ name: "", quantity: "" }]);
-      setIngredients([]);
-      setInstructions([{ description: "", image: "" }]);
-      setTimeToTake("");
-      setServings("");
-      setHashtags([]);
-      setNewHashtag("");
-      setActiveTab(0);
+        instructions,
+      }, { abortEarly: false });
+      setValidationErrors({});
+      return true;
     } catch (error) {
-      console.error("Error during submit:", error);
+      if (error instanceof yup.ValidationError) {
+        const errors: { [key: string]: string } = {};
+        error.inner.forEach(err => {
+          if (err.path) {
+            errors[err.path] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
     }
   };
 
+  useEffect(() => {
+    validateData();
+  }, [title, about, images, hashtags, timeToTake, servings, ingredients, instructions]);
+
+
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const isValid = await validateData();
+
+    if (isValid) {
+      try {
+        await onSubmit(
+          title,
+          about,
+          images,
+          hashtags,
+          timeToTake,
+          servings,
+          ingredients,
+          instructions
+        );
+        setTitle("");
+        setAbout("");
+        setImages([]);
+        setInputFields([{ name: "", quantity: "" }]);
+        setIngredients([]);
+        setInstructions([{ description: "", image: "" }]);
+        setTimeToTake("");
+        setServings("");
+        setHashtags([]);
+        setNewHashtag("");
+        setActiveTab(0);
+      } catch (error) {
+        toast.error("Error during submit: " + ((error as Error)?.message || "Unknown error"));
+      }
+    }
+    else {
+      toast.error("Invalid data. Please check your input fields", validationErrors)
+    }
+  };
   const handleClick = () => {
     if (imgRef.current) {
       imgRef.current.click();
@@ -267,6 +315,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
 
   return (
     <div className="inset-0 flex items-start justify-center">
+      <Toaster/>
       <div className="modal-overlay fixed inset-0 bg-black opacity-40"></div>
       <div className="responsive modal-content absolute top-0 bg-white p-6 rounded-lg w-full max-w-lg z-50 overflow-y-auto max-h-[800px]">
         <button
@@ -279,14 +328,18 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         <div className="tabs tabs-boxed mt-6" role="tablist">
           <a
             role="tab"
-            className={`tab tab-lifted ${activeTab === 0 ? "tab-active active-tab" : ""}`}
+            className={`tab tab-lifted ${
+              activeTab === 0 ? "tab-active active-tab" : ""
+            }`}
             onClick={() => setActiveTab(0)}
           >
             The basics
           </a>
           <a
             role="tab"
-            className={`tab tab-lifted ${activeTab === 1 ? "tab-active active-tab" : ""}`}
+            className={`tab tab-lifted ${
+              activeTab === 1 ? "tab-active active-tab" : ""
+            }`}
             onClick={() => setActiveTab(1)}
           >
             Recipe
@@ -337,6 +390,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               fileInputRef={fileInputRef}
               handleClickIcon={handleClickIcon}
               removeImageInstruction={removeImageInstruction}
+              removeInstruction={removeInstruction}
             />
           )}
           <button

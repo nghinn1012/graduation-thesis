@@ -33,7 +33,6 @@ const CreatePostBox: React.FC = () => {
     const token = localStorage.getItem("auth");
 
     if (!token) {
-      toast.error("Token not found");
       return;
     }
 
@@ -58,7 +57,7 @@ const CreatePostBox: React.FC = () => {
       fetchPosts();
       setIsSubmitting(false);
     } catch (error) {
-      toast.error(`Failed to create post: ${(error as Error)?.message || 'Unknown error'}`);
+      toast.error(`Failed to create post: ${(error as Error) || 'Unknown error'}`);
       console.log("Error creating post:", error);
       setIsSubmitting(false);
     }

@@ -13,8 +13,6 @@ const Posts = () => {
     const token = localStorage.getItem("auth");
     if (token) {
       setIsReady(true);
-    } else {
-      toast.error("Token not found");
     }
   }, []);
 

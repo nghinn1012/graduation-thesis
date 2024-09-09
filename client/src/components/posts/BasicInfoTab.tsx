@@ -28,12 +28,12 @@ const validationSchema = Yup.object().shape({
   title: Yup.string().required("Title is required"),
   about: Yup.string().required("About is required"),
   newHashtag: Yup.string()
-  .test(
-    "is-valid-hashtag",
-    "Hashtags must contain only letters and numbers",
-    (value) => !value || /^[a-zA-Z0-9]*$/.test(value)
-  )
-  .nullable(), // Allows newHashtag to be empty
+    .test(
+      "is-valid-hashtag",
+      "Hashtags must contain only letters and numbers",
+      (value) => !value || /^[a-zA-Z0-9]*$/.test(value)
+    )
+    .nullable(), // Allows newHashtag to be empty
   images: Yup.array().min(1, "At least one image is required"),
 });
 
@@ -60,7 +60,6 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
 }) => {
   const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
 
-  // useEffect for validation
   useEffect(() => {
     const validate = async () => {
       try {
@@ -83,7 +82,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
     };
 
     validate();
-  }, [title, about, newHashtag, images]); // Dependencies to re-run validation when these change
+  }, [title, about, newHashtag, images]);
 
   return (
     <div>
@@ -200,7 +199,9 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
             Add
           </button>
         </div>
-        {errors.newHashtag && <p className="text-red-500">{errors.newHashtag}</p>}
+        {errors.newHashtag && (
+          <p className="text-red-500">{errors.newHashtag}</p>
+        )}
         <div className="flex flex-wrap gap-2">
           {hashtags.map((hashtag, index) => (
             <div

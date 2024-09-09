@@ -56,6 +56,7 @@ interface RecipeDetailsTabProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   handleClickIcon: () => void;
   removeImageInstruction: (index: number) => void;
+  removeInstruction: (index: number) => void;
 }
 
 interface IngredientFieldError {
@@ -100,6 +101,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   fileInputRef,
   handleClickIcon,
   removeImageInstruction,
+  removeInstruction,
 }) => {
   const [errors, setErrors] = useState<Errors>({});
 
@@ -114,13 +116,11 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const validationErrors: Errors = {};
-          console.log(err.inner);
           err.inner.forEach((error) => {
             if (error.path?.includes(".")) {
               const pathParts = error.path ? error.path.split(".") : [];
               const fieldName = pathParts[0].slice(0, -3);
               const index = +pathParts[0].slice(length - 2, length - 1);
-              console.log(pathParts, fieldName, index);
 
               if (fieldName == "inputFields") {
                 if (!validationErrors.inputFields) {
@@ -130,7 +130,6 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                   validationErrors.inputFields[index] = {};
                 }
                 const subField = pathParts[1];
-                console.log(subField);
                 validationErrors.inputFields[index][subField] = error.message;
               } else if (fieldName == "instructions") {
                 if (!validationErrors.instructions) {
@@ -140,7 +139,6 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                   validationErrors.instructions[index] = {};
                 }
                 const subField = pathParts[1];
-                console.log(subField);
                 validationErrors.instructions[index][subField] = error.message;
               }
             } else {
@@ -149,7 +147,6 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
               validationErrors[fieldName] = error.message;
             }
           });
-          console.log(validationErrors);
           setErrors(validationErrors);
         }
       }
@@ -232,14 +229,16 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                   </p>
                 )}
               </div>
-              <button
-                type="button"
-                className="text-red-500"
-                onClick={() => handleRemoveInputField(index)}
-                disabled={isSubmitting}
-              >
-                <IoTrashOutline />
-              </button>
+              {inputFields.length > 1 && (
+                <button
+                  type="button"
+                  className="text-red-500"
+                  onClick={() => handleRemoveInputField(index)}
+                  disabled={isSubmitting}
+                >
+                  <IoTrashOutline />
+                </button>
+              )}
             </div>
           ))}
           <button
@@ -253,7 +252,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           </button>
         </div>
       </div>
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <label className="block text-sm font-semibold mb-1">INSTRUCTIONS</label>
         {instructions.map((instruction, index) => (
           <div key={index} className="mb-4">
@@ -302,6 +301,103 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                 />
               </div>
             )}
+          </div>
+        ))}
+        <button
+          type="button"
+          className="btn btn-outline w-full"
+          onClick={addInstruction}
+          disabled={isSubmitting}
+        >
+          <IoAddCircleOutline className="mr-2" />
+          Add Instruction
+        </button>
+      </div> */}
+      <div className="mt-4">
+        <label className="block text-sm font-semibold mb-1">INSTRUCTIONS</label>
+        {instructions.map((instruction, index) => (
+          <div key={index} className="mb-4">
+            <div className="flex flex-row gap-2">
+              <textarea
+                className="textarea textarea-bordered w-full mb-2"
+                placeholder={`Step ${index + 1}`}
+                value={instruction.description}
+                onChange={(e) =>
+                  handleInstructionChange(index, "description", e.target.value)
+                }
+                disabled={isSubmitting}
+              />
+              {instructions.length > 1 && (
+                <button
+                  type="button"
+                  className="text-red-500"
+                  onClick={() => removeInstruction(index)}
+                  disabled={isSubmitting}
+                >
+                  <IoTrashOutline />
+                </button>
+              )}
+            </div>
+            {errors.instructions?.[index]?.description && (
+              <p className="text-red-500">
+                {errors.instructions[index]?.description}
+              </p>
+            )}
+            <input
+              type="file"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={(e) =>
+                handleImageChange(index, e.target.files?.[0] || null)
+              }
+              disabled={isSubmitting}
+            />
+            <button
+              type="button"
+              className="mx-auto z-50 rounded-full w-10 h-10 flex flex-col items-center justify-center text-center leading-none"
+              onClick={handleClickIcon}
+              disabled={isSubmitting}
+            >
+              <IoIosCamera className="w-6 h-6 mx-auto" />
+            </button>
+            {instruction.image && (
+              <div className="relative mt-2">
+                <IoCloseSharp
+                  className="absolute top-2 right-3 z-50 text-white bg-gray-300 rounded-full w-5 h-5 cursor-pointer"
+                  onClick={() => removeImageInstruction(index)}
+                />
+                <img
+                  src={instruction.image}
+                  alt={`Instruction ${index + 1}`}
+                  className="object-cover rounded-md"
+                  style={{ width: "100%", maxHeight: "200px" }}
+                />
+              </div>
+            )}
+
+            {/* Move Up Button */}
+            {/* {index > 0 && (
+              <button
+                type="button"
+                className="btn btn-secondary mr-2"
+                // onClick={() => moveInstructionUp(index)}
+                disabled={isSubmitting}
+              >
+                Move Up
+              </button>
+            )} */}
+
+            {/* Move Down Button */}
+            {/* {index < instructions.length - 1 && (
+              <button
+                type="button"
+                className="btn btn-secondary mr-2"
+                // onClick={() => moveInstructionDown(index)}
+                disabled={isSubmitting}
+              >
+                Move Down
+              </button>
+            )} */}
           </div>
         ))}
         <button

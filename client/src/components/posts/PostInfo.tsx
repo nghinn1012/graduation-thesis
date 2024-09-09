@@ -101,7 +101,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
     };
 
     fetchAuthor();
-  }, [isReady, postAuthor]);
+  }, [isReady]);
 
   useEffect(() => {
     const account = JSON.parse(localStorage.getItem("account") || "{}");
