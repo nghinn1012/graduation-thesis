@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { PostInfo } from "../../api/post";
+import { postFetcher, PostInfo, PostInfoUpdate } from "../../api/post";
 import {
   AiOutlineHeart,
   AiOutlineBook,
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
+import { BsFillPencilFill } from "react-icons/bs";
 import { useAuthContext } from "../../hooks/useAuthContext";
-
+import toast, { Toaster } from "react-hot-toast";
+import CreatePostModal from "../../components/posts/CreatePostModal";
+import { usePostContext } from "../../context/PostContext";
 const PostDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
@@ -16,15 +19,74 @@ const PostDetails: React.FC = () => {
   const location = useLocation();
   const post = location.state?.post as PostInfo;
   const postAuthor = location.state?.postAuthor;
-  const { account } = useAuthContext();
+  const { account, auth } = useAuthContext();
   const navigate = useNavigate();
+  const {fetchPosts} = usePostContext();
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editPost, setEditPost] = useState<PostInfo | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMyPost = account?.email === postAuthor.email;
+
+  const handleEditClick = () => {
+    setEditPost(post);
+    setIsModalOpen(true);
+  };
 
   const handleBackClick = () => {
     navigate(-1);
   };
 
+  const handlePostSubmit = async (
+    title: string,
+    about: string,
+    images: string[],
+    hashtags: string[],
+    timeToTake: string,
+    servings: number | string,
+    ingredients: { name: string; quantity: string }[],
+    instructions: { description: string; image?: string }[],
+    isEditing: boolean,
+    postId?: string
+  ) => {
+    const token = auth?.token;
+
+    if (!token) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      if (isEditing && editPost) {
+        const changes = {} as PostInfoUpdate;
+        if (editPost.title !== title) changes.title = title;
+        if (editPost.about !== about) changes.about = about;
+        if (JSON.stringify(editPost.images) !== JSON.stringify(images)) changes.images = images;
+        if (JSON.stringify(editPost.instructions) !== JSON.stringify(instructions)) changes.instructions = instructions;
+        if (JSON.stringify(editPost.ingredients) !== JSON.stringify(ingredients)) changes.ingredients = ingredients;
+        if (editPost.timeToTake !== timeToTake) changes.timeToTake = timeToTake;
+        if (Number(editPost.servings) !== Number(servings)) changes.servings = Number(servings);
+        if (JSON.stringify(editPost.hashtags) !== JSON.stringify(hashtags)) changes.hashtags = hashtags;
+
+        await postFetcher.updatePost(
+          editPost._id,
+          changes,
+          token
+        );
+        toast.success("Post updated successfully");
+      }
+      fetchPosts();
+      setIsModalOpen(false);
+      setIsSubmitting(false);
+    } catch (error) {
+      toast.error(`Failed to ${isEditing ? "update" : "create"} post: ${(error as Error) || 'Unknown error'}`);
+      console.log(`Error ${isEditing ? "updating" : "creating"} post:`, error);
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="relative">
+      <Toaster/>
       <div className="relative">
         <img
           src={post.images[0]}
@@ -39,11 +101,11 @@ const PostDetails: React.FC = () => {
           ❮
         </button>
 
-        <div className="absolute top-4 right-4 space-x-2 flex">
+        {isMyPost && (<div className="absolute top-4 right-4 space-x-2 flex">
           <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center">
-            ...
+            <BsFillPencilFill onClick={handleEditClick}/>
           </button>
-        </div>
+        </div>)}
       </div>
 
       {/* Text Content */}
@@ -225,6 +287,15 @@ const PostDetails: React.FC = () => {
           </div>
         )}
       </div>
+       {/* Post Modal */}
+       <CreatePostModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handlePostSubmit}
+        isSubmitting={isSubmitting} // Adjust based on your needs
+        post={editPost} // Pass post data for editing
+        isEditing={true} // Set editing mode based on whether editPost is null or not
+      />
     </div>
   );
 };

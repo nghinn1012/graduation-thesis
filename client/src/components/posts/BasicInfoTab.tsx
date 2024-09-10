@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import * as Yup from "yup";
+import { PostInfo } from "../../api/post";
 
 interface BasicInfoTabProps {
   title: string;
@@ -22,6 +23,7 @@ interface BasicInfoTabProps {
   currentIndex: number;
   goToPrevious: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   goToNext: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  post: PostInfo;
 }
 
 const validationSchema = Yup.object().shape({
@@ -57,6 +59,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   currentIndex,
   goToPrevious,
   goToNext,
+  post,
 }) => {
   const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
 
@@ -87,11 +90,13 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-        NEW POST.
+        {post ? "EDIT POST" : "NEW POST"}.
       </h1>
-      <p className="text-gray-900 dark:text-white">
-        Let's get started by adding some basic information about your post.
-      </p>
+      {!post && (
+        <p className="text-gray-900 dark:text-white">
+          Let's get started by adding some basic information about your post.
+        </p>
+      )}
       <div className="mt-4">
         <div className="flex flex-col gap-4 justify-center items-center">
           <button

@@ -3,11 +3,14 @@ import { PROXY_URL, POST_PATH } from "../config/config";
 import { ResponseErrorLike } from "../data/response_error_like";
 import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
+import { get } from "http";
 
 export const postEndpoints = {
   // users
   createPost: "/posts/create",
   getAllPosts: "/posts",
+  updatePost: "/posts/:id",
+  getPostById: "/posts/:id",
 } as const;
 
 export interface PostResponseError
@@ -59,6 +62,22 @@ export interface PostInfo {
   updatedAt: string;
 }
 
+export interface PostInfoUpdate {
+  title?: string;
+  about?: string;
+  images?: string[];
+  hashtags?: string[];
+  timeToTake?: string;
+  servings?: number;
+  ingredients?: Ingredient[];
+  instructions?: InstructionInfoUpdate[];
+}
+
+export interface InstructionInfoUpdate {
+  description: string;
+  image?: string;
+}
+
 export interface InstructionInfo {
   step: number;
   description: string;
@@ -77,13 +96,10 @@ export interface Ingredient {
   quantity: string;
 }
 
-type PartialInstructionInfo = Partial<InstructionInfo> & {
-  description: string;
-};
-
 export interface PostFetcher {
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string) => Promise<PostResponse<PostInfo[]>>;
+  updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -104,5 +120,14 @@ export const postFetcher: PostFetcher = {
         }
       }
     );
-  }
+  },
+  updatePost: async (postId: string, data: PostInfoUpdate, token: string): Promise<PostResponse<PostInfo>> => {
+    return postInstance.patch(postEndpoints.updatePost.replace(":id", postId), data,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
 };

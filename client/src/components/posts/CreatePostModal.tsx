@@ -5,6 +5,7 @@ import RecipeDetailsTab from "./RecipeDetailsTab";
 import imageCompression from "browser-image-compression";
 import * as yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
+import { setIn } from "formik";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -43,9 +44,13 @@ interface PostModalProps {
     instructions: {
       description: string;
       image?: string;
-    }[]
+    }[],
+    isEditing: boolean,
+    postId?: string
   ) => void;
   isSubmitting: boolean;
+  post?: any;
+  isEditing: boolean;
 }
 
 const CreatePostModal: React.FC<PostModalProps> = ({
@@ -53,6 +58,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   onClose,
   onSubmit,
   isSubmitting,
+  post,
+  isEditing,
 }) => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [title, setTitle] = useState<string>("");
@@ -265,7 +272,19 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     validateData();
   }, [title, about, images, hashtags, timeToTake, servings, ingredients, instructions]);
 
-
+  useEffect(() => {
+    if (post) {
+      setTitle(post.title);
+      setAbout(post.about);
+      setImages(post.images);
+      setHashtags(post.hashtags);
+      setTimeToTake(post.timeToTake);
+      setServings(post.servings);
+      setIngredients(post.ingredients);
+      setInputFields(post.ingredients);
+      setInstructions(post.instructions);
+    }
+  }, [post]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -282,7 +301,9 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           timeToTake,
           servings,
           ingredients,
-          instructions
+          instructions,
+          isEditing,
+          post?.id,
         );
         setTitle("");
         setAbout("");
@@ -368,6 +389,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               currentIndex={currentIndex}
               goToPrevious={goToPrevious}
               goToNext={goToNext}
+              post={post}
             />
           )}
           {activeTab === 1 && (
@@ -395,7 +417,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             type="submit"
             className="btn bg-red-500 w-full text-white mt-6 font-semibold"
           >
-            POST NOW.
+            {post ? "EDIT POST" : "POST NOW"}
           </button>
         </form>
       </div>

@@ -1,4 +1,3 @@
-// CreatePost.tsx
 import React, { useState, useEffect } from "react";
 import PostModal from "./CreatePostModal";
 import { postFetcher } from "../../api/post";
@@ -10,6 +9,7 @@ const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editPost, setEditPost] = useState<any>(null); // State to hold the post being edited
   const auth = useAuthContext();
   const { fetchPosts } = usePostContext();
 
@@ -28,8 +28,11 @@ const CreatePostBox: React.FC = () => {
     timeToTake: string,
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
-    instructions: { description: string; image?: string }[]
+    instructions: { description: string; image?: string }[],
+    isEditing: boolean,
+    postId?: string
   ) => {
+    console.log(isEditing, postId);
     const token = localStorage.getItem("auth");
 
     if (!token) {
@@ -51,14 +54,18 @@ const CreatePostBox: React.FC = () => {
         },
         JSON.parse(token).token
       );
-      setIsModalOpen(false);
       toast.success("Created post successfully");
 
+      setIsModalOpen(false);
       fetchPosts();
       setIsSubmitting(false);
     } catch (error) {
-      toast.error(`Failed to create post: ${(error as Error) || 'Unknown error'}`);
-      console.log("Error creating post:", error);
+      toast.error(
+        `Failed to ${isEditing ? "update" : "create"} post: ${
+          (error as Error) || "Unknown error"
+        }`
+      );
+      console.log(`Error ${isEditing ? "updating" : "creating"} post:`, error);
       setIsSubmitting(false);
     }
   };
@@ -66,7 +73,7 @@ const CreatePostBox: React.FC = () => {
   return (
     <div className="relative">
       {/* Main Interface */}
-      <Toaster/>
+      <Toaster />
       <div className="flex p-4 items-start gap-4 border-b border-gray-300">
         <div className="avatar">
           <div className="w-8 rounded-full">
@@ -79,7 +86,10 @@ const CreatePostBox: React.FC = () => {
         <textarea
           className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
           placeholder="What is happening?!"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditPost(null); // Reset edit state when creating a new post
+            setIsModalOpen(true);
+          }}
         />
       </div>
 
@@ -89,6 +99,8 @@ const CreatePostBox: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handlePostSubmit}
         isSubmitting={isSubmitting}
+        post={editPost}
+        isEditing={!!editPost}
       />
     </div>
   );

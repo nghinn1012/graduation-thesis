@@ -27,7 +27,6 @@ export const createPostController = async (request: AuthRequest, response: Respo
 export const getPostController = async (request: Request, response: Response) => {
   try {
     const postId = request.params.id;
-    console.log(postId);
     const post = await getPostService(postId);
     if (!post) {
       return response.status(400).json({
@@ -53,6 +52,7 @@ export const updatePostController = async (request: AuthRequest, response: Respo
       });
     }
     const post = await updatePostService(postId, postData, request.authContent.data.userId);
+    console.log(post);
     if (!post) {
       return response.status(400).json({
         message: "Cannot update post"
@@ -62,7 +62,7 @@ export const updatePostController = async (request: AuthRequest, response: Respo
   } catch (error) {
     return response.status(400).json({
       message: "Cannot update post",
-      error: (error as Error).message
+      error: (error as Error)
     });
   }
 }

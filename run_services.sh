@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Open Terminator with a specific layout
-terminator -l mylayout &
-
-# Allow time for Terminator to open the layout
-sleep 2
-
 # Send commands to specific panes
 terminator -p "terminal9" -e "bash -c 'cd server/user-service && npm start; exec bash'" &
 terminator -p "terminal8" -e "bash -c 'cd server/post-service && npm start; exec bash'" &

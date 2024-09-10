@@ -13,12 +13,10 @@ import RightPanel from "./components/common/RightPanel";
 import React from "react";
 import PostDetail from "./pages/post/PostDetail";
 import AppMainCenter from "./context/MainContext";
-import I18nContextProvider from "./context/I18nContext";
 export function App() {
   return (
-    <I18nContextProvider>
+    <AppContextProviders>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AppContextProviders>
         <Routes>
           <Route
             path="/*"
@@ -52,8 +50,7 @@ export function App() {
 
           <Route path="/verify/*" element={<VerifyPage />} />
         </Routes>
-        </AppContextProviders>
       </GoogleOAuthProvider>
-    </I18nContextProvider>
+    </AppContextProviders>
   );
 }

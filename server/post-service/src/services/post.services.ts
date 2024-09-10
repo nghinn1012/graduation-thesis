@@ -122,6 +122,7 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
         },
       });
     }
+    console.log(post.author.toString(), userId);
     if (post.author.toString() !== userId) {
       throw new InternalError({
         data: {
@@ -137,13 +138,14 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       new: true,
       runValidators: true,
     });
+    console.log(postUpdate);
     return postUpdate;
 
   } catch (error) {
     throw new InternalError({
       data: {
         target: "post-food",
-        reason: (error as Error).message,
+        reason: error as string,
       },
     });
   }
