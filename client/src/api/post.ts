@@ -100,6 +100,7 @@ export interface PostFetcher {
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
+  getPostById: (postId: string, token: string) =>  Promise<PostResponse<PostInfo>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -130,4 +131,13 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-};
+  getPostById: async (postId: string, token: string): Promise<PostResponse<PostInfo>> => {
+    return postInstance.get(postEndpoints.getPostById.replace(":id", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
+}

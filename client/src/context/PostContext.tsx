@@ -9,7 +9,7 @@ interface PostContextType {
   posts: PostInfo[];
   isLoading: boolean;
   fetchPosts: () => void;
-  fetchPostById: (postId: string) => Promise<PostInfo>;
+  fetchPostById: (postId: string) => void;
   authors: Map<string, AccountInfo>;
 }
 
@@ -57,7 +57,10 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchPostById = async (postId: string) => {
     try {
-      const post = await postFetcher.getPostById(postId); // Assuming you have an API function like this
+      const token = auth?.token;
+      if (!token) return;
+
+      const post = await postFetcher.getPostById(postId, token);
       return post;
     } catch (error) {
       console.error("Failed to fetch post:", error);
@@ -73,7 +76,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [auth]);
 
   return (
-    <PostContext.Provider value={{ posts, isLoading, fetchPosts, authors }}>
+    <PostContext.Provider value={{ posts, isLoading, fetchPosts, authors, fetchPostById }}>
       {children}
     </PostContext.Provider>
   );
