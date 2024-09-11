@@ -1,5 +1,6 @@
 import {
   rpcGetUserById,
+  rpcGetUserByIds,
 } from "../services/rpc.services";
 import { RabbitMQ } from "./rpc";
 import { RpcRequest } from "./rpc_req_and_res";
@@ -12,6 +13,7 @@ export interface IPagination {
 export const RpcAction = {
   USER_RPC_GET_INFO: "rpcGetUserInfo",
   USER_RPC_GET_USER_BY_ID: "rpcGetUserById",
+  USER_RPC_GET_AUTHORS: "rpcGetAuthors",
   USER_RPC_GET_USER_SUBCRIBERS_BY_USER_ID: "rpcGetUserSubcribersByUserId",
 } as const;
 
@@ -38,6 +40,11 @@ export interface IRpcGetUserSubcribersPayload {
   pagination: IPagination;
 }
 
+export interface IRpcGetAuthorsPayload {
+  _ids: string[];
+  select?: string | string[];
+}
+
 export const initRpcConsumers = (rabbit: RabbitMQ): void => {
   // rabbit.listenRpc(
   //   RpcAction.USER_RPC_GET_INFO,
@@ -51,6 +58,14 @@ export const initRpcConsumers = (rabbit: RabbitMQ): void => {
     (req: RpcRequest<IRpcGetUserByIdPayload>) => {
       const { _id, select } = req.payload;
       return rpcGetUserById(_id, select);
+    }
+  );
+
+  rabbit.listenRpc(
+    RpcAction.USER_RPC_GET_AUTHORS,
+    (req: RpcRequest<IRpcGetAuthorsPayload>) => {
+      const { _ids, select } = req.payload;
+      return rpcGetUserByIds(_ids, select);
     }
   );
 

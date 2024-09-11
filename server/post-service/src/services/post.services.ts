@@ -1,11 +1,12 @@
 import postModel from "../models/postModel";
-import { rpcGetUser, Id } from "../services/rpc.services";
+import { rpcGetUser, Id, rpcGetUsers, IAuthor } from "../services/rpc.services";
 import { IPost, InternalError, autoAssignSteps } from "../data/index";
 import { uploadImageToCloudinary } from "./imagesuploader.services";
 import { io } from '../../index';
 
-export const createPostService = async (data: IPost) => {
+export const createPostService = async (data: IPost, io: Server) => {
   try {
+    // Ensure author exists
     const author = await rpcGetUser<Id>(data.author, "_id");
     if (!author) {
       console.log("rpc-author", "unknown");
@@ -144,7 +145,7 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
         },
       });
     }
-    console.log(post.author.toString(), userId);
+
     if (post.author.toString() !== userId) {
       throw new InternalError({
         data: {
@@ -153,30 +154,111 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
         },
       });
     }
+
     if (data.instructions) {
       data.instructions = autoAssignSteps(data.instructions);
     }
+
     const postUpdate = await postModel.findByIdAndUpdate(postId, data, {
       new: true,
       runValidators: true,
     });
     console.log(postUpdate);
-    return postUpdate;
 
+    if (data.images) {
+      const uploadImages = async (imageUrls: string[]) => {
+        const limit = 5;
+        const chunks = [];
+        for (let i = 0; i < imageUrls.length; i += limit) {
+          chunks.push(imageUrls.slice(i, i + limit));
+        }
+
+        try {
+          const uploadedImages = await Promise.all(
+            chunks.map(async (chunk) =>
+              Promise.all(
+                chunk.map(async (image) => {
+                  try {
+                    return await uploadImageToCloudinary(image);
+                  } catch (error) {
+                    console.error(`Error uploading image: `, error);
+                    throw new Error(`Failed to upload image: ${(error as Error).message}`);
+                  }
+                })
+              )
+            )
+          ).then(results => results.flat());
+
+          await postModel.updateOne(
+            { _id: post._id },
+            { $set: { images: uploadedImages } }
+          );
+        } catch (error) {
+          console.error("Error uploading images chunk:", error);
+          throw new Error("Failed to update images");
+        }
+      };
+
+      await uploadImages(data.images);
+    }
+
+    if (data.instructions) {
+      const uploadInstructionsImages = async () => {
+        try {
+          const updatedInstructions = await Promise.all(
+            data.instructions.map(async (instruction) => {
+              if (instruction.image) {
+                try {
+                  const uploadedImage = await uploadImageToCloudinary(instruction.image);
+                  return {
+                    ...instruction,
+                    image: uploadedImage,
+                  };
+                } catch (error) {
+                  console.log(`Error uploading instruction image: `, error);
+                  throw new Error(`Failed to upload instruction image: ${(error as Error).message}`);
+                }
+              }
+              return instruction;
+            })
+          );
+
+          await postModel.updateOne(
+            { _id: post._id },
+            { $set: { instructions: updatedInstructions } }
+          );
+        } catch (error) {
+          console.log("Error uploading instruction images:", error);
+          throw new Error("Failed to update instruction images");
+        }
+      };
+
+      await uploadInstructionsImages();
+    }
+
+    return postUpdate;
   } catch (error) {
     throw new InternalError({
       data: {
         target: "post-food",
-        reason: error as string,
+        reason: (error as Error).message,
       },
     });
   }
-}
+};
 
 export const getAllPostsService = async () => {
   try {
-    const posts = await postModel.find().sort({ createdAt: -1 });
-    return posts;
+    const posts = await postModel.find().sort({ createdAt: -1 }).limit(10);
+
+    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+
+    const postsWithAuthors = posts.map((post, index) => ({
+      ...post.toObject(),
+      author: authors ? authors[index] : null,
+    }));
+
+    return postsWithAuthors;
   } catch (error) {
     throw new InternalError({
       data: {

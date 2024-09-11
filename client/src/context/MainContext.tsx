@@ -13,6 +13,7 @@ export default function AppMainCenter() {
     <div className="flex-1 p-4 overflow-y-auto">
       <Routes>
         <Route path="/" element={<HomePage />} />
+        {/* <Route path="/profile" element={<MyComponent />} /> */}
         <Route path="/post/*" element={<PostIndex />} />
         <Route path="/profile" element={<MyComponent/>} />
       </Routes>

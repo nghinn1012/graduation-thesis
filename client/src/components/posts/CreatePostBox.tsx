@@ -53,7 +53,6 @@ const CreatePostBox: React.FC = () => {
     isEditing: boolean,
     postId?: string
   ) => {
-    console.log(isEditing, postId);
     const token = localStorage.getItem("auth");
 
     if (!token) {

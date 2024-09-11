@@ -3,6 +3,7 @@ import { RabbitMQ } from "./rpc";
 export const RpcAction = {
   USER_RPC_GET_INFO: "rpcGetUserInfo",
   USER_RPC_GET_USER_BY_ID: "rpcGetUserById",
+  USER_RPC_GET_AUTHORS: "rpcGetAuthors",
   USER_RPC_GET_USER_SUBCRIBERS_BY_USER_ID: "rpcGetUserSubcribersByUserId",
 } as const;
 
@@ -27,6 +28,10 @@ export interface IRpcGetUserByIdPayload {
   select?: string | string[];
 }
 
+export interface IRpcGetAuthorsPayload {
+  _ids: string[];
+  select?: string | string[];
+}
 export const initRpcConsumers = (_rabbit: RabbitMQ): void => {
   // Do nothing
 };

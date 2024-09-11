@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createPostService, getAllPostsService, getPostService, updatePostService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
+import { Server } from 'socket.io';
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
   try {
@@ -8,6 +9,7 @@ export const createPostController = async (request: AuthRequest, response: Respo
       ...request.body,
       author: request.authContent?.data.userId
     };
+
     validatePostFoodBody(postData);
 
     const post = await createPostService(postData);
