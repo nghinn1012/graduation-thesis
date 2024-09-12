@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreatePostBox from "../../components/posts/CreatePostBox";
 import React from "react";
 import Posts from "../../components/posts/PostsList";
 
 const HomePage = () => {
-	const [feedType, setFeedType] = useState("forYou");
-
+  const [feedType, setFeedType] = useState("forYou");
 	return (
 		<>
 			<div className='flex-[4_4_0] mr-auto border-r border-gray-300 min-h-screen'>
