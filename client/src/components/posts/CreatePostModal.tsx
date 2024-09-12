@@ -83,9 +83,14 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [servings, setServings] = useState<number | string>("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtag, setNewHashtag] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<(HTMLInputElement | null)[]>([]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    fileInputRef.current = fileInputRef.current.slice(0, instructions.length);
+  }, [instructions]);
 
   const handleInstructionChange = (
     index: number,
@@ -102,8 +107,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     if (file) {
       try {
         const compressOptions = {
-          maxSizeMB: 1, // Tối đa kích thước file là 1MB
-          maxWidthOrHeight: 1920, // Tối đa chiều dài hoặc chiều rộng
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
         };
 
         const compressedFile = await imageCompression(file, compressOptions);
@@ -112,7 +117,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         const reader = new FileReader();
         reader.onloadend = () => {
           const updatedInstructions = instructions.map((instruction, i) =>
-            i === index
+              i === index
               ? { ...instruction, image: reader.result as string }
               : instruction
           );
@@ -230,9 +235,10 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setHashtags(hashtags.filter((_, i) => i !== index));
   };
 
-  const handleClickIcon = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  const handleClickIcon = (index: number) => {
+    const inputRef = fileInputRef.current[index];
+    if (inputRef) {
+      inputRef.click();
     }
   };
   const removeInstruction = (index: number) => {

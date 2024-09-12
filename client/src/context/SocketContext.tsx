@@ -1,55 +1,39 @@
-// import React, { createContext, useEffect, useState } from "react";
-// import { Socket, io } from "socket.io-client";
-// import { useAuthContext } from "../hooks/useAuthContext";
-// import { VITE_SOCKET_URL } from "../config/config";
+// SocketContext.tsx
+import React, { createContext, useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
+import { VITE_SOCKET_URL } from "../config/config";
 
-// interface ISocketContextProviderProps {
-//   children?: React.ReactNode;
-// }
+interface SocketContextType {
+  socket: Socket | null;
+}
 
-// interface ISocketContext {
-//   socket?: Socket;
-// }
+export const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
-// export const SocketContext = createContext<ISocketContext>({});
+export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-// export default function SocketContextProvider({
-//   children,
-// }: ISocketContextProviderProps) {
-//   const [socket, setSocket] = useState<Socket>();
-//   const authContext = useAuthContext();
+  useEffect(() => {
+    const socketInstance: Socket = io(VITE_SOCKET_URL);
 
-//   useEffect(() => {
-//     const auth = authContext.auth;
+    socketInstance.on("connect", () => {
+      console.log("Successfully connected to server");
+    });
 
-//     if (auth != null && socket == null) {
-//       const newSocket = io(VITE_SOCKET_URL, {
-//         extraHeaders: {
-//           Authorization: auth.token,
-//         },
-//       });
-//       setSocket(newSocket);
+    socketInstance.on("connect_error", (error: Error) => {
+      console.log("Connection error:", error);
+    });
 
-//       newSocket.on("connect", () => {
-//         console.info("Socket connected", newSocket.id);
-//       });
-//       newSocket.on("error", (err) => console.log(err));
-//     }
+    setSocket(socketInstance);
 
-//     return () => {
-//       if (auth == null && socket != null) {
-//         socket.close();
-//       }
-//     };
-//   }, [authContext.auth, setSocket, socket]);
+    return () => {
+      socketInstance.disconnect();
+      console.log("Socket disconnected");
+    };
+  }, []);
 
-//   return (
-//     <SocketContext.Provider
-//       value={{
-//         socket: socket,
-//       }}
-//     >
-//       {children}
-//     </SocketContext.Provider>
-//   );
-// }
+  return (
+    <SocketContext.Provider value={{ socket }}>
+      {children}
+    </SocketContext.Provider>
+  );
+};

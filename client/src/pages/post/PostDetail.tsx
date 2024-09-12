@@ -1,33 +1,64 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { postFetcher, PostInfo, PostInfoUpdate } from "../../api/post";
+import { InstructionInfo, postFetcher, PostInfo, PostInfoUpdate } from "../../api/post";
 import {
   AiOutlineHeart,
   AiOutlineBook,
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
+
 import { BsFillPencilFill } from "react-icons/bs";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import toast, { Toaster } from "react-hot-toast";
 import CreatePostModal from "../../components/posts/CreatePostModal";
 import { usePostContext } from "../../context/PostContext";
-
-const PostDetails: React.FC = () => {
+import { useSocket } from "../../hooks/useSocketContext";
+import PostDetailsSkeleton from "../../components/skeleton/PostDetailsSkeleton";
+const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
   );
   const location = useLocation();
-  const [post, setPost] = useState(location.state?.post as PostInfo);
+  const navigate = useNavigate();
+  const [post, setPost] = useState<PostInfo>(location.state?.post as PostInfo);
   const postAuthor = location.state?.postAuthor;
   const { account, auth } = useAuthContext();
-  const navigate = useNavigate();
-  const { fetchPosts } = usePostContext();
+  const { fetchPosts, fetchPost } = usePostContext();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editPost, setEditPost] = useState<PostInfo | null>(post);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [alreadyUpdated, setAlreadyUpdated] = useState(false);
-  const isMyPost = account?.email === postAuthor.email;
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const isMyPost = account?.email === postAuthor?.email;
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const fetchUpdatedPost = async () => {
+      try {
+        const updatedPost = await postFetcher.getPostById(
+          post._id,
+          auth?.token || ""
+        );
+        setPost(updatedPost as unknown as PostInfo);
+      } catch (error) {
+        console.error("Failed to fetch the updated post:", error);
+      }
+    };
+
+    socket.on("images-updated", (message: string) => {
+      console.log(`Received message: ${message}`);
+      fetchUpdatedPost();
+      fetchPost(post._id)
+    });
+
+    setIsLoading(false);
+
+    return () => {
+      socket.off("images-updated");
+    };
+  }, [socket, fetchPosts, post._id, auth?.token]);
 
   const handleEditClick = () => {
     setEditPost(post);
@@ -52,21 +83,24 @@ const PostDetails: React.FC = () => {
   ) => {
     const token = auth?.token;
 
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     try {
       setIsSubmitting(true);
+
       if (isEditing && editPost) {
         const changes: Partial<PostInfoUpdate> = {};
         if (editPost.title !== title) changes.title = title;
         if (editPost.about !== about) changes.about = about;
         if (JSON.stringify(editPost.images) !== JSON.stringify(images))
           changes.images = images;
-        if (JSON.stringify(editPost.instructions) !== JSON.stringify(instructions))
+        if (
+          JSON.stringify(editPost.instructions) !== JSON.stringify(instructions)
+        )
           changes.instructions = instructions;
-        if (JSON.stringify(editPost.ingredients) !== JSON.stringify(ingredients))
+        if (
+          JSON.stringify(editPost.ingredients) !== JSON.stringify(ingredients)
+        )
           changes.ingredients = ingredients;
         if (editPost.timeToTake !== timeToTake) changes.timeToTake = timeToTake;
         if (Number(editPost.servings) !== Number(servings))
@@ -77,45 +111,39 @@ const PostDetails: React.FC = () => {
         await postFetcher.updatePost(editPost._id, changes, token);
         toast.success("Post updated successfully");
       }
-      fetchPosts();
-      setAlreadyUpdated(true);
       setIsModalOpen(false);
+      setIsLoading(true);
     } catch (error) {
       toast.error(
         `Failed to ${isEditing ? "update" : "create"} post: ${
           (error as Error).message || "Unknown error"
         }`
       );
-      console.error(`Error ${isEditing ? "updating" : "creating"} post:`, error);
+      console.error(
+        `Error ${isEditing ? "updating" : "creating"} post:`,
+        error
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  useEffect(() => {
-
-    const fetchUpdatedPost = async () => {
-      try {
-        const updatedPost = await postFetcher.getPostById(post._id, auth?.token || "");
-        setPost(updatedPost as unknown as PostInfo);
-        setAlreadyUpdated(false);
-      } catch (error) {
-        console.error("Failed to fetch the updated post:", error);
-      }
-    };
-
-    fetchUpdatedPost();
-  }, [alreadyUpdated]);
-
   return (
-    <div className="relative">
-      <Toaster />
-      <div className="relative">
-        <img
-          src={post.images[0]}
-          alt={post.title}
-          className="w-full h-64 object-cover"
-        />
+    <>
+      {isLoading ? (
+        <>
+          <Toaster />
+          <PostDetailsSkeleton />
+        </>
+      ) : (
+        <div className="relative">
+          <Toaster />
+          <div className="relative">
+            <img
+              src={post.images[0]}
+              alt={post.title}
+              className="w-full h-64 object-cover"
+            />
 
         <button
           className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center"
@@ -322,8 +350,9 @@ const PostDetails: React.FC = () => {
           isSubmitting={isSubmitting}
         />
       )}
-    </div>
-  );
+        </div>
+      )}
+    </>);
 };
 
 export default PostDetails;

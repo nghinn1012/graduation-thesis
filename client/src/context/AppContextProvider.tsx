@@ -2,8 +2,7 @@ import React from "react";
 import AuthContextProvider from "./AuthContext";
 import I18nContextProvider from "./I18nContext";
 import { PostProvider } from "./PostContext";
-import IsAuthenticated from "../common/auth/IsAuthenticated";
-// import SocketContextProvider from "./SocketContext";
+import {SocketProvider} from "./SocketContext";
 
 interface IAppContextProvidersProps {
   children?: React.ReactNode;
@@ -16,9 +15,9 @@ export default function AppContextProviders({
     <I18nContextProvider>
       <AuthContextProvider>
           <PostProvider>
-          {/* <SocketContextProvider> */}
+          <SocketProvider>
             {children}
-          {/* </SocketContextProvider> */}
+          </SocketProvider>
           </PostProvider>
       </AuthContextProvider>
     </I18nContextProvider>

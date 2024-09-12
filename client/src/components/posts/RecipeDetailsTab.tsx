@@ -9,7 +9,11 @@ import * as Yup from "yup";
 
 const validationSchema = Yup.object({
   timeToTake: Yup.string().required("Time to take is required"),
-  servings: Yup.number().typeError("Servings must be a number").required("Servings are required").positive("Servings must be a positive number").integer("Servings must be an integer"),
+  servings: Yup.number()
+    .typeError("Servings must be a number")
+    .required("Servings are required")
+    .positive("Servings must be a positive number")
+    .integer("Servings must be an integer"),
   inputFields: Yup.array()
     .of(
       Yup.object({
@@ -52,8 +56,8 @@ interface RecipeDetailsTabProps {
   handleImageChange: (index: number, file: File | null) => void;
   addInstruction: () => void;
   isSubmitting: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  handleClickIcon: () => void;
+  fileInputRef: React.MutableRefObject<(HTMLInputElement | null)[]>;
+  handleClickIcon: (index: number) => void;
   removeImageInstruction: (index: number) => void;
   removeInstruction: (index: number) => void;
 }
@@ -251,67 +255,6 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           </button>
         </div>
       </div>
-      {/* <div className="mt-4">
-        <label className="block text-sm font-semibold mb-1">INSTRUCTIONS</label>
-        {instructions.map((instruction, index) => (
-          <div key={index} className="mb-4">
-            <textarea
-              className="textarea textarea-bordered w-full mb-2"
-              placeholder={`Step ${index + 1}`}
-              value={instruction.description}
-              onChange={(e) =>
-                handleInstructionChange(index, "description", e.target.value)
-              }
-              disabled={isSubmitting}
-            />
-            {errors.instructions?.[index]?.description && (
-              <p className="text-red-500">
-                {errors.instructions[index]?.description}
-              </p>
-            )}
-            <input
-              type="file"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={(e) =>
-                handleImageChange(index, e.target.files?.[0] || null)
-              }
-              disabled={isSubmitting}
-            />
-            <button
-              type="button"
-              className="mx-auto z-50 rounded-full w-10 h-10 flex flex-col items-center justify-center text-center leading-none"
-              onClick={handleClickIcon}
-              disabled={isSubmitting}
-            >
-              <IoIosCamera className="w-6 h-6 mx-auto" />
-            </button>
-            {instruction.image && (
-              <div className="relative mt-2">
-                <IoCloseSharp
-                  className="absolute top-2 right-3 z-50 text-white bg-gray-300 rounded-full w-5 h-5 cursor-pointer"
-                  onClick={() => removeImageInstruction(index)}
-                />
-                <img
-                  src={instruction.image}
-                  alt={`Instruction ${index + 1}`}
-                  className="object-cover rounded-md"
-                  style={{ width: "100%", maxHeight: "200px" }}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          className="btn btn-outline w-full"
-          onClick={addInstruction}
-          disabled={isSubmitting}
-        >
-          <IoAddCircleOutline className="mr-2" />
-          Add Instruction
-        </button>
-      </div> */}
       <div className="mt-4">
         <label className="block text-sm font-semibold mb-1">INSTRUCTIONS</label>
         {instructions.map((instruction, index) => (
@@ -345,7 +288,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             <input
               type="file"
               className="hidden"
-              ref={fileInputRef}
+              ref={(el) => (fileInputRef.current[index] = el)} // Gán ref chính xác
               onChange={(e) =>
                 handleImageChange(index, e.target.files?.[0] || null)
               }
@@ -354,7 +297,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             <button
               type="button"
               className="mx-auto z-50 rounded-full w-10 h-10 flex flex-col items-center justify-center text-center leading-none"
-              onClick={handleClickIcon}
+              onClick={() => handleClickIcon(index)} // Truyền index vào hàm
               disabled={isSubmitting}
             >
               <IoIosCamera className="w-6 h-6 mx-auto" />

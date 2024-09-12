@@ -1,6 +1,6 @@
 import postModel from "../models/postModel";
 import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from "../services/index.services";
-import { IPost, InternalError, autoAssignSteps } from "../data/index";
+import { IInstruction, IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
 
 export const createPostService = async (data: IPost) => {
@@ -114,11 +114,32 @@ export const createPostService = async (data: IPost) => {
   }
 };
 
-
 export const getPostService = async (postId: string) => {
   try {
     const post = await postModel.findById(postId);
     return post;
+  } catch (error) {
+    throw new InternalError({
+      data: {
+        target: "post-food",
+        reason: (error as Error).message,
+      },
+    });
+  }
+}
+
+export const getAllPostsService = async () => {
+  try {
+    const posts = await postModel.find().sort({ createdAt: -1 }).limit(20);
+
+    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+
+    const postsWithAuthors = posts.map((post, index) => ({
+      ...post.toObject(),
+      author: authors ? authors[index] : null,
+    }));
+
+    return postsWithAuthors;
   } catch (error) {
     throw new InternalError({
       data: {
@@ -154,84 +175,101 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       data.instructions = autoAssignSteps(data.instructions);
     }
 
-    const postUpdate = await postModel.findByIdAndUpdate(postId, data, {
+    const postUpdateData: Partial<IPost> = { ...data };
+    if (data.images) {
+      postUpdateData.images = [];
+    }
+    if (data.instructions) {
+      postUpdateData.instructions = data.instructions.map(instr => ({
+        ...instr,
+        image: undefined,
+      }));
+    }
+
+    const postUpdate = await postModel.findByIdAndUpdate(postId, postUpdateData, {
       new: true,
       runValidators: true,
     });
-    console.log(postUpdate);
 
-    if (data.images) {
-      const uploadImages = async (imageUrls: string[]) => {
-        const limit = 5;
-        const chunks = [];
-        for (let i = 0; i < imageUrls.length; i += limit) {
-          chunks.push(imageUrls.slice(i, i + limit));
-        }
+    const handleUploads = async () => {
+      try {
+        const uploadImages = async (imageUrls: string[]) => {
+          const limit = 5;
+          const chunks = [];
+          for (let i = 0; i < imageUrls.length; i += limit) {
+            chunks.push(imageUrls.slice(i, i + limit));
+          }
 
-        try {
-          const uploadedImages = await Promise.all(
-            chunks.map(async (chunk) =>
-              Promise.all(
-                chunk.map(async (image) => {
+          try {
+            const uploadedImages = await Promise.all(
+              chunks.map(chunk =>
+                Promise.all(chunk.map(async (image) => {
                   try {
                     return await uploadImageToCloudinary(image);
                   } catch (error) {
-                    console.error(`Error uploading image: `, error);
-                    throw new Error(`Failed to upload image: ${(error as Error).message}`);
+                    console.error(`Error uploading image:`, error);
+                    throw new Error(`Failed to upload image`);
                   }
-                })
+                }))
               )
-            )
-          ).then(results => results.flat());
+            ).then(results => results.flat());
 
-          await postModel.updateOne(
-            { _id: post._id },
-            { $set: { images: uploadedImages } }
-          );
-        } catch (error) {
-          console.error("Error uploading images chunk:", error);
-          throw new Error("Failed to update images");
-        }
-      };
+            await postModel.updateOne(
+              { _id: post._id },
+              { $set: { images: uploadedImages } }
+            );
+          } catch (error) {
+            console.error("Error uploading images chunk:", error);
+          }
+        };
 
-      await uploadImages(data.images);
-    }
-
-    if (data.instructions) {
-      const uploadInstructionsImages = async () => {
-        try {
-          const updatedInstructions = await Promise.all(
-            data.instructions.map(async (instruction) => {
-              if (instruction.image) {
-                try {
-                  const uploadedImage = await uploadImageToCloudinary(instruction.image);
-                  return {
-                    ...instruction,
-                    image: uploadedImage,
-                  };
-                } catch (error) {
-                  console.log(`Error uploading instruction image: `, error);
-                  throw new Error(`Failed to upload instruction image: ${(error as Error).message}`);
+        const uploadInstructionsImages = async () => {
+          try {
+            const updatedInstructions = await Promise.all(
+              data.instructions.map(async (instruction) => {
+                if (instruction.image) {
+                  try {
+                    const uploadedImage = await uploadImageToCloudinary(instruction.image);
+                    return {
+                      ...instruction,
+                      image: uploadedImage,
+                    };
+                  } catch (error) {
+                    console.error(`Error uploading instruction image:`, error);
+                    throw new Error(`Failed to upload instruction image`);
+                  }
                 }
-              }
-              return instruction;
-            })
-          );
+                return instruction;
+              })
+            );
 
-          await postModel.updateOne(
-            { _id: post._id },
-            { $set: { instructions: updatedInstructions } }
-          );
-        } catch (error) {
-          console.log("Error uploading instruction images:", error);
-          throw new Error("Failed to update instruction images");
+            await postModel.updateOne(
+              { _id: post._id },
+              { $set: { instructions: updatedInstructions } }
+            );
+          } catch (error) {
+            console.error("Error uploading instruction images:", error);
+          }
+        };
+
+        if (data.images) {
+          await uploadImages(data.images);
         }
-      };
 
-      await uploadInstructionsImages();
-    }
+        if (data.instructions) {
+          await uploadInstructionsImages();
+        }
+
+        io.emit('images-updated', { postId: post._id });
+      } catch (error) {
+        console.error("Error handling uploads:", error);
+      }
+    };
+
+    handleUploads();
 
     return postUpdate;
+
   } catch (error) {
     throw new InternalError({
       data: {
@@ -241,25 +279,3 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
     });
   }
 };
-
-export const getAllPostsService = async () => {
-  try {
-    const posts = await postModel.find().sort({ createdAt: -1 }).limit(10);
-
-    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
-
-    const postsWithAuthors = posts.map((post, index) => ({
-      ...post.toObject(),
-      author: authors ? authors[index] : null,
-    }));
-
-    return postsWithAuthors;
-  } catch (error) {
-    throw new InternalError({
-      data: {
-        target: "post-food",
-        reason: (error as Error).message,
-      },
-    });
-  }
-}
