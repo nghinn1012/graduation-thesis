@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { OAuth2Client } from 'google-auth-library';
-import { InvalidDataError } from '../data/invalid_data.data';
+import { InvalidDataError } from '../data/index.data';
 import { GOOGLE_CLIENT_ID } from '../config/users.config';
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);

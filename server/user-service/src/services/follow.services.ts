@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { InvalidDataError } from "../data/invalid_data.data";
 import UserModel from "../db/models/User.models"
 import FollowerModel from "../db/models/Follower.models";

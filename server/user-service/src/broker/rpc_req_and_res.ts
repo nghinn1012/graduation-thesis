@@ -1,5 +1,4 @@
-import { RpcAction } from "./rpc_consumer";
-import { RpcSource } from "./rpc_source";
+import { RpcAction, RpcSource } from "./index";
 
 export interface RpcRequest<T = any> {
   source: RpcSource;

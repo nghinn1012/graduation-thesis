@@ -1,4 +1,8 @@
-export { getUser, getSuggestUserController, updateUserControler, searchUserByNameController, followAndUnFollowUserController  } from "./users.controllers";
+export {
+  getUser, getSuggestUserController,
+  updateUserControler, searchUserByNameController,
+  followAndUnFollowUserController
+} from "./users.controllers";
 
 export {
   loginController, registerController,

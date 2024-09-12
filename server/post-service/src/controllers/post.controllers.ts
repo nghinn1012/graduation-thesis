@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { createPostService, getAllPostsService, getPostService, updatePostService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
-import { Server } from 'socket.io';
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
   try {

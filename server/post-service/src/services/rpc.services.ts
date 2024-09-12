@@ -5,8 +5,8 @@ import {
   RpcQueueName,
   RpcRequest,
   RpcSource,
+  IRpcGetAuthorsPayload,
 } from "../broker";
-import { IRpcGetAuthorsPayload } from "../broker/rpc_consumer";
 
 export interface Id {
   _id: string;

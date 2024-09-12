@@ -1,7 +1,5 @@
-import { Request, Response } from "express";
-import { InvalidDataError } from "../data/invalid_data.data";
+import { InvalidDataError, validatePassword } from "../data/index.data";
 import UserModel from "../db/models/User.models";
-import { validatePassword } from "../data/validation.data";
 import { hashText } from "../utlis/bcrypt";
 import { v2 as cloudinary } from "cloudinary";
 

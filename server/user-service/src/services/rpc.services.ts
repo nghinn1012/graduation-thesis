@@ -1,5 +1,4 @@
 import UserModel from "../db/models/User.models";
-import User from "../db/models/User.models";
 
 export const rpcGetUserById = async (
   _id: string,
