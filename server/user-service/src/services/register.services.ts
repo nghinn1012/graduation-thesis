@@ -1,10 +1,8 @@
 import UserModel from '../db/models/User.models';
 import { validateEmail, validatePassword, InvalidDataError } from '../data/index.data';
 import { hashText } from '../utlis/bcrypt';
-import { signToken } from '../utlis/jwt';  // Function to sign JWT token
+import { signToken } from '../utlis/jwt';
 import { BrokerSource, RabbitMQ, brokerOperations } from "../broker/index";
-import { USER_SERVICE } from '../config/users.config';
-import { v2 as cloudinary } from "cloudinary";
 
 export interface ManualAccountRegisterInfo {
   email: string;

@@ -10,3 +10,25 @@ export const rpcGetUserById = async (
   }
   return query.exec();
 };
+
+export const rpcGetUserByIds = async (
+  _ids: string[],
+  select?: string | string[]
+) => {
+  try {
+    const query = UserModel.find({ _id: { $in: _ids } });
+
+    if (select) {
+      query.select(select);
+    }
+
+    const users = await query.exec();
+
+    const sortedUsers = _ids.map(id => users.find(user => user._id.toString() === id));
+
+    return sortedUsers;
+  } catch (error) {
+    console.error('Error finding users by IDs:', error);
+    throw error;
+  }
+};

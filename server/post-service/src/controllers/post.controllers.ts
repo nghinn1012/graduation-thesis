@@ -8,13 +8,17 @@ export const createPostController = async (request: AuthRequest, response: Respo
       ...request.body,
       author: request.authContent?.data.userId
     };
+
     validatePostFoodBody(postData);
+
     const post = await createPostService(postData);
+
     if (post == null) {
       return response.status(400).json({
         message: "Cannot create post"
       });
     }
+
     return response.status(200).json(post);
   } catch (error) {
     return response.status(400).json({
@@ -22,7 +26,7 @@ export const createPostController = async (request: AuthRequest, response: Respo
       error: (error as Error).message
     });
   }
-}
+};
 
 export const getPostController = async (request: Request, response: Response) => {
   try {

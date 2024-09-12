@@ -51,7 +51,13 @@ export interface PostInfo {
   _id: string;
   title: string;
   about: string;
-  author: string;
+  author: {
+    _id: string;
+    name: string;
+    avatar: string;
+    email: string;
+    username: string;
+  };
   images: string[];
   hashtags: string[];
   timeToTake: string;
@@ -100,7 +106,7 @@ export interface PostFetcher {
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
-  getPostById: (postId: string, token: string) =>  Promise<PostResponse<PostInfo>>;
+  getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
 }
 
 export const postFetcher: PostFetcher = {

@@ -26,7 +26,12 @@ interface PostProps {
   post: {
     _id: string;
     title: string;
-    author: string;
+    author: {
+      _id: string;
+      name: string;
+      avatar: string;
+      username: string;
+    };
     images: string[];
     hashtags: string[];
     timeToTake: string;
@@ -39,10 +44,8 @@ interface PostProps {
 }
 
 const Post: React.FC<PostProps> = ({ post }) => {
-  const { authors, isLoading } = usePostContext();
-  const postAuthor = authors.get(post.author);
+  const postAuthor = post.author;
   const [comment, setComment] = useState<string>("");
-  const [isReady, setIsReady] = useState(false);
   const isLiked = false;
   const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";

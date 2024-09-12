@@ -13,6 +13,7 @@ export {
   initBrokerConsumners,
   initRpcConsumers,
   brokerOperations,
+  IRpcGetAuthorsPayload,
 } from "./rpc_consumer";
 
 export { RpcQueueName } from "./rpc_queue_name";

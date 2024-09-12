@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { validateEmail } from '../data/validation.data';
-import { validatePassword } from '../data/validation.data';
+import { validateEmail, validatePassword } from '../data/validation.data';
 
 export const validateRegistration = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;

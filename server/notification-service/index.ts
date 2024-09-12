@@ -1,15 +1,11 @@
 import express, { Request, Response } from "express";
-import dotenv from "dotenv";
 import cors from 'cors';
-import { connectDB } from "./src/db";
-import { NOTIFICATION_PORT, USER_SERVICE } from "./src/config/notification.config";
+import { NOTIFICATION_PORT } from "./src/config/notification.config";
 import notiRouter from "./src/routes/notiRoutes";
 import { RabbitMQ, initBrokerConsumners, initRpcConsumers } from "./src/broker/index";
-const nodemailer = require("nodemailer");
 
 const app = express();
 
-// connectDB();
 const rabbit = RabbitMQ.instance;
 initRpcConsumers(rabbit);
 initBrokerConsumners(rabbit);

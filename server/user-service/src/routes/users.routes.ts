@@ -4,8 +4,7 @@ import {
   loginController, refreshTokenController, registerController, searchUserByNameController,
   updateUserControler, verifyUser
 } from '../controllers/index.controllers';
-import { validateRegistration, checkLoginBodyAndParams } from '../middlewares/index.middlewares';
-import { authenticateUser, protectedRequest } from '../middlewares/check_authorization.middlewares';
+import { validateRegistration, checkLoginBodyAndParams, protectedRequest, authenticateUser } from '../middlewares/index.middlewares';
 import { followAndUnFollowHashtagController, getAllUsersController } from '../controllers/users.controllers';
 
 const userRouter = Router();

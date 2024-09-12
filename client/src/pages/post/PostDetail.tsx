@@ -22,7 +22,7 @@ const PostDetails: React.FC = () => {
   const postAuthor = location.state?.postAuthor;
   const { account, auth } = useAuthContext();
   const navigate = useNavigate();
-  const { fetchPosts, fetchPostById } = usePostContext();
+  const { fetchPosts } = usePostContext();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editPost, setEditPost] = useState<PostInfo | null>(post);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,7 +78,7 @@ const PostDetails: React.FC = () => {
         toast.success("Post updated successfully");
       }
       fetchPosts();
-      setTimeout(() => setAlreadyUpdated(true),10);
+      setAlreadyUpdated(true);
       setIsModalOpen(false);
     } catch (error) {
       toast.error(
@@ -96,7 +96,7 @@ const PostDetails: React.FC = () => {
 
     const fetchUpdatedPost = async () => {
       try {
-        const updatedPost = await fetchPostById(post._id);
+        const updatedPost = await postFetcher.getPostById(post._id, auth?.token || "");
         setPost(updatedPost as unknown as PostInfo);
         setAlreadyUpdated(false);
       } catch (error) {

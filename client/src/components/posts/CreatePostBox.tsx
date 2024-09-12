@@ -4,14 +4,41 @@ import { postFetcher } from "../../api/post";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import usePostContext from "../../hooks/usePostContext";
+import { io, Socket } from "socket.io-client";
+import PostSkeleton from "../skeleton/PostSkeleton";
+
 
 const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editPost, setEditPost] = useState<any>(null); // State to hold the post being edited
+  const [editPost, setEditPost] = useState<any>(null);
   const auth = useAuthContext();
   const { fetchPosts } = usePostContext();
+
+  useEffect(() => {
+    const socket: Socket = io("http://localhost:9090");
+
+    socket.on("connect", () => {
+      console.log("Successfully connected to server");
+    });
+
+    socket.on("uploads-complete", (message: string) => {
+      console.log(`Received message: ${message}`);
+      fetchPosts();
+      setIsLoading(false);
+    });
+
+    socket.on("connect_error", (error: Error) => {
+      console.log("Connection error:", error as Error);
+    });
+
+    return () => {
+      socket.disconnect();
+      console.log("Socket disconnected");
+    };
+  }, [fetchPosts]);
 
   useEffect(() => {
     const accountData = localStorage.getItem("account");
@@ -32,7 +59,6 @@ const CreatePostBox: React.FC = () => {
     isEditing: boolean,
     postId?: string
   ) => {
-    console.log(isEditing, postId);
     const token = localStorage.getItem("auth");
 
     if (!token) {
@@ -57,7 +83,7 @@ const CreatePostBox: React.FC = () => {
       toast.success("Created post successfully");
 
       setIsModalOpen(false);
-      fetchPosts();
+      setIsLoading(true);
       setIsSubmitting(false);
     } catch (error) {
       toast.error(
@@ -72,26 +98,25 @@ const CreatePostBox: React.FC = () => {
 
   return (
     <div className="relative">
-      {/* Main Interface */}
       <Toaster />
-      <div className="flex p-4 items-start gap-4 border-b border-gray-300">
-        <div className="avatar">
-          <div className="w-8 rounded-full">
-            <img
-              src={data?.avatar || "/avatar-placeholder.png"}
-              alt="Profile"
-            />
+        <div className="flex p-4 items-start gap-4 border-b border-gray-300">
+          <div className="avatar">
+            <div className="w-8 rounded-full">
+              <img
+                src={data?.avatar || "/avatar-placeholder.png"}
+                alt="Profile"
+              />
+            </div>
           </div>
+          <textarea
+            className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
+            placeholder="What is happening?!"
+            onClick={() => {
+              setEditPost(null); // Reset edit state when creating a new post
+              setIsModalOpen(true);
+            }}
+          />
         </div>
-        <textarea
-          className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
-          placeholder="What is happening?!"
-          onClick={() => {
-            setEditPost(null); // Reset edit state when creating a new post
-            setIsModalOpen(true);
-          }}
-        />
-      </div>
 
       {/* Modal */}
       <PostModal
@@ -102,6 +127,9 @@ const CreatePostBox: React.FC = () => {
         post={editPost}
         isEditing={!!editPost}
       />
+      {isLoading ? (
+        <PostSkeleton />
+      ): null}
     </div>
   );
 };
