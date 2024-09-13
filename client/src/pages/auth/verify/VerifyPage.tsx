@@ -26,10 +26,10 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
         password: account.password,
         confirmPassword: account.password,
       });
-      toast.success("Email sent successfully!");
+      success("Email sent successfully!");
     } catch (error) {
       console.log(error);
-      toast.error("A email was sent before. Please check your email");
+      error("A email was sent before. Please check your email");
     } finally {
       setLoading(false);
     }
@@ -78,13 +78,13 @@ function AccountTokenVerify() {
       .then((response: any) => {
         if (isMounted) {
           const account = response.data;
-          toast.success("Email verified successfully! Please login to continue");
+          success("Email verified successfully! Please login to continue");
           setTimeout(() => navigate("/login"), 1000);
         }
       })
       .catch((error: any) => {
         if (isMounted) {
-          toast.error("Error verifying email: " + error.message);
+          error("Error verifying email: " + error.message);
           navigate("/error/page-wrong", { replace: true });
         }
       });

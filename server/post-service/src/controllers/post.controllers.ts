@@ -56,7 +56,6 @@ export const updatePostController = async (request: AuthRequest, response: Respo
       });
     }
     const post = await updatePostService(postId, postData, request.authContent.data.userId);
-    console.log(post);
     if (!post) {
       return response.status(400).json({
         message: "Cannot update post"

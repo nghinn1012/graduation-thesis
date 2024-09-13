@@ -19,6 +19,7 @@ import { usePostContext } from "../../context/PostContext";
 import { useSocket } from "../../hooks/useSocketContext";
 import PostDetailsSkeleton from "../../components/skeleton/PostDetailsSkeleton";
 import { useEffect, useState } from "react";
+import { useToastContext } from "../../hooks/useToastContext";
 
 const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
@@ -35,6 +36,7 @@ const PostDetails: React.FunctionComponent = () => {
   const isMyPost = account?.email === postAuthor?.email;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { socket } = useSocket();
+  const { success, error } = useToastContext();
 
   useEffect(() => {
     const fetchUpdatedPost = async () => {
@@ -117,14 +119,14 @@ const PostDetails: React.FunctionComponent = () => {
           changes.hashtags = hashtags;
 
         await postFetcher.updatePost(editPost._id, changes, token);
-        toast.success("Post updated successfully");
+        success("Post updated successfully");
       }
       setIsModalOpen(false);
       setIsLoading(true);
-    } catch (error) {
-      toast.error(
+    } catch (err) {
+      error(
         `Failed to ${isEditing ? "update" : "create"} post: ${
-          (error as Error).message || "Unknown error"
+          (err as Error).message || "Unknown error"
         }`
       );
       console.error(
@@ -200,7 +202,7 @@ const PostDetails: React.FunctionComponent = () => {
               {/* Like Button */}
               <button className="flex items-center space-x-1">
                 <AiOutlineHeart className="w-8 h-8" />
-                <span>87</span>
+                <span>{post.likeCount}</span>
               </button>
 
               {/* Bookmark Button */}

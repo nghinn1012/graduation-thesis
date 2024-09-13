@@ -8,6 +8,7 @@ import ContentFooter from "../../../components/footer/ContentFooter";
 import * as yup from "yup";
 import { useI18nContext } from "../../../hooks/useI18nContext";
 import { useFormik } from "formik";
+import { useToastContext } from "../../../hooks/useToastContext";
 
 const SignUpPage = () => {
   const auth = useAuthContext();
@@ -20,6 +21,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const languageContext = useI18nContext();
   const lang = languageContext.of(SignUpPage);
+  const { success, error } = useToastContext();
 
   const createSignUpSchema = (lang: any) => {
     return yup.object({
@@ -56,11 +58,11 @@ const SignUpPage = () => {
       userFetcher
         .manualRegister(values)
         .then(() => {
-          toast.success("Account created successfully. Please verify your email");
+          success("Account created successfully. Please verify your email");
           setTimeout(() => navigate("/verify", { state: values }), 2000);
         })
         .catch((error) => {
-          toast.error(error);
+          error(error);
         });
     },
   });
@@ -71,7 +73,7 @@ const SignUpPage = () => {
       .loginWithGoogle(tokenResponse.credential)
       .then((response) => {
         console.log(response);
-        toast.success("Account created successfully");
+        success("Account created successfully");
         setTimeout(() => {
           navigate("/"),
           auth.setAccount(response.user);
@@ -79,10 +81,10 @@ const SignUpPage = () => {
         }, 2000);
       })
       .catch((error) => {
-        toast.error(error);
+        error(error);
       });
-    } catch (error) {
-      toast.error(error as string);
+    } catch (err) {
+      error(err as string);
     }
   }
   const handleOAuth = useGoogleLogin({

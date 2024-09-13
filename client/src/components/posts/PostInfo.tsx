@@ -8,11 +8,11 @@ import { BiRepost } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import React from "react";
-import { AccountInfo, userFetcher } from "../../api/user";
 import { usePostContext } from "../../context/PostContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import { postFetcher } from "../../api/post";
+import { postFetcher, PostLikeResponse } from "../../api/post";
 import toast, { Toaster } from "react-hot-toast";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface Ingredient {
   name: string;
@@ -44,19 +44,22 @@ interface PostProps {
     instructions: Instruction[];
     createdAt: string;
     updatedAt: string;
+    likeCount: number;
+    liked: boolean;
   };
 }
 
 const Post: React.FC<PostProps> = ({ post }) => {
   const postAuthor = post.author;
   const [comment, setComment] = useState<string>("");
-  const isLiked = false;
+  const [isLiked, setIsLiked] = useState(post.liked);
   const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";
   const isCommenting = false;
   const navigate = useNavigate();
   const auth = useAuthContext();
   const { posts, setPosts } = usePostContext();
+  const { success, error } = useToastContext();
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -89,19 +92,56 @@ const Post: React.FC<PostProps> = ({ post }) => {
         if (setPosts) {
           setPosts(posts.filter((p) => p._id !== post._id));
         }
-        toast.success("Post deleted successfully");
+        success("Post deleted successfully");
       } else {
-        toast.error("Failed to delete post");
+        error("Failed to delete post");
       }
-    } catch (error) {
-      toast.error("An error occurred while deleting the post");
+    } catch (err) {
+      error("An error occurred while deleting the post");
     }
   };
 
   const handlePostComment = (e: React.FormEvent) => {
     e.preventDefault();
   };
-  const handleLikePost = () => {};
+
+  const handleLikePost = async () => {
+    const token = auth?.auth?.token;
+    if (!token) return;
+
+    try {
+      const response = await postFetcher.likeOrUnlikePost(post._id, token) as unknown as PostLikeResponse;
+      console.log(response.liked);
+      if (response.liked === true) {
+        success("Post liked successfully");
+        setIsLiked(true);
+        if (setPosts) {
+          setPosts((prevPosts) =>
+            prevPosts.map((p) =>
+              p._id === post._id
+                ? { ...p, likeCount: p.likeCount + 1, liked: true }
+                : p
+            )
+          );
+        }
+      } else {
+        success("Post unliked successfully");
+        setIsLiked(false);
+        if (setPosts) {
+          setPosts((prevPosts) =>
+            prevPosts.map((p) =>
+              p._id === post._id
+                ? { ...p, likeCount: p.likeCount - 1, liked: false }
+                : p
+            )
+          );
+        }
+      }
+    } catch (err) {
+      console.error("An error occurred while liking the post:", err);
+      error("An error occurred while liking the post");
+    }
+  };
 
   useEffect(() => {
     const account = auth.account;
@@ -249,7 +289,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
                     isLiked ? "text-pink-500" : ""
                   }`}
                 >
-                  0
+                  {post.likeCount}
                 </span>
               </div>
             </div>

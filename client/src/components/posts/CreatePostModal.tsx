@@ -5,6 +5,7 @@ import RecipeDetailsTab from "./RecipeDetailsTab";
 import imageCompression from "browser-image-compression";
 import * as yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
+import { useToastContext } from "../../hooks/useToastContext";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -65,6 +66,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [about, setAbout] = useState<string>("");
   const [images, setImages] = useState<string[]>([]);
   const imgRef = useRef<HTMLInputElement>(null);
+  const { success, error } = useToastContext();
+
 
   const [ingredients, setIngredients] = useState<
     { name: string; quantity: string }[]
@@ -320,12 +323,12 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         setHashtags([]);
         setNewHashtag("");
         setActiveTab(0);
-      } catch (error) {
-        toast.error("Error during submit: " + ((error as Error)?.message || "Unknown error"));
+      } catch (err) {
+        error("Error during submit: " + ((err as Error)?.message || "Unknown error"));
       }
     }
     else {
-      toast.error("Invalid data. Please check your input fields", validationErrors)
+      error("Invalid data. Please check your input fields", validationErrors)
     }
   };
   const handleClick = () => {

@@ -7,12 +7,13 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import ContentFooter from '../../../components/footer/ContentFooter';
-import React from 'react';
+import { useToastContext } from '../../../hooks/useToastContext';
 
 const LoginPage = () => {
   const auth = useAuthContext();
   const languageContext = useI18nContext();
   const lang = languageContext.of(LoginPage);
+  const { success, error } = useToastContext();
 
   const createLoginSchema = (lang: any) => {
     return yup.object({
@@ -43,12 +44,12 @@ const LoginPage = () => {
         .login(values)
         .then((response) => {
           const account = response;
-          toast.success('Login successful');
+          success('Login successful');
           auth.setAccount(account.user);
           auth.setToken(account?.token.toString() || '');
         })
         .catch((error) => {
-          toast.error(error);
+          error(error);
         });
     },
   });

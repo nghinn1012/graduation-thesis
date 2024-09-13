@@ -1,4 +1,3 @@
-// CreatePostBox.tsx
 import React, { useState, useEffect } from "react";
 import PostModal from "./CreatePostModal";
 import { postFetcher, PostInfo } from "../../api/post";
@@ -7,6 +6,7 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import usePostContext from "../../hooks/usePostContext";
 import PostSkeleton from "../skeleton/PostSkeleton";
 import { useSocket } from "../../hooks/useSocketContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -17,6 +17,7 @@ const CreatePostBox: React.FC = () => {
   const auth = useAuthContext();
   const { fetchPost, setPosts} = usePostContext();
   const { socket } = useSocket();
+  const { success, error } = useToastContext();
 
   useEffect(() => {
     if (!socket || !auth?.account) return;
@@ -43,6 +44,7 @@ const CreatePostBox: React.FC = () => {
     socket.on("uploads-complete", handleUploadsComplete);
 
     return () => {
+      socket.off("uploads-complete", handleUploadsComplete);
       socket.off("uploads-complete", handleUploadsComplete);
     };
   }, [socket, fetchPost, setPosts, auth?.account]);
@@ -88,15 +90,15 @@ const CreatePostBox: React.FC = () => {
         },
         JSON.parse(token).token
       );
-      toast.success("Created post successfully");
+      success("Created post successfully");
 
       setIsModalOpen(false);
       setIsLoading(true);
       setIsSubmitting(false);
-    } catch (error) {
-      toast.error(
+    } catch (err) {
+      error(
         `Failed to ${isEditing ? "update" : "create"} post: ${
-          (error as Error) || "Unknown error"
+          (err as Error) || "Unknown error"
         }`
       );
       console.log(`Error ${isEditing ? "updating" : "creating"} post:`, error);

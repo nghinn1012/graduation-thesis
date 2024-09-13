@@ -11,6 +11,8 @@ export const postEndpoints = {
   updatePost: "/posts/:id",
   getPostById: "/posts/:id",
   deletePost: "/posts/:id",
+  likeOrUnlikePost: "/posts/:id/like",
+  getPostLikesByUser: "/posts/likes",
 } as const;
 
 export interface PostResponseError
@@ -64,8 +66,10 @@ export interface PostInfo {
   servings: number;
   ingredients: Ingredient[];
   instructions: InstructionInfo[];
+  likeCount: number;
   createdAt: string;
   updatedAt: string;
+  liked: boolean;
 }
 
 export interface PostInfoUpdate {
@@ -90,7 +94,7 @@ export interface InstructionInfo {
   image?: string;
 }
 
-export interface createPostInfo extends Omit<PostInfo, '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions'> {
+export interface createPostInfo extends Omit<PostInfo, '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount'> {
   instructions: {
     description: string;
     image?: string;
@@ -102,12 +106,22 @@ export interface Ingredient {
   quantity: string;
 }
 
+export interface PostLikeResponse {
+  liked: boolean;
+}
+
+export interface PostLikesByUser {
+  ids: string[];
+}
+
 export interface PostFetcher {
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string, page: number, limit: number) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
   getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
   deletePost: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
+  likeOrUnlikePost: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
+  postLikesByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -162,5 +176,23 @@ export const postFetcher: PostFetcher = {
         }
       }
     );
-  }
+  },
+  likeOrUnlikePost: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.post(postEndpoints.likeOrUnlikePost.replace(":id", postId), {},
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
+  postLikesByUser: async (token: string): Promise<PostResponse<PostLikesByUser>> => {
+    return postInstance.get(postEndpoints.getPostLikesByUser,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
 }

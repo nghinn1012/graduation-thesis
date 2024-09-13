@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { postFetcher, PostInfo, PostResponse } from "../api/post";
+import { postFetcher, PostInfo, PostResponse, PostLikesByUser } from "../api/post";
 import toast from "react-hot-toast";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useToastContext } from "../hooks/useToastContext";
 
 interface PostContextType {
   posts: PostInfo[];
@@ -11,6 +12,7 @@ interface PostContextType {
   fetchPosts: () => void;
   hasMore: boolean;
   loadMorePosts: () => void;
+  fetchLikedPosts: () => Promise<void>;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const { auth } = useAuthContext();
+  const { error, success } = useToastContext();
 
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
@@ -39,22 +42,20 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if ((response as unknown as PostInfo[]).length < limit) {
         setHasMore(false);
       }
-    } catch (error) {
-      console.error("Failed to load posts:", error);
-      toast.error("Failed to load posts: " + (error as Error).message);
+    } catch (err) {
+      console.error("Failed to load posts:", err);
+      error("Failed to load posts: " + (err as Error).message);
     } finally {
       setIsLoading(false);
     }
   }, [auth?.token, page, limit]);
 
-  // Only change page if more posts are available and not loading
   const loadMorePosts = useCallback(() => {
     if (hasMore && !isLoading) {
       setPage((prevPage) => prevPage + 1);
     }
   }, [hasMore, isLoading]);
 
-  // Fetch posts whenever page changes
   useEffect(() => {
     if (auth?.token) {
       fetchPosts();
@@ -72,15 +73,36 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
         )
       );
       return updatedPost as unknown as PostInfo;
-    } catch (error) {
+    } catch (err) {
       console.error("Failed to fetch the updated post:", error);
-      toast.error("Failed to fetch the updated post: " + (error as Error).message);
+      error("Failed to fetch the updated post: " + (err as Error).message);
     }
   };
 
+  const fetchLikedPosts = useCallback(async () => {
+    if (!auth?.token) return;
+
+    try {
+      const likedPosts = await postFetcher.postLikesByUser(auth.token);
+      if (Array.isArray(likedPosts)) {
+        setPosts((prevPosts) => {
+          return prevPosts.map((post) => ({
+            ...post,
+            liked: likedPosts.includes(post._id.toString()),
+          }));
+        });
+      } else {
+        console.error("Fetched liked posts is not an array");
+        error("Failed to process liked posts data.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch liked posts:", err);
+      error("Failed to fetch liked posts: " + (err as Error).message);
+    }
+  }, [auth?.token]);
 
   return (
-    <PostContext.Provider value={{ setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost }}>
+    <PostContext.Provider value={{ setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
       {children}
     </PostContext.Provider>
   );

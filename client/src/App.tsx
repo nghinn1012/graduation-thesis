@@ -11,7 +11,6 @@ import { GOOGLE_CLIENT_ID } from "./config/config";
 import Sidebar from "./components/common/Sidebar";
 import RightPanel from "./components/common/RightPanel";
 import React from "react";
-import PostDetail from "./pages/post/PostDetail";
 import AppMainCenter from "./context/MainContext";
 export function App() {
   return (

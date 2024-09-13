@@ -5,13 +5,12 @@ import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
 
 const Posts: React.FC = () => {
-  const { posts, isLoading, hasMore, loadMorePosts, setPosts } = usePostContext();
+  const { posts, isLoading, hasMore, loadMorePosts, setPosts, fetchLikedPosts } = usePostContext();
   const observer = useRef<IntersectionObserver | null>(null);
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
   const updatedPost = location.state?.updatedPost;
 
-  // Update posts when updatedPost changes
   useEffect(() => {
     if (updatedPost && setPosts) {
       setPosts((prevPosts) =>
@@ -22,7 +21,6 @@ const Posts: React.FC = () => {
     }
   }, [updatedPost, postAuthor, setPosts]);
 
-  // Infinite scroll setup
   useEffect(() => {
     if (!observer.current) {
       observer.current = new IntersectionObserver(
@@ -51,15 +49,19 @@ const Posts: React.FC = () => {
     };
   }, [isLoading, hasMore, loadMorePosts]);
 
-  // Create a ref for the last post to observe it
   const lastPostRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (node && observer.current) {
         observer.current.observe(node);
       }
     },
-    [] // Empty dependency array ensures this ref callback only gets created once
+    []
   );
+
+  useEffect(() => {
+    fetchLikedPosts();
+  }, [fetchLikedPosts]);
+
 
   return (
     <>
