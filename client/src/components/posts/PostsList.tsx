@@ -6,7 +6,9 @@ import { useLocation } from "react-router-dom";
 
 const Posts: React.FC = () => {
   const { posts, isLoading, hasMore,
-    loadMorePosts, setPosts, fetchLikedPosts, fetchPosts } = usePostContext();
+    loadMorePosts, setPosts,
+    fetchLikedPosts, fetchPosts,
+    fetchSavedPosts } = usePostContext();
   const observer = useRef<IntersectionObserver | null>(null);
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
@@ -62,6 +64,12 @@ const Posts: React.FC = () => {
     fetchPosts();
     fetchLikedPosts();
   }, [fetchPosts, fetchLikedPosts]);
+
+  useEffect(() => {
+    fetchPosts();
+    fetchSavedPosts();
+  }, [fetchPosts, fetchSavedPosts]);
+
 
   return (
     <>

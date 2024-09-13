@@ -4,6 +4,7 @@ import postModel from '../models/postModel';
 import savedListModel from '../models/savedListModel.model';
 import { Id, rpcGetUser } from './index.services';
 import mongoose from 'mongoose';
+
 export const likeOrUnlikePostService = async (postId: string, userId: string) => {
   try {
     const post = await postModel.findById(postId);
@@ -65,7 +66,6 @@ export const saveOrUnsavedPostService = async (postId: string, userId: string) =
       throw new Error('Post not found');
     }
 
-    // Tìm người dùng theo ID
     const user = await rpcGetUser<Id>(userId, "_id");
     if (!user) {
       console.log("rpc-author", "unknown");
@@ -77,28 +77,23 @@ export const saveOrUnsavedPostService = async (postId: string, userId: string) =
       });
     }
 
-    // Tìm bản ghi trong savedListModel cho userId
     const savedList = await savedListModel.findOne({ userId: userObjectId });
 
     if (savedList) {
-      // Nếu bản ghi đã tồn tại
       const postIdIndex = savedList.postIds.indexOf(postObjectId);
 
       if (postIdIndex > -1) {
-        // Nếu postId đã tồn tại trong mảng, xóa nó và giảm số lượng lưu
         savedList.postIds.splice(postIdIndex, 1);
         await savedList.save();
         await postModel.findByIdAndUpdate(postObjectId, { $inc: { savedCount: -1 } });
         return { saved: false };
       } else {
-        // Nếu postId không tồn tại trong mảng, thêm nó và tăng số lượng lưu
         savedList.postIds.push(postObjectId);
         await savedList.save();
         await postModel.findByIdAndUpdate(postObjectId, { $inc: { savedCount: 1 } });
         return { saved: true };
       }
     } else {
-      // Nếu không tìm thấy bản ghi cho userId, tạo bản ghi mới
       await savedListModel.create({ userId: userObjectId, postIds: [postObjectId.toString()] });
       await postModel.findByIdAndUpdate(postObjectId, { $inc: { savedCount: 1 } });
       return { saved: true };
@@ -107,3 +102,16 @@ export const saveOrUnsavedPostService = async (postId: string, userId: string) =
     throw new Error(`Cannot save or unsave post: ${(error as Error).message}`);
   }
 };
+
+export const getSavedPostsByUserService = async (userId: string) => {
+  try {
+    const savedList = await savedListModel.findOne({ userId: userId });
+    if (!savedList) {
+      return [];
+    }
+    const postIds = savedList.postIds.map((postId) => postId.toString());
+    return postIds;
+  } catch (error) {
+    throw new Error(`Cannot get saved posts by user: ${(error as Error).message}`);
+  }
+}

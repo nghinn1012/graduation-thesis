@@ -3,6 +3,7 @@ import {
   FaRegHeart,
   FaRegBookmark,
   FaTrash,
+  FaBookmark,
 } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
 import { useEffect, useState } from "react";
@@ -45,7 +46,9 @@ interface PostProps {
     createdAt: string;
     updatedAt: string;
     likeCount: number;
+    savedCount: number;
     liked: boolean;
+    saved: boolean;
   };
 }
 
@@ -53,12 +56,13 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const postAuthor = post.author;
   const [comment, setComment] = useState<string>("");
   const [isLiked, setIsLiked] = useState(post.liked);
+  const [isSaved, setIsSaved] = useState(post.saved);
   const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";
   const isCommenting = false;
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { posts, setPosts, toggleLikePost } = usePostContext();
+  const { posts, setPosts, toggleLikePost, toggleSavePost } = usePostContext();
   const { success, error } = useToastContext();
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -124,6 +128,25 @@ const Post: React.FC<PostProps> = ({ post }) => {
     }
   };
 
+  const handleSavePost = async () => {
+    const token = auth?.auth?.token;
+    if (!token) return;
+
+    try {
+      const response = await postFetcher.postSavedOrUnsaved(post._id, token) as unknown as PostLikeResponse;
+      if (response.saved === true) {
+        success("Post saved successfully");
+        toggleSavePost(post._id, true);
+      } else {
+        success("Post unsaved successfully");
+        toggleSavePost(post._id, false);
+      }
+      setIsSaved(!isSaved);
+    } catch (err) {
+      console.error("An error occurred while saving the post:", err);
+      error("An error occurred while saving the post");
+    }
+  }
 
   useEffect(() => {
     const account = auth.account;
@@ -138,6 +161,11 @@ const Post: React.FC<PostProps> = ({ post }) => {
   useEffect(() => {
     setIsLiked(post.liked);
   }, [post.liked]);
+
+  useEffect(() => {
+    setIsSaved(post.saved);
+  }
+  ,[post.saved]);
 
   return (
     <>
@@ -279,9 +307,19 @@ const Post: React.FC<PostProps> = ({ post }) => {
                 </span>
               </div>
             </div>
-            <div className="flex w-1/3 justify-end gap-2 items-center">
-              <FaRegBookmark className="w-4 h-4 text-slate-500 cursor-pointer" />
-            </div>
+            <div className="flex w-1/3 justify-end gap-2 items-center"
+            onClick={handleSavePost}>
+            {isSaved ? (
+              <FaBookmark
+                className="w-4 h-4 text-blue-500 cursor-pointer"
+              />
+            ) : (
+              <FaRegBookmark
+                className="w-4 h-4 text-slate-500 cursor-pointer"
+              />
+            )}
+            {post.savedCount}
+          </div>
           </div>
         </div>
       </div>

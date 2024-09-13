@@ -13,6 +13,8 @@ export const postEndpoints = {
   deletePost: "/posts/:id",
   likeOrUnlikePost: "/posts/:id/like",
   getPostLikesByUser: "/posts/likes",
+  savedOrUnsavedPost: "/posts/:id/save",
+  getPostSavedByUser: "/posts/savedList"
 } as const;
 
 export interface PostResponseError
@@ -21,6 +23,7 @@ export interface PostResponse<DataLike>
   extends ResponseLike<DataLike, PostResponseError> {
   token(token: any): unknown;
   liked: boolean;
+  saved: boolean;
   user: any;
 }
 
@@ -68,9 +71,11 @@ export interface PostInfo {
   ingredients: Ingredient[];
   instructions: InstructionInfo[];
   likeCount: number;
+  savedCount: number;
   createdAt: string;
   updatedAt: string;
   liked: boolean;
+  saved: boolean;
 }
 
 export interface PostInfoUpdate {
@@ -95,7 +100,7 @@ export interface InstructionInfo {
   image?: string;
 }
 
-export interface createPostInfo extends Omit<PostInfo, '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount'> {
+export interface createPostInfo extends Omit<PostInfo, '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount' | 'savedCount'> {
   instructions: {
     description: string;
     image?: string;
@@ -108,6 +113,7 @@ export interface Ingredient {
 }
 
 export interface PostLikeResponse {
+  saved: boolean;
   liked: boolean;
 }
 
@@ -123,6 +129,8 @@ export interface PostFetcher {
   deletePost: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
   likeOrUnlikePost: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   postLikesByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
+  postSavedOrUnsaved: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
+  postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -196,4 +204,22 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
+  postSavedOrUnsaved: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.post(postEndpoints.savedOrUnsavedPost.replace(":id", postId), {},
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
+  postSavedByUser: async (token: string): Promise<PostResponse<PostLikesByUser>> => {
+    return postInstance.get(postEndpoints.getPostSavedByUser,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  }
 }

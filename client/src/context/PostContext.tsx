@@ -12,8 +12,10 @@ interface PostContextType {
   fetchPosts: () => void;
   hasMore: boolean;
   loadMorePosts: () => void;
+  fetchSavedPosts: () => Promise<void>;
   fetchLikedPosts: () => Promise<void>;
   toggleLikePost: (postId: string, liked: boolean) => void;
+  toggleSavePost: (postId: string, saved: boolean) => void;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -102,6 +104,28 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [auth?.token]);
 
+  const fetchSavedPosts = useCallback(async () => {
+    if (!auth?.token) return;
+
+    try {
+      const savedPosts = await postFetcher.postSavedByUser(auth.token);
+      if (Array.isArray(savedPosts)) {
+        setPosts((prevPosts) => {
+          return prevPosts.map((post) => ({
+            ...post,
+            saved: savedPosts.includes(post._id.toString()),
+          }));
+        });
+      } else {
+        console.error("Fetched liked posts is not an array");
+        error("Failed to process liked posts data.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch liked posts:", err);
+      error("Failed to fetch liked posts: " + (err as Error).message);
+    }
+  }, [auth?.token]);
+
   const toggleLikePost = (postId: string, isLiked: boolean) => {
     if (setPosts) {
       setPosts((prevPosts) =>
@@ -114,8 +138,20 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const toggleSavePost = (postId: string, isSaved: boolean) => {
+    if (setPosts) {
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
+          p._id === postId
+            ? { ...p, saved: isSaved, savedCount: isSaved ? p.savedCount + 1 : p.savedCount - 1 }
+            : p
+        )
+      );
+    }
+  }
+
   return (
-    <PostContext.Provider value={{ toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
+    <PostContext.Provider value={{ fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
       {children}
     </PostContext.Provider>
   );
