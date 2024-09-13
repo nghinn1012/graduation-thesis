@@ -56,6 +56,10 @@ const postSchema = new Schema({
     type: Number,
     default: 0,
   },
+  savedCount: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

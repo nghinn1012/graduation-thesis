@@ -25,7 +25,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const { auth } = useAuthContext();
-  const { error, success } = useToastContext();
+  const { error } = useToastContext();
 
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;

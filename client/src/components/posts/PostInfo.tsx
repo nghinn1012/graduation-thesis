@@ -52,7 +52,7 @@ interface PostProps {
 const Post: React.FC<PostProps> = ({ post }) => {
   const postAuthor = post.author;
   const [comment, setComment] = useState<string>("");
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(post.liked);
   const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";
   const isCommenting = false;
@@ -112,11 +112,9 @@ const Post: React.FC<PostProps> = ({ post }) => {
     try {
       const response = await postFetcher.likeOrUnlikePost(post._id, token) as unknown as PostLikeResponse;
       if (response.liked === true) {
-        success("Post liked successfully");
         setIsLiked(true);
         toggleLikePost(post._id, true);
       } else {
-        success("Post unliked successfully");
         setIsLiked(false);
         toggleLikePost(post._id, false);
       }

@@ -20,6 +20,7 @@ export interface PostResponseError
 export interface PostResponse<DataLike>
   extends ResponseLike<DataLike, PostResponseError> {
   token(token: any): unknown;
+  liked: boolean;
   user: any;
 }
 

@@ -27,7 +27,6 @@ const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
   );
-  const [isLiked, setIsLiked] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [post, setPost] = useState<PostInfo>(location.state?.post as PostInfo);
@@ -39,6 +38,7 @@ const PostDetails: React.FunctionComponent = () => {
   const isMyPost = account?.email === postAuthor?.email;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { socket } = useSocket();
+  const [isLiked, setIsLiked] = useState(post.liked);
   const { success, error } = useToastContext();
   const { toggleLikePost } = usePostContext();
   const fetchUpdatedPost = async () => {
@@ -47,6 +47,7 @@ const PostDetails: React.FunctionComponent = () => {
         post._id,
         auth?.token || ""
       );
+      updatedPost.liked = post.liked;
       setPost(updatedPost as unknown as PostInfo);
     } catch (error) {
       console.error("Failed to fetch the updated post:", error);
@@ -152,11 +153,9 @@ const PostDetails: React.FunctionComponent = () => {
         token
       )) as unknown as PostLikeResponse;
       if (response.liked === true) {
-        success("Post liked successfully");
         setIsLiked(true);
         toggleLikePost(post._id, true);
       } else {
-        success("Post unliked successfully");
         setIsLiked(false);
         toggleLikePost(post._id, false);
       }
@@ -166,6 +165,10 @@ const PostDetails: React.FunctionComponent = () => {
       error("An error occurred while liking the post");
     }
   };
+
+  useEffect(() => {
+    setIsLiked(post.liked);
+  }, [post.liked]);
 
   return (
     <>
