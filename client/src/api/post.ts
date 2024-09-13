@@ -3,7 +3,6 @@ import { PROXY_URL, POST_PATH } from "../config/config";
 import { ResponseErrorLike } from "../data/response_error_like";
 import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
-import { get } from "http";
 
 export const postEndpoints = {
   // users
@@ -104,7 +103,7 @@ export interface Ingredient {
 
 export interface PostFetcher {
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
-  getAllPosts: (token: string) => Promise<PostResponse<PostInfo[]>>;
+  getAllPosts: (token: string, page: number, limit: number) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
   getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
 }
@@ -119,14 +118,21 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  getAllPosts: async (token: string): Promise<PostResponse<PostInfo[]>> => {
-    return postInstance.get(postEndpoints.getAllPosts,
-      {
+  getAllPosts: async (token: string, page: number = 1, limit: number = 20): Promise<PostResponse<PostInfo[]>> => {
+    try {
+      // Gửi yêu cầu đến API với các tham số phân trang
+      return postInstance.get(postEndpoints.getAllPosts, {
         headers: {
           'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
+        },
+        params: {
+          page,  // Tham số phân trang: trang hiện tại
+          limit, // Tham số phân trang: số lượng bài viết mỗi trang
+        },
+      });
+    } catch (error) {
+      throw new Error(`Failed to fetch posts: ${(error as Error).message}`);
+    }
   },
   updatePost: async (postId: string, data: PostInfoUpdate, token: string): Promise<PostResponse<PostInfo>> => {
     return postInstance.patch(postEndpoints.updatePost.replace(":id", postId), data,

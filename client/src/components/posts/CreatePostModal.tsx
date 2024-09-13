@@ -5,7 +5,6 @@ import RecipeDetailsTab from "./RecipeDetailsTab";
 import imageCompression from "browser-image-compression";
 import * as yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
-import { setIn } from "formik";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -113,7 +112,6 @@ const CreatePostModal: React.FC<PostModalProps> = ({
 
         const compressedFile = await imageCompression(file, compressOptions);
 
-        // Đọc ảnh đã nén
         const reader = new FileReader();
         reader.onloadend = () => {
           const updatedInstructions = instructions.map((instruction, i) =>

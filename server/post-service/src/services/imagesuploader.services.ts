@@ -28,3 +28,27 @@ export const uploadImageToCloudinary = async (image: string) => {
     }
   }
 };
+
+export const deleteImageFromCloudinary = async (publicId: string, retries: number = 3): Promise<void> => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const result = await cloudinary.uploader.destroy(publicId);
+      if (result.result === 'ok') {
+        console.log(`Successfully deleted image with public ID ${publicId}.`);
+        return;
+      } else {
+        throw new Error(`Failed to delete image with public ID ${publicId}.`);
+      }
+    } catch (error) {
+      console.error(`Attempt ${attempt} - Error deleting image with public ID ${publicId}:`, error);
+      if (attempt === retries) {
+        throw new Error(`Failed to delete image with public ID ${publicId} after ${retries} attempts.`);
+      }
+    }
+  }
+};
+
+export const extractPublicIdFromUrl = (url: string): string => {
+  const matches = url.match(/\/v\d+\/(.*)\./);
+  return matches ? matches[1] : '';
+};

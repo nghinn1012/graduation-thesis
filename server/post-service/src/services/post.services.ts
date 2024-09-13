@@ -2,6 +2,7 @@ import postModel from "../models/postModel";
 import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from "../services/index.services";
 import { IInstruction, IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
+import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
 
 export const createPostService = async (data: IPost) => {
   try {
@@ -128,12 +129,18 @@ export const getPostService = async (postId: string) => {
   }
 }
 
-export const getAllPostsService = async () => {
+export const getAllPostsService = async (page: number, limit: number) => {
   try {
-    const posts = await postModel.find().sort({ createdAt: -1 }).limit(20);
+    // Calculate the number of items to skip
+    const skip = (page - 1) * limit;
 
+    // Fetch posts with pagination
+    const posts = await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+
+    // Fetch authors for the fetched posts
     const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
 
+    // Combine posts with their corresponding authors
     const postsWithAuthors = posts.map((post, index) => ({
       ...post.toObject(),
       author: authors ? authors[index] : null,
@@ -150,8 +157,139 @@ export const getAllPostsService = async () => {
   }
 }
 
+// export const updatePostService = async (postId: string, data: IPost, userId: string) => {
+//   try {
+//     const post = await postModel.findById(postId);
+//     if (!post) {
+//       throw new InternalError({
+//         data: {
+//           target: "post-food",
+//           reason: "not found",
+//         },
+//       });
+//     }
+
+//     if (post.author.toString() !== userId) {
+//       throw new InternalError({
+//         data: {
+//           target: "update-post",
+//           reason: "unauthorized",
+//         },
+//       });
+//     }
+
+//     if (data.instructions) {
+//       data.instructions = autoAssignSteps(data.instructions);
+//     }
+
+//     const postUpdateData: Partial<IPost> = { ...data };
+//     if (data.images) {
+//       postUpdateData.images = [];
+//     }
+//     if (data.instructions) {
+//       postUpdateData.instructions = data.instructions.map(instr => ({
+//         ...instr,
+//         image: undefined,
+//       }));
+//     }
+
+//     const postUpdate = await postModel.findByIdAndUpdate(postId, postUpdateData, {
+//       new: true,
+//       runValidators: true,
+//     });
+
+//     const handleUploads = async () => {
+//       try {
+//         const uploadImages = async (imageUrls: string[]) => {
+//           const limit = 5;
+//           const chunks = [];
+//           for (let i = 0; i < imageUrls.length; i += limit) {
+//             chunks.push(imageUrls.slice(i, i + limit));
+//           }
+
+//           try {
+//             const uploadedImages = await Promise.all(
+//               chunks.map(chunk =>
+//                 Promise.all(chunk.map(async (image) => {
+//                   try {
+//                     return await uploadImageToCloudinary(image);
+//                   } catch (error) {
+//                     console.error(`Error uploading image:`, error);
+//                     throw new Error(`Failed to upload image`);
+//                   }
+//                 }))
+//               )
+//             ).then(results => results.flat());
+
+//             await postModel.updateOne(
+//               { _id: post._id },
+//               { $set: { images: uploadedImages } }
+//             );
+//           } catch (error) {
+//             console.error("Error uploading images chunk:", error);
+//           }
+//         };
+
+//         const uploadInstructionsImages = async () => {
+//           try {
+//             const updatedInstructions = await Promise.all(
+//               data.instructions.map(async (instruction) => {
+//                 if (instruction.image) {
+//                   try {
+//                     const uploadedImage = await uploadImageToCloudinary(instruction.image);
+//                     return {
+//                       ...instruction,
+//                       image: uploadedImage,
+//                     };
+//                   } catch (error) {
+//                     console.error(`Error uploading instruction image:`, error);
+//                     throw new Error(`Failed to upload instruction image`);
+//                   }
+//                 }
+//                 return instruction;
+//               })
+//             );
+
+//             await postModel.updateOne(
+//               { _id: post._id },
+//               { $set: { instructions: updatedInstructions } }
+//             );
+//           } catch (error) {
+//             console.error("Error uploading instruction images:", error);
+//           }
+//         };
+
+//         if (data.images) {
+//           await uploadImages(data.images);
+//         }
+
+//         if (data.instructions) {
+//           await uploadInstructionsImages();
+//         }
+
+//         io.emit('images-updated', post._id);
+//       } catch (error) {
+//         console.error("Error handling uploads:", error);
+//       }
+//     };
+
+//     handleUploads();
+
+//     return postUpdate;
+
+//   } catch (error) {
+//     throw new InternalError({
+//       data: {
+//         target: "post-food",
+//         reason: (error as Error).message,
+//       },
+//     });
+//   }
+// };
+
 export const updatePostService = async (postId: string, data: IPost, userId: string) => {
   try {
+    // Find the existing post
     const post = await postModel.findById(postId);
     if (!post) {
       throw new InternalError({
@@ -162,6 +300,7 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       });
     }
 
+    // Check authorization
     if (post.author.toString() !== userId) {
       throw new InternalError({
         data: {
@@ -171,11 +310,15 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       });
     }
 
+    // Auto assign steps to instructions
     if (data.instructions) {
       data.instructions = autoAssignSteps(data.instructions);
     }
 
     const postUpdateData: Partial<IPost> = { ...data };
+    const oldImages = post.images;
+
+    // Prepare update data
     if (data.images) {
       postUpdateData.images = [];
     }
@@ -193,6 +336,22 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
 
     const handleUploads = async () => {
       try {
+        const deleteOldImages = async () => {
+          try {
+            await Promise.all(oldImages.map(async (imageUrl) => {
+              const publicId = extractPublicIdFromUrl(imageUrl);
+              try {
+                await deleteImageFromCloudinary(publicId);
+              } catch (error) {
+                console.error(`Error deleting old image:`, error);
+                throw new Error(`Failed to delete old image`);
+              }
+            }));
+          } catch (error) {
+            console.error("Error deleting old images:", error);
+          }
+        };
+
         const uploadImages = async (imageUrls: string[]) => {
           const limit = 5;
           const chunks = [];
@@ -260,7 +419,11 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
           await uploadInstructionsImages();
         }
 
-        io.emit('images-updated', { postId: post._id });
+        io.emit('images-updated', post._id);
+
+        if (oldImages.length > 0) {
+          await deleteOldImages();
+        }
       } catch (error) {
         console.error("Error handling uploads:", error);
       }

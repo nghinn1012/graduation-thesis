@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { InstructionInfo, postFetcher, PostInfo, PostInfoUpdate } from "../../api/post";
+import {
+  InstructionInfo,
+  postFetcher,
+  PostInfo,
+  PostInfoUpdate,
+} from "../../api/post";
 import {
   AiOutlineHeart,
   AiOutlineBook,
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
-
 import { BsFillPencilFill } from "react-icons/bs";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import toast, { Toaster } from "react-hot-toast";
@@ -15,6 +18,8 @@ import CreatePostModal from "../../components/posts/CreatePostModal";
 import { usePostContext } from "../../context/PostContext";
 import { useSocket } from "../../hooks/useSocketContext";
 import PostDetailsSkeleton from "../../components/skeleton/PostDetailsSkeleton";
+import { useEffect, useState } from "react";
+
 const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
@@ -24,7 +29,6 @@ const PostDetails: React.FunctionComponent = () => {
   const [post, setPost] = useState<PostInfo>(location.state?.post as PostInfo);
   const postAuthor = location.state?.postAuthor;
   const { account, auth } = useAuthContext();
-  const { fetchPosts, fetchPost } = usePostContext();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editPost, setEditPost] = useState<PostInfo | null>(post);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -33,8 +37,6 @@ const PostDetails: React.FunctionComponent = () => {
   const { socket } = useSocket();
 
   useEffect(() => {
-    if (!socket) return;
-
     const fetchUpdatedPost = async () => {
       try {
         const updatedPost = await postFetcher.getPostById(
@@ -47,26 +49,32 @@ const PostDetails: React.FunctionComponent = () => {
       }
     };
 
-    socket.on("images-updated", (message: string) => {
-      console.log(`Received message: ${message}`);
-      fetchUpdatedPost();
-      fetchPost(post._id)
-    });
-
-    setIsLoading(false);
+    if (socket) {
+      socket.on("images-updated", async () => {
+        await fetchUpdatedPost();
+        setIsLoading(false);
+      });
+    }
 
     return () => {
-      socket.off("images-updated");
+      if (socket) {
+        socket.off("images-updated");
+      }
     };
-  }, [socket, fetchPosts, post._id, auth?.token]);
+  }, [socket, post._id, auth?.token]);
+
+  useEffect(() => {
+    if (post) {
+      setEditPost(post);
+    }
+  }, [post]);
 
   const handleEditClick = () => {
-    setEditPost(post);
     setIsModalOpen(true);
   };
 
   const handleBackClick = () => {
-    navigate(-1);
+    navigate("/", { state: { updatedPost: post, postAuthor: postAuthor } });
   };
 
   const handlePostSubmit = async (

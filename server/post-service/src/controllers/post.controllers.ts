@@ -73,7 +73,9 @@ export const updatePostController = async (request: AuthRequest, response: Respo
 
 export const getAllPostsController = async (request: Request, response: Response) => {
   try {
-    const posts = await getAllPostsService();
+    const page = parseInt(request.query.page as string, 10) || 1;
+    const limit = parseInt(request.query.limit as string, 10) || 20;
+    const posts = await getAllPostsService(page, limit);
     if (!posts) {
       return response.status(400).json({
         message: "Cannot get posts"
