@@ -13,6 +13,7 @@ interface PostContextType {
   hasMore: boolean;
   loadMorePosts: () => void;
   fetchLikedPosts: () => Promise<void>;
+  toggleLikePost: (postId: string, liked: boolean) => void;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -101,8 +102,20 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [auth?.token]);
 
+  const toggleLikePost = (postId: string, isLiked: boolean) => {
+    if (setPosts) {
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
+          p._id === postId
+            ? { ...p, liked: isLiked, likeCount: isLiked ? p.likeCount + 1 : p.likeCount - 1 }
+            : p
+        )
+      );
+    }
+  };
+
   return (
-    <PostContext.Provider value={{ setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
+    <PostContext.Provider value={{ toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
       {children}
     </PostContext.Provider>
   );

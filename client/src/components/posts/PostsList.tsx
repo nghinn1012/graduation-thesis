@@ -63,6 +63,7 @@ const Posts: React.FC = () => {
   }, [fetchLikedPosts]);
 
 
+
   return (
     <>
       {!isLoading && posts.length === 0 && (

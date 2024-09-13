@@ -52,13 +52,13 @@ interface PostProps {
 const Post: React.FC<PostProps> = ({ post }) => {
   const postAuthor = post.author;
   const [comment, setComment] = useState<string>("");
-  const [isLiked, setIsLiked] = useState(post.liked);
+  const [isLiked, setIsLiked] = useState(false);
   const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";
   const isCommenting = false;
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { posts, setPosts } = usePostContext();
+  const { posts, setPosts, toggleLikePost } = usePostContext();
   const { success, error } = useToastContext();
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -111,37 +111,21 @@ const Post: React.FC<PostProps> = ({ post }) => {
 
     try {
       const response = await postFetcher.likeOrUnlikePost(post._id, token) as unknown as PostLikeResponse;
-      console.log(response.liked);
       if (response.liked === true) {
         success("Post liked successfully");
         setIsLiked(true);
-        if (setPosts) {
-          setPosts((prevPosts) =>
-            prevPosts.map((p) =>
-              p._id === post._id
-                ? { ...p, likeCount: p.likeCount + 1, liked: true }
-                : p
-            )
-          );
-        }
+        toggleLikePost(post._id, true);
       } else {
         success("Post unliked successfully");
         setIsLiked(false);
-        if (setPosts) {
-          setPosts((prevPosts) =>
-            prevPosts.map((p) =>
-              p._id === post._id
-                ? { ...p, likeCount: p.likeCount - 1, liked: false }
-                : p
-            )
-          );
-        }
+        toggleLikePost(post._id, false);
       }
     } catch (err) {
       console.error("An error occurred while liking the post:", err);
       error("An error occurred while liking the post");
     }
   };
+
 
   useEffect(() => {
     const account = auth.account;
@@ -152,6 +136,10 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const handleImageClick = (id: string) => {
     navigate(`/post/${id}`, { state: { post, postAuthor } });
   };
+
+  useEffect(() => {
+    setIsLiked(post.liked);
+  }, [post.liked]);
 
   return (
     <>
