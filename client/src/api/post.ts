@@ -10,6 +10,7 @@ export const postEndpoints = {
   getAllPosts: "/posts",
   updatePost: "/posts/:id",
   getPostById: "/posts/:id",
+  deletePost: "/posts/:id",
 } as const;
 
 export interface PostResponseError
@@ -106,6 +107,7 @@ export interface PostFetcher {
   getAllPosts: (token: string, page: number, limit: number) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
   getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
+  deletePost: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -152,4 +154,13 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
+  deletePost: async (postId: string, token: string): Promise<PostResponse<PostInfo>> => {
+    return postInstance.delete(postEndpoints.deletePost.replace(":id", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  }
 }

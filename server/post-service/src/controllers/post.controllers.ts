@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPostService, getAllPostsService, getPostService, updatePostService } from "../services/post.services";
+import { createPostService, deletePostService, getAllPostsService, getPostService, updatePostService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
@@ -85,6 +85,29 @@ export const getAllPostsController = async (request: Request, response: Response
   } catch (error) {
     return response.status(400).json({
       message: "Cannot get posts",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const deletePostController = async (request: AuthRequest, response: Response) => {
+  try {
+    const postId = request.params.id;
+    if (!request.authContent?.data?.userId) {
+      return response.status(400).json({
+        message: "Can't delete post without user validate"
+      });
+    }
+    const post = await deletePostService(postId, request.authContent?.data.userId);
+    if (!post) {
+      return response.status(400).json({
+        message: "Cannot delete post"
+      });
+    }
+    return response.status(200).json(post);
+  } catch (error) {
+    return response.status(400).json({
+      message: "Cannot delete post",
       error: (error as Error).message
     });
   }

@@ -10,6 +10,9 @@ import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import { AccountInfo, userFetcher } from "../../api/user";
 import { usePostContext } from "../../context/PostContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
+import { postFetcher } from "../../api/post";
+import toast, { Toaster } from "react-hot-toast";
 
 interface Ingredient {
   name: string;
@@ -31,6 +34,7 @@ interface PostProps {
       name: string;
       avatar: string;
       username: string;
+      email: string;
     };
     images: string[];
     hashtags: string[];
@@ -51,6 +55,8 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const formattedDate = "1h";
   const isCommenting = false;
   const navigate = useNavigate();
+  const auth = useAuthContext();
+  const { posts, setPosts } = usePostContext();
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -68,15 +74,39 @@ const Post: React.FC<PostProps> = ({ post }) => {
     setCurrentIndex(newIndex);
   };
 
-  const handleDeletePost = () => {};
+  const handleDeletePost = async () => {
+    const token = auth?.auth?.token;
+    if (!token) return;
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const response = await postFetcher.deletePost(post._id, token);
+      if (response) {
+        if (setPosts) {
+          setPosts(posts.filter((p) => p._id !== post._id));
+        }
+        toast.success("Post deleted successfully");
+      } else {
+        toast.error("Failed to delete post");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting the post");
+    }
+  };
+
   const handlePostComment = (e: React.FormEvent) => {
     e.preventDefault();
   };
   const handleLikePost = () => {};
 
   useEffect(() => {
-    const account = JSON.parse(localStorage.getItem("account") || "{}");
-    setIsMyPost(account._id === post.author);
+    const account = auth.account;
+    if (!account) return;
+    setIsMyPost(account?.email == postAuthor?.email);
   }, [post.author]);
 
   const handleImageClick = (id: string) => {
@@ -85,6 +115,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
 
   return (
     <>
+      <Toaster />
       <div className="flex gap-2 items-start p-4 border-b border-gray-300">
         <div className="avatar">
           <Link
