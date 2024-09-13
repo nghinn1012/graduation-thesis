@@ -1,7 +1,7 @@
 // CreatePostBox.tsx
 import React, { useState, useEffect } from "react";
 import PostModal from "./CreatePostModal";
-import { postFetcher } from "../../api/post";
+import { postFetcher, PostInfo } from "../../api/post";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import usePostContext from "../../hooks/usePostContext";
@@ -15,22 +15,38 @@ const CreatePostBox: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editPost, setEditPost] = useState<any>(null);
   const auth = useAuthContext();
-  const { fetchPosts } = usePostContext();
+  const { fetchPost, setPosts} = usePostContext();
   const { socket } = useSocket();
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !auth?.account) return;
 
-    socket.on("uploads-complete", (message: string) => {
+    const handleUploadsComplete = async (message: string) => {
       console.log(`Received message: ${message}`);
-      fetchPosts();
-      setIsLoading(false);
-    });
+      setIsLoading(true);
+
+      try {
+        const newPostId = message;
+        const newPost = await fetchPost(newPostId) as PostInfo; // Giữ nguyên kiểm tra để đảm bảo newPost là PostInfo
+
+        if (newPost && setPosts) {
+          newPost.author = auth.account as unknown as PostInfo["author"];
+          setPosts((prevPosts) => [newPost, ...prevPosts]); // Cập nhật danh sách bài đăng
+        }
+      } catch (err) {
+        console.error("Failed to fetch new post:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    socket.on("uploads-complete", handleUploadsComplete);
 
     return () => {
-      socket.off("uploads-complete");
+      socket.off("uploads-complete", handleUploadsComplete);
     };
-  }, [socket, fetchPosts]);
+  }, [socket, fetchPost, setPosts, auth?.account]);
+
 
   useEffect(() => {
     const accountData = localStorage.getItem("account");
