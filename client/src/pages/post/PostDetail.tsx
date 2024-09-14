@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  InstructionInfo,
   postFetcher,
   PostInfo,
   PostInfoUpdate,
@@ -10,6 +9,7 @@ import {
   AiOutlineHeart,
   AiFillHeart,
   AiOutlineBook,
+  AiFillBook,
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
@@ -29,52 +29,91 @@ const PostDetails: React.FunctionComponent = () => {
   );
   const location = useLocation();
   const navigate = useNavigate();
-  const [post, setPost] = useState<PostInfo>(location.state?.post as PostInfo);
+  const [post, setPost] = useState<PostInfo>([] as unknown as PostInfo);
   const postAuthor = location.state?.postAuthor;
   const { account, auth } = useAuthContext();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editPost, setEditPost] = useState<PostInfo | null>(post);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const isMyPost = account?.email === postAuthor?.email;
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { socket } = useSocket();
   const [isLiked, setIsLiked] = useState(post.liked);
+  const [isSaved, setIsSaved] = useState(post.saved);
   const { success, error } = useToastContext();
-  const { toggleLikePost } = usePostContext();
-  const fetchUpdatedPost = async () => {
-    try {
-      const updatedPost = await postFetcher.getPostById(
-        post._id,
-        auth?.token || ""
-      );
-      updatedPost.liked = post.liked;
-      setPost(updatedPost as unknown as PostInfo);
-    } catch (error) {
-      console.error("Failed to fetch the updated post:", error);
+  const { toggleLikePost, toggleSavePost } = usePostContext();
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const postId = location.state?.post._id;
+        if (!postId || !auth?.token) return;
+
+        const currentPost = (await postFetcher.getPostById(
+          postId,
+          auth.token
+        )) as unknown as PostInfo;
+
+        const isLikedPost = await postFetcher.isLikedPostByUser(
+          postId,
+          auth.token
+        );
+        const isSavedPost = await postFetcher.isSavedPostByUser(
+          postId,
+          auth.token
+        );
+        console.log(isSavedPost);
+        setIsLiked(isLikedPost as unknown as boolean);
+        setIsSaved(isSavedPost as unknown as boolean);
+        currentPost.liked = isLiked as unknown as boolean;
+        currentPost.saved = isSaved as unknown as boolean;
+
+        setPost(currentPost as unknown as PostInfo);
+      } catch (error) {
+        console.error("Error fetching post:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (location.state?.post && auth?.token) {
+      fetchPost();
     }
-  };
+  }, [location.state?.post, auth?.token, isLiked, isSaved]);
 
   useEffect(() => {
+    const fetchUpdatedPostLike = async () => {
+      try {
+        const updatedPost = await postFetcher.getPostById(
+          post._id,
+          auth?.token || ""
+        );
+        const isLikedPost = await postFetcher.isLikedPostByUser(
+          post._id,
+          auth?.token || ""
+        );
+        const isSavedPost = await postFetcher.isSavedPostByUser(
+          post._id,
+          auth?.token || ""
+        );
+        setIsLiked(isLikedPost as unknown as boolean);
+        setIsSaved(isSavedPost as unknown as boolean);
+        setPost(updatedPost as unknown as PostInfo);
+      } catch (error) {
+        console.error("Failed to fetch the updated post:", error);
+      }
+    };
 
     if (socket) {
       socket.on("images-updated", async () => {
-        await fetchUpdatedPost();
+        await fetchUpdatedPostLike();
         setIsLoading(false);
       });
-    }
 
-    return () => {
-      if (socket) {
+      return () => {
         socket.off("images-updated");
-      }
-    };
-  }, [socket, post._id, auth?.token]);
-
-  useEffect(() => {
-    if (post) {
-      setEditPost(post);
+      };
     }
-  }, [post]);
+  }, [socket, post._id, auth?.token]);
 
   const handleEditClick = () => {
     setIsModalOpen(true);
@@ -93,8 +132,7 @@ const PostDetails: React.FunctionComponent = () => {
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[],
-    isEditing: boolean,
-    postId?: string
+    isEditing: boolean
   ) => {
     const token = auth?.token;
 
@@ -152,23 +190,42 @@ const PostDetails: React.FunctionComponent = () => {
         post._id,
         token
       )) as unknown as PostLikeResponse;
-      if (response.liked === true) {
+      if (response.liked == true) {
         setIsLiked(true);
         toggleLikePost(post._id, true);
       } else {
         setIsLiked(false);
         toggleLikePost(post._id, false);
       }
-      fetchUpdatedPost();
     } catch (err) {
       console.error("An error occurred while liking the post:", err);
       error("An error occurred while liking the post");
     }
   };
 
-  useEffect(() => {
-    setIsLiked(post.liked);
-  }, [post.liked]);
+  const handleSavedPost = async () => {
+    const token = auth?.token;
+    if (!token) return;
+
+    try {
+      const response = (await postFetcher.postSavedOrUnsaved(
+        post._id,
+        token
+      )) as unknown as PostLikeResponse;
+      if (response.saved === true) {
+        setIsSaved(true);
+        toggleSavePost(post._id, true);
+        success("Post saved successfully");
+      } else {
+        setIsSaved(false);
+        toggleSavePost(post._id, false);
+        success("Post unsaved successfully");
+      }
+    } catch (err) {
+      console.error("An error occurred while saving the post:", err);
+      error("An error occurred while saving the post");
+    }
+  };
 
   return (
     <>
@@ -203,7 +260,6 @@ const PostDetails: React.FunctionComponent = () => {
             )}
           </div>
 
-          {/* Text Content */}
           <div className="px-4 py-2">
             <div className="flex items-center justify-between text-gray-500">
               <span className="text-lg font-bold">{post.title}</span>
@@ -211,7 +267,6 @@ const PostDetails: React.FunctionComponent = () => {
               <span className="text-sm">⏰ {post.timeToTake}</span>
             </div>
 
-            {/* Tags */}
             <div className="flex mt-2 gap-2">
               {post.hashtags.map((tag, index) => (
                 <span
@@ -227,11 +282,9 @@ const PostDetails: React.FunctionComponent = () => {
               <span className="py-2 px-2">{post.about}</span>
             </div>
 
-            {/* Social Interaction Section */}
             <div className="flex items-center justify-between mt-4 text-gray-600 w-full">
               <div className="flex space-x-4 items-center justify-center flex-grow">
                 <div className="flex gap-8 items-center">
-                  {/* Like Button */}
                   <button
                     className="flex items-center space-x-1"
                     onClick={handleLikePost}
@@ -244,19 +297,23 @@ const PostDetails: React.FunctionComponent = () => {
                     <span>{post.likeCount}</span>
                   </button>
 
-                  {/* Bookmark Button */}
-                  <button className="flex items-center space-x-1">
-                    <AiOutlineBook className="w-8 h-8" />
-                    <span>180</span>
+                  <button
+                    className="flex items-center space-x-1"
+                    onClick={handleSavedPost}
+                  >
+                    {isSaved ? (
+                      <AiFillBook className="w-8 h-8" />
+                    ) : (
+                      <AiOutlineBook className="w-8 h-8" />
+                    )}
+                    <span>{post.savedCount}</span>
                   </button>
 
-                  {/* List Button */}
                   <button className="flex items-center space-x-1">
                     <AiOutlineOrderedList className="w-8 h-8" />
                     <span>List</span>
                   </button>
 
-                  {/* Share Button */}
                   <button className="flex items-center space-x-1">
                     <AiOutlineShareAlt className="w-8 h-8" />
                     <span>Share</span>

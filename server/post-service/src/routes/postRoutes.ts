@@ -1,13 +1,16 @@
 import express from "express";
 import { createPostController, deletePostController, getAllPostsController, getPostController, updatePostController } from "../controllers/post.controllers";
 import { tokenValidate, errorHandler } from "../middlewares/index";
-import { getPostLikesByUserController, getSavedPostsByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
+import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
 
 const postRouter = express.Router();
 postRouter.post("/:id/like", tokenValidate, likeOrUnlikePostController);
 postRouter.get("/likes", tokenValidate, getPostLikesByUserController);
 postRouter.post("/:id/save", tokenValidate, saveOrUnsavedPostController);
 postRouter.get("/savedList", tokenValidate, getSavedPostsByUserController);
+postRouter.get("/:id/isLiked", tokenValidate, isLikedPostByUserController);
+postRouter.get("/:id/isSaved", tokenValidate, isSavedPostByUserController);
+
 postRouter.post("/create", tokenValidate, createPostController);
 postRouter.get("/:id", tokenValidate, getPostController);
 postRouter.patch("/:id", tokenValidate, updatePostController);

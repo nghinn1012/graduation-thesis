@@ -8,7 +8,7 @@ const Posts: React.FC = () => {
   const { posts, isLoading, hasMore,
     loadMorePosts, setPosts,
     fetchLikedPosts, fetchPosts,
-    fetchSavedPosts } = usePostContext();
+    fetchSavedPosts, setIsLoading } = usePostContext();
   const observer = useRef<IntersectionObserver | null>(null);
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
@@ -60,22 +60,21 @@ const Posts: React.FC = () => {
     },
     []
   );
+
   useEffect(() => {
+    if (setIsLoading) {
+      setIsLoading(true);
+    }
     fetchPosts();
     fetchLikedPosts();
-  }, [fetchPosts, fetchLikedPosts]);
-
-  useEffect(() => {
-    fetchPosts();
     fetchSavedPosts();
-  }, [fetchPosts, fetchSavedPosts]);
-
+    if (setIsLoading) {
+      setIsLoading(false);
+    }
+  }, [fetchPosts, fetchLikedPosts, fetchSavedPosts]);
 
   return (
     <>
-      {!isLoading && posts.length === 0 && (
-        <p className="text-center my-4">No posts in this tab. Switch 👻</p>
-      )}
       {posts.length > 0 && (
         <div>
           {posts.map((post, index) => (
@@ -92,6 +91,9 @@ const Posts: React.FC = () => {
         <div className="flex justify-center my-4">
           <PostSkeleton />
         </div>
+      )}
+      {!isLoading && posts.length === 0 && (
+        <p className="text-center my-4">No posts in this tab. Switch 👻</p>
       )}
       <div id="loader" />
     </>

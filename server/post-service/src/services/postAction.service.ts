@@ -115,3 +115,26 @@ export const getSavedPostsByUserService = async (userId: string) => {
     throw new Error(`Cannot get saved posts by user: ${(error as Error).message}`);
   }
 }
+
+export const isLikedPostByUserService = async (postId: string, userId: string) => {
+  try {
+    const response = await postLikeModel.exists({ postId: postId, userId: userId });
+    return response;
+  } catch (error) {
+    throw new Error(`Cannot check if post is liked by user: ${(error as Error).message}`);
+  }
+}
+
+export const isSavedPostByUserService = async (postId: string, userId: string) => {
+  try {
+    const postObjectId = new mongoose.Types.ObjectId(postId);
+    const savedList = await savedListModel.findOne({ userId: userId });
+    if (!savedList) {
+      return false;
+    }
+    const response = savedList.postIds.includes(postObjectId);
+    return response;
+  } catch (error) {
+    throw new Error(`Cannot check if post is saved by user: ${(error as Error).message}`);
+  }
+}

@@ -8,6 +8,7 @@ interface PostContextType {
   posts: PostInfo[];
   setPosts?: React.Dispatch<React.SetStateAction<PostInfo[]>>;
   isLoading: boolean;
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   fetchPost: (postId: string) => Promise<PostInfo | void>;
   fetchPosts: () => void;
   hasMore: boolean;
@@ -61,7 +62,9 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (auth?.token) {
+      setIsLoading(true);
       fetchPosts();
+      setIsLoading(false);
     }
   }, [auth, fetchPosts, page]);
 
@@ -117,12 +120,12 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
         });
       } else {
-        console.error("Fetched liked posts is not an array");
-        error("Failed to process liked posts data.");
+        console.error("Fetched saved posts is not an array");
+        error("Failed to process saved posts data.");
       }
     } catch (err) {
-      console.error("Failed to fetch liked posts:", err);
-      error("Failed to fetch liked posts: " + (err as Error).message);
+      console.error("Failed to fetch saved posts:", err);
+      error("Failed to fetch saved posts: " + (err as Error).message);
     }
   }, [auth?.token]);
 
@@ -151,7 +154,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <PostContext.Provider value={{ fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
+    <PostContext.Provider value={{ setIsLoading, fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
       {children}
     </PostContext.Provider>
   );

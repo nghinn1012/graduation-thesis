@@ -136,12 +136,13 @@ const Post: React.FC<PostProps> = ({ post }) => {
       const response = await postFetcher.postSavedOrUnsaved(post._id, token) as unknown as PostLikeResponse;
       if (response.saved === true) {
         success("Post saved successfully");
+        setIsSaved(true);
         toggleSavePost(post._id, true);
       } else {
         success("Post unsaved successfully");
+        setIsSaved(false);
         toggleSavePost(post._id, false);
       }
-      setIsSaved(!isSaved);
     } catch (err) {
       console.error("An error occurred while saving the post:", err);
       error("An error occurred while saving the post");

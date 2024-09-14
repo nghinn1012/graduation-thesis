@@ -14,7 +14,9 @@ export const postEndpoints = {
   likeOrUnlikePost: "/posts/:id/like",
   getPostLikesByUser: "/posts/likes",
   savedOrUnsavedPost: "/posts/:id/save",
-  getPostSavedByUser: "/posts/savedList"
+  getPostSavedByUser: "/posts/savedList",
+  isLikedPostByUser: "/posts/:id/isLiked",
+  isSavedPostByUser: "/posts/:id/isSaved",
 } as const;
 
 export interface PostResponseError
@@ -131,6 +133,8 @@ export interface PostFetcher {
   postLikesByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   postSavedOrUnsaved: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
+  isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
+  isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -221,5 +225,23 @@ export const postFetcher: PostFetcher = {
         }
       }
     );
-  }
+  },
+  isLikedPostByUser: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.get(postEndpoints.isLikedPostByUser.replace(":id", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
+  isSavedPostByUser: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.get(postEndpoints.isSavedPostByUser.replace(":id", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
 }
