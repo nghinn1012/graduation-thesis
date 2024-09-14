@@ -113,12 +113,11 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const savedPosts = await postFetcher.postSavedByUser(auth.token);
       if (Array.isArray(savedPosts)) {
-        setPosts((prevPosts) => {
-          return prevPosts.map((post) => ({
+        setPosts((prevPosts) =>
+          prevPosts.map((post) => ({
             ...post,
             saved: savedPosts.includes(post._id.toString()),
-          }));
-        });
+          })));
       } else {
         console.error("Fetched saved posts is not an array");
         error("Failed to process saved posts data.");

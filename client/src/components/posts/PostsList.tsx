@@ -5,10 +5,17 @@ import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
 
 const Posts: React.FC = () => {
-  const { posts, isLoading, hasMore,
-    loadMorePosts, setPosts,
-    fetchLikedPosts, fetchPosts,
-    fetchSavedPosts, setIsLoading } = usePostContext();
+  const {
+    posts,
+    isLoading,
+    hasMore,
+    loadMorePosts,
+    setPosts,
+    fetchLikedPosts,
+    fetchPosts,
+    fetchSavedPosts,
+    setIsLoading,
+  } = usePostContext();
   const observer = useRef<IntersectionObserver | null>(null);
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
@@ -18,7 +25,9 @@ const Posts: React.FC = () => {
     if (updatedPost && setPosts) {
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === updatedPost._id ? { ...updatedPost, author: postAuthor } : post
+          post._id === updatedPost._id
+            ? { ...updatedPost, author: postAuthor }
+            : post
         )
       );
     }
@@ -52,30 +61,38 @@ const Posts: React.FC = () => {
     };
   }, [isLoading, hasMore, loadMorePosts]);
 
-  const lastPostRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (node && observer.current) {
-        observer.current.observe(node);
-      }
-    },
-    []
-  );
+  const lastPostRef = useCallback((node: HTMLDivElement | null) => {
+    if (node && observer.current) {
+      observer.current.observe(node);
+    }
+  }, []);
 
   useEffect(() => {
-    if (setIsLoading) {
-      setIsLoading(true);
-    }
-    fetchPosts();
-    fetchLikedPosts();
-    fetchSavedPosts();
-    if (setIsLoading) {
-      setIsLoading(false);
-    }
-  }, [fetchPosts, fetchLikedPosts, fetchSavedPosts]);
+    const loadData = async () => {
+      if (setIsLoading) {
+        setIsLoading(true);
+        try {
+          await fetchPosts();
+
+          await Promise.all([
+            fetchLikedPosts(),
+            fetchSavedPosts(),
+          ]);
+
+        } catch (error) {
+          console.error("Error loading data:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadData();
+  }, [fetchPosts, fetchLikedPosts, fetchSavedPosts, setIsLoading]);
+
 
   return (
     <>
-      {posts.length > 0 && (
+      {posts.length > 0 && !isLoading && (
         <div>
           {posts.map((post, index) => (
             <div
@@ -91,9 +108,6 @@ const Posts: React.FC = () => {
         <div className="flex justify-center my-4">
           <PostSkeleton />
         </div>
-      )}
-      {!isLoading && posts.length === 0 && (
-        <p className="text-center my-4">No posts in this tab. Switch 👻</p>
       )}
       <div id="loader" />
     </>

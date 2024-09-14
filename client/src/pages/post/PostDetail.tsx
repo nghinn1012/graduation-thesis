@@ -117,6 +117,7 @@ const PostDetails: React.FunctionComponent = () => {
 
   const handleEditClick = () => {
     setIsModalOpen(true);
+    setEditPost(post);
   };
 
   const handleBackClick = () => {
