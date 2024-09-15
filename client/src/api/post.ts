@@ -23,6 +23,7 @@ export const postEndpoints = {
   getMadeRecipeOfPost: "/posts/:id/getMades",
   updateMadeRecipe: "/posts/:madeRecipeId/made",
   getMadeRecipeById: "/posts/:madeRecipeId/made",
+  deleteMadeRecipe: "/posts/:madeRecipeId/made",
 } as const;
 
 export interface PostResponseError
@@ -177,6 +178,7 @@ export interface PostFetcher {
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
   updateMadeRecipe: (madeRecipeId: string, data: MadePostUpdate, token: string) => Promise<PostResponse<MadePostUpdate>>;
   getMadeRecipeById: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
+  deleteMadeRecipe: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -315,6 +317,15 @@ export const postFetcher: PostFetcher = {
   },
   getMadeRecipeById: async (madeRecipeId: string, token: string): Promise<PostResponse<MadePostData>> => {
     return postInstance.get(postEndpoints.getMadeRecipeById.replace(":madeRecipeId", madeRecipeId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  deleteMadeRecipe: async (madeRecipeId: string, token: string): Promise<PostResponse<MadePostData>> => {
+    return postInstance.delete(postEndpoints.deleteMadeRecipe.replace(":madeRecipeId", madeRecipeId),
       {
         headers: {
           'Authorization': `Bearer ${token}`,

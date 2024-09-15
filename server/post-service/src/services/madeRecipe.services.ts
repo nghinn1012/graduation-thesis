@@ -1,6 +1,6 @@
 import { IMadeRecipe } from "../data/interface/made_recipe_interface";
 import MadeRecipeModel from "../models/madeRepiceModel";
-import { uploadImageToCloudinary } from "./imagesuploader.services";
+import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
 import { IAuthor, rpcGetUsers } from "./rpc.services";
 import { io } from '../../index';
 export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
@@ -32,8 +32,6 @@ export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
     throw error;
   }
 };
-
-
 
 export const getMadeRecipeOfPostService = async (postId: string) => {
   try {
@@ -91,6 +89,28 @@ export const getMadeRecipeByIdService = async (madeRecipeId: string) => {
     if (!madeRecipe) {
       throw new Error("Made recipe not found");
     }
+    return madeRecipe;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const deleteMadeRecipeService = async (madeRecipeId: string) => {
+  try {
+    const madeRecipe = await MadeRecipeModel.findByIdAndDelete(madeRecipeId);
+    if (!madeRecipe) {
+      throw new Error("Made recipe not found");
+    }
+
+    setImmediate(async () => {
+      try {
+        const publicId = extractPublicIdFromUrl(madeRecipe.image);
+        await deleteImageFromCloudinary(publicId);
+      } catch (error) {
+        console.error(`Error deleting image:`, error);
+      }
+    });
+
     return madeRecipe;
   } catch (error) {
     throw error;

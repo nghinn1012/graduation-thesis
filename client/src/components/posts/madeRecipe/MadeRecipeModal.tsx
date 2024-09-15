@@ -53,7 +53,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.result) {
-          setNewImage(reader.result as string); // Cập nhật ảnh mới
+          setNewImage(reader.result as string); 
         }
       };
       reader.readAsDataURL(file);
@@ -65,7 +65,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
       alert("Please select an image.");
       return;
     }
-    onSubmit(_id, review, rating, newImage); // Pass the _id here
+    onSubmit(_id, review, rating, newImage);
     onClose();
   };
 

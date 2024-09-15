@@ -1,6 +1,6 @@
 import { AuthRequest } from "../data";
 import { Response } from "express";
-import { createMadeRecipeService, getMadeRecipeByIdService, getMadeRecipeOfPostService, updateMadeRecipeService } from "../services/madeRecipe.services";
+import { createMadeRecipeService, deleteMadeRecipeService, getMadeRecipeByIdService, getMadeRecipeOfPostService, updateMadeRecipeService } from "../services/madeRecipe.services";
 
 export const createMadeRecipeController = async (req: AuthRequest, res: Response) => {
   try {
@@ -72,6 +72,24 @@ export const getMadeRecipeByIdController = async (req: AuthRequest, res: Respons
   } catch (error) {
     return res.status(400).json({
       message: "Cannot get made recipe internal error",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const deleteMadeRecipeController = async (req: AuthRequest, res: Response) => {
+  try {
+    const madeRecipeId = req.params.madeRecipeId;
+    const madeRecipe = await deleteMadeRecipeService(madeRecipeId);
+    if (!madeRecipe) {
+      return res.status(400).json({
+        message: "Cannot delete made recipe"
+      });
+    }
+    return res.status(200).json(madeRecipe);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Cannot delete made recipe internal error",
       error: (error as Error).message
     });
   }

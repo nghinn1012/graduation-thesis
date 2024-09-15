@@ -19,8 +19,13 @@ interface MadePostCardProps {
   review: string;
   profileImageUrl: string;
   productImageUrl: string;
-  onSubmit: (_id: string, review: string, rating: number, newImage: string | null) => void; // Updated signature
-  onDelete: () => void;
+  onSubmit: (
+    _id: string,
+    review: string,
+    rating: number,
+    newImage: string | null
+  ) => void; // Updated signature
+  onDelete: (_id: string) => void;
 }
 
 const MadePostCard: React.FC<MadePostCardProps> = ({
@@ -51,11 +56,22 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
   };
 
   const handleDelete = () => {
-    onDelete();
-    setDropdownOpen(false);
+    const isConfirmed = window.confirm(
+      "Are you sure to delete this made?"
+    );
+
+    if (isConfirmed) {
+      onDelete(_id);
+      setDropdownOpen(false);
+    }
   };
 
-  const handleEditSubmit = (_id: string, newReview: string, newRating: number, newImage: string | null) => {
+  const handleEditSubmit = (
+    _id: string,
+    newReview: string,
+    newRating: number,
+    newImage: string | null
+  ) => {
     onSubmit(_id, newReview, newRating, newImage); // Pass the _id here
     console.log("Edit submitted", _id);
     setIsEditModalOpen(false);

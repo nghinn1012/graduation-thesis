@@ -106,6 +106,16 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     }
   };
 
+  const handleDeleteMadeModal = async (_id: string) => {
+    try {
+      await postFetcher.deleteMadeRecipe(_id, token);
+      setMadePosts((prevPosts) => prevPosts.filter((post) => post._id !== _id));
+      success('Deleted made successfully');
+    } catch (err) {
+      error("Can't delete made", (err as Error).message);
+    }
+  }
+
   return (
     <div className="mt-4 flex flex-col gap-4">
       {loading ? (
@@ -174,7 +184,7 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
                 productImageUrl={madePost.image}
                 rating={Number(madePost.rating)}
                 onSubmit={handleSubmitMadeModal}
-                onDelete={() => {}}
+                onDelete={handleDeleteMadeModal}
               />
             )
           )}
