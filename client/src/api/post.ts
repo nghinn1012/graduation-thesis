@@ -5,7 +5,7 @@ import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 
 export const postEndpoints = {
-  // users
+  // posts
   createPost: "/posts/create",
   getAllPosts: "/posts",
   updatePost: "/posts/:id",
@@ -17,6 +17,10 @@ export const postEndpoints = {
   getPostSavedByUser: "/posts/savedList",
   isLikedPostByUser: "/posts/:id/isLiked",
   isSavedPostByUser: "/posts/:id/isSaved",
+
+  //recipe
+  createMadeRecipe: "/posts/:id/made",
+  getMadeRecipeOfPost: "/posts/:id/getMades",
 } as const;
 
 export interface PostResponseError
@@ -102,7 +106,7 @@ export interface InstructionInfo {
   image?: string;
 }
 
-export interface createPostInfo extends Omit<PostInfo, '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount' | 'savedCount'> {
+export interface createPostInfo extends Omit<PostInfo, 'saved'| '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount' | 'savedCount'> {
   instructions: {
     description: string;
     image?: string;
@@ -123,7 +127,31 @@ export interface PostLikesByUser {
   ids: string[];
 }
 
+export interface createMadeInfo {
+  image: string;
+  review: string;
+  rating: number;
+}
+
+export interface MadePostData {
+  _id: number;
+  userId: string;
+  postId: string;
+  image: string;
+  review: string;
+  rating: string;
+  createdAt: Date;
+  author: {
+    _id: string;
+    name: string;
+    avatar: string;
+    email: string;
+    username: string;
+  };
+}
+
 export interface PostFetcher {
+  // posts
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string, page: number, limit: number) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
@@ -135,6 +163,10 @@ export interface PostFetcher {
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
+
+  //recipe
+  createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
+  getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -241,6 +273,24 @@ export const postFetcher: PostFetcher = {
         headers: {
           'Authorization': `Bearer ${token}`,
         }
+      }
+    );
+  },
+  createMadeRecipe: async (postId: string, token: string, data: createMadeInfo): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.post(postEndpoints.createMadeRecipe.replace(":id", postId), data,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getMadeRecipeOfPost: async (postId: string, token: string): Promise<PostResponse<MadePostData>> => {
+    return postInstance.get(postEndpoints.getMadeRecipeOfPost.replace(":id", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       }
     );
   },

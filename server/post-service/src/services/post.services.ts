@@ -1,6 +1,6 @@
 import postModel from "../models/postModel";
 import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from "../services/index.services";
-import { IInstruction, IPost, InternalError, autoAssignSteps } from "../data/index";
+import { IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
 import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
 
@@ -41,7 +41,7 @@ export const createPostService = async (data: IPost) => {
               chunks.map(chunk =>
                 Promise.all(chunk.map(async (image) => {
                   try {
-                    return await uploadImageToCloudinary(image);
+                    return await uploadImageToCloudinary(image, "posts");
                   } catch (error) {
                     console.error(`Error uploading image:`, error);
                     throw new Error(`Failed to upload image`);
@@ -65,7 +65,7 @@ export const createPostService = async (data: IPost) => {
               data.instructions.map(async (instruction) => {
                 if (instruction.image) {
                   try {
-                    const uploadedImage = await uploadImageToCloudinary(instruction.image);
+                    const uploadedImage = await uploadImageToCloudinary(instruction.image, "posts");
                     return {
                       ...instruction,
                       image: uploadedImage,
@@ -131,16 +131,12 @@ export const getPostService = async (postId: string) => {
 
 export const getAllPostsService = async (page: number, limit: number) => {
   try {
-    // Calculate the number of items to skip
     const skip = (page - 1) * limit;
 
-    // Fetch posts with pagination
     const posts = await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
 
-    // Fetch authors for the fetched posts
     const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
 
-    // Combine posts with their corresponding authors
     const postsWithAuthors = posts.map((post, index) => ({
       ...post.toObject(),
       author: authors ? authors[index] : null,
@@ -234,7 +230,7 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
               chunks.map(chunk =>
                 Promise.all(chunk.map(async (image) => {
                   try {
-                    return await uploadImageToCloudinary(image);
+                    return await uploadImageToCloudinary(image, "posts");
                   } catch (error) {
                     console.error(`Error uploading image:`, error);
                     throw new Error(`Failed to upload image`);
@@ -258,7 +254,7 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
               data.instructions.map(async (instruction) => {
                 if (instruction.image) {
                   try {
-                    const uploadedImage = await uploadImageToCloudinary(instruction.image);
+                    const uploadedImage = await uploadImageToCloudinary(instruction.image, "posts");
                     return {
                       ...instruction,
                       image: uploadedImage,

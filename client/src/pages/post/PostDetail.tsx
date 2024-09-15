@@ -13,6 +13,7 @@ import {
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
+import { IoCameraOutline } from "react-icons/io5";
 import { BsFillPencilFill } from "react-icons/bs";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import toast, { Toaster } from "react-hot-toast";
@@ -22,7 +23,9 @@ import { useSocket } from "../../hooks/useSocketContext";
 import PostDetailsSkeleton from "../../components/skeleton/PostDetailsSkeleton";
 import { useEffect, useState } from "react";
 import { useToastContext } from "../../hooks/useToastContext";
-
+import MadeRecipeModal from "../../components/posts/madeRecipe/MadeRecipeModal";
+import MadeSection from "../../components/posts/madeRecipe/MadeSection";
+import imageCompression from "browser-image-compression";
 const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
@@ -42,6 +45,8 @@ const PostDetails: React.FunctionComponent = () => {
   const [isSaved, setIsSaved] = useState(post.saved);
   const { success, error } = useToastContext();
   const { toggleLikePost, toggleSavePost } = usePostContext();
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -228,6 +233,55 @@ const PostDetails: React.FunctionComponent = () => {
     }
   };
 
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; // Remove duplicate file declaration
+
+    if (file) {
+      try {
+        const compressOptions = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+        };
+
+        const compressedFile = await imageCompression(file, compressOptions);
+        const reader = new FileReader();
+        reader.onload = () => {
+          setSelectedImage(reader.result as string);
+        };
+        reader.readAsDataURL(compressedFile);
+        setShowModal(true);
+      } catch (error) {
+        console.error("Error compressing the image:", error);
+      }
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedImage(null);
+  };
+
+  const handleSubmitMadeModal = async (review: string, rating: number) => {
+    const token = auth?.token;
+    if (!token) return;
+    console.log("Submit image:", selectedImage);
+    if (selectedImage == null) {
+      error("No image selected");
+    }
+    const data = {
+      image: selectedImage || "",
+      review,
+      rating,
+    };
+    try {
+      const result = await postFetcher.createMadeRecipe(post._id, token, data);
+      success("Created made successfully");
+    } catch (err) {
+      error("Can't create made", err);
+    }
+    handleCloseModal();
+  };
+
   return (
     <>
       {isLoading ? (
@@ -406,7 +460,6 @@ const PostDetails: React.FunctionComponent = () => {
                     </button>
                   </div>
                 </div>
-
                 <div className="mt-6 ml-4">
                   <h2 className="text-lg font-semibold uppercase">
                     Instructions
@@ -442,19 +495,48 @@ const PostDetails: React.FunctionComponent = () => {
                     ))}
                   </div>
                 </div>
+                <div className="mt-6 ml-4">
+                  <span className="font-semibold uppercase">MADE IT?</span>
+                  <div className="flex flex-col gap-2 items-center justify-between">
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="file-input"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                    <button
+                      className="btn btn-lg bg-gradient-to-r from-red-500 to-orange-500 text-white flex items-center space-x-2"
+                      onClick={() =>
+                        document.getElementById("file-input")?.click()
+                      }
+                    >
+                      <IoCameraOutline />
+                      <span>Share the finished product!</span>
+                    </button>
+                  </div>
+
+                  <MadeRecipeModal
+                    post={post}
+                    postAuthor={postAuthor}
+                    isOpen={showModal}
+                    image={selectedImage}
+                    onClose={handleCloseModal}
+                    onSubmit={handleSubmitMadeModal}
+                  />
+                </div>
               </div>
             )}
 
             {activeTab === "comments" && (
               <div className="mt-4">
-                <p>Comments section content...</p>
+                <p>Made section content...</p>
               </div>
             )}
 
             {activeTab === "made" && (
-              <div className="mt-4">
-                <p>Made section content...</p>
-              </div>
+              <MadeSection postId={post._id} token={auth?.token || ""} />
             )}
           </div>
           {isModalOpen && (

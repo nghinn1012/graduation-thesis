@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 
-export const uploadImageToCloudinary = async (image: string) => {
+export const uploadImageToCloudinary = async (image: string, folderName: string) => {
   const maxRetries = 3;
   let attempt = 0;
 
@@ -8,7 +8,7 @@ export const uploadImageToCloudinary = async (image: string) => {
     try {
       attempt++;
       const result = await cloudinary.uploader.upload(image, {
-        folder: "posts",
+        folder: folderName,
         transformation: [
           { width: 800, height: 600, crop: "limit" },
           { quality: "auto" }

@@ -2,6 +2,7 @@ import express from "express";
 import { createPostController, deletePostController, getAllPostsController, getPostController, updatePostController } from "../controllers/post.controllers";
 import { tokenValidate, errorHandler } from "../middlewares/index";
 import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
+import { createMadeRecipeController, getMadeRecipeOfPostController } from "../controllers/madeRecipe.controllers";
 
 const postRouter = express.Router();
 postRouter.post("/:id/like", tokenValidate, likeOrUnlikePostController);
@@ -10,7 +11,10 @@ postRouter.post("/:id/save", tokenValidate, saveOrUnsavedPostController);
 postRouter.get("/savedList", tokenValidate, getSavedPostsByUserController);
 postRouter.get("/:id/isLiked", tokenValidate, isLikedPostByUserController);
 postRouter.get("/:id/isSaved", tokenValidate, isSavedPostByUserController);
+// recipe
 
+postRouter.get("/:id/getMades", tokenValidate, getMadeRecipeOfPostController);
+postRouter.post("/:id/made", tokenValidate, createMadeRecipeController);
 postRouter.post("/create", tokenValidate, createPostController);
 postRouter.get("/:id", tokenValidate, getPostController);
 postRouter.patch("/:id", tokenValidate, updatePostController);
