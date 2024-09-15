@@ -21,6 +21,8 @@ export const postEndpoints = {
   //recipe
   createMadeRecipe: "/posts/:id/made",
   getMadeRecipeOfPost: "/posts/:id/getMades",
+  updateMadeRecipe: "/posts/:madeRecipeId/made",
+  getMadeRecipeById: "/posts/:madeRecipeId/made",
 } as const;
 
 export interface PostResponseError
@@ -134,7 +136,7 @@ export interface createMadeInfo {
 }
 
 export interface MadePostData {
-  _id: number;
+  _id: string;
   userId: string;
   postId: string;
   image: string;
@@ -148,6 +150,12 @@ export interface MadePostData {
     email: string;
     username: string;
   };
+}
+
+export interface MadePostUpdate {
+  image?: string;
+  review?: string;
+  rating?: number;
 }
 
 export interface PostFetcher {
@@ -167,6 +175,8 @@ export interface PostFetcher {
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
+  updateMadeRecipe: (madeRecipeId: string, data: MadePostUpdate, token: string) => Promise<PostResponse<MadePostUpdate>>;
+  getMadeRecipeById: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -287,6 +297,24 @@ export const postFetcher: PostFetcher = {
   },
   getMadeRecipeOfPost: async (postId: string, token: string): Promise<PostResponse<MadePostData>> => {
     return postInstance.get(postEndpoints.getMadeRecipeOfPost.replace(":id", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateMadeRecipe: async (madeRecipeId: string, data: MadePostUpdate, token: string): Promise<PostResponse<MadePostUpdate>> => {
+    return postInstance.patch(postEndpoints.updateMadeRecipe.replace(":madeRecipeId", madeRecipeId), data,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getMadeRecipeById: async (madeRecipeId: string, token: string): Promise<PostResponse<MadePostData>> => {
+    return postInstance.get(postEndpoints.getMadeRecipeById.replace(":madeRecipeId", madeRecipeId),
       {
         headers: {
           'Authorization': `Bearer ${token}`,

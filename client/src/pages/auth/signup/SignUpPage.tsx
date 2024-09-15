@@ -61,8 +61,9 @@ const SignUpPage = () => {
           success("Account created successfully. Please verify your email");
           setTimeout(() => navigate("/verify", { state: values }), 2000);
         })
-        .catch((error) => {
-          error(error);
+        .catch((err) => {
+          error(err);
+          console.log(err);
         });
     },
   });

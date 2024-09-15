@@ -1,6 +1,6 @@
 import { AuthRequest } from "../data";
 import { Response } from "express";
-import { createMadeRecipeService, getMadeRecipeOfPostService } from "../services/madeRecipe.services";
+import { createMadeRecipeService, getMadeRecipeByIdService, getMadeRecipeOfPostService, updateMadeRecipeService } from "../services/madeRecipe.services";
 
 export const createMadeRecipeController = async (req: AuthRequest, res: Response) => {
   try {
@@ -36,6 +36,42 @@ export const getMadeRecipeOfPostController = async (req: AuthRequest, res: Respo
   } catch (error) {
     return res.status(400).json({
       message: "Cannot get made recipes",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const updateMadeRecipeController = async (req: AuthRequest, res: Response) => {
+  try {
+    const madeRecipeId = req.params.madeRecipeId;
+    const madeRecipeData = req.body;
+    const madeRecipe = await updateMadeRecipeService(madeRecipeId, madeRecipeData);
+    if (!madeRecipe) {
+      return res.status(400).json({
+        message: "Cannot update made recipe"
+      });
+    }
+    return res.status(200).json(madeRecipe);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Cannot update made recipe internal error",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const getMadeRecipeByIdController = async (req: AuthRequest, res: Response) => {
+  try {
+    const madeRecipe = await getMadeRecipeByIdService(req.params.madeRecipeId);
+    if (!madeRecipe) {
+      return res.status(400).json({
+        message: "Cannot get made recipe"
+      });
+    }
+    return res.status(200).json(madeRecipe);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Cannot get made recipe internal error",
       error: (error as Error).message
     });
   }

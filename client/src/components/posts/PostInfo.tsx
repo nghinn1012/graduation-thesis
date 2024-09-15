@@ -319,7 +319,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
                 className="w-4 h-4 text-slate-500 cursor-pointer"
               />
             )}
-            {post.savedCount}
+            <span className="text-sm text-slate-500">{post.savedCount}</span>
           </div>
           </div>
         </div>

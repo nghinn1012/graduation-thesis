@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  MadePostUpdate,
   postFetcher,
   PostInfo,
   PostInfoUpdate,
@@ -47,6 +48,7 @@ const PostDetails: React.FunctionComponent = () => {
   const { toggleLikePost, toggleSavePost } = usePostContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -261,7 +263,7 @@ const PostDetails: React.FunctionComponent = () => {
     setSelectedImage(null);
   };
 
-  const handleSubmitMadeModal = async (review: string, rating: number) => {
+  const handleSubmitMadeModal = async (_id: string, review: string, rating: number, newImage: string | null) => {
     const token = auth?.token;
     if (!token) return;
     console.log("Submit image:", selectedImage);
@@ -416,7 +418,7 @@ const PostDetails: React.FunctionComponent = () => {
                 role="tab"
                 onClick={() => setActiveTab("made")}
               >
-                Made (4)
+                Made
               </a>
             </div>
 
@@ -536,7 +538,7 @@ const PostDetails: React.FunctionComponent = () => {
             )}
 
             {activeTab === "made" && (
-              <MadeSection postId={post._id} token={auth?.token || ""} />
+              <MadeSection post={post} token={auth?.token || ""}/>
             )}
           </div>
           {isModalOpen && (

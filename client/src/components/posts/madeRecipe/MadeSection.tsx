@@ -1,46 +1,131 @@
-import React, { useEffect, useState } from "react";
-import MadePostCard from "./MadePostCard";
-import { MadePostData, postFetcher } from "../../../api/post";
+import React, { useEffect, useState } from 'react';
+import MadePostCard from './MadePostCard';
+import { MadePostData, MadePostUpdate, postFetcher, PostInfo } from '../../../api/post';
+import MadePostSkeleton from '../../skeleton/MadePostSkeleton';
+import { useToastContext } from '../../../hooks/useToastContext';
+import { useSocket } from '../../../hooks/useSocketContext';
 
 interface MadeSectionProps {
-  postId: string;
+  post: PostInfo;
   token: string;
 }
 
-const MadeSection: React.FC<MadeSectionProps> = ({ postId, token }) => {
+const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
   const [madePosts, setMadePosts] = useState<MadePostData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { success, error } = useToastContext();
+  const { socket } = useSocket();
 
   useEffect(() => {
     const fetchPosts = async () => {
-      setLoading(true);
       try {
-        const response = await postFetcher.getMadeRecipeOfPost(postId, token);
-        setMadePosts(response as unknown as MadePostData[]);
-        console.log(response);
+        const response = await postFetcher.getMadeRecipeOfPost(post._id, token);
+        const posts = response  as unknown as MadePostData[];
+        setMadePosts(posts);
       } catch (error) {
-        console.error("Failed to fetch posts:", error);
+        console.error('Failed to fetch posts:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPosts();
-  }, [postId, token]);
+  }, [post, token, madePosts]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMadeUpdate = async (id: string) => {
+      try {
+        const updatedMadePost = await postFetcher.getMadeRecipeById(id, token) as unknown as MadePostData;
+        console.log(post);
+        updatedMadePost.author = post.author;
+
+        setMadePosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === id ? updatedMadePost : post
+          ) as MadePostData[]
+        );
+      } catch (error) {
+        console.error('Error updating post:', error);
+      }
+    };
+
+    socket.on('made-update', handleMadeUpdate);
+
+    return () => {
+      socket.off('made-update', handleMadeUpdate);
+    };
+  }, [socket, token]);
 
   const totalPosts = madePosts.length;
   const averageRating =
     totalPosts > 0
-      ? madePosts.reduce((acc, post) => acc + Number(post.rating), 0) /
-        totalPosts
+      ? madePosts.reduce((acc, post) => acc + Number(post.rating), 0) / totalPosts
       : 0;
+
+  const handleSubmitMadeModal = async (
+    _id: string,
+    review: string,
+    rating: number,
+    newImage: string | null
+  ) => {
+    const data: MadePostUpdate = {};
+    if (review) data.review = review;
+    if (rating) data.rating = rating;
+    if (newImage) data.image = newImage;
+
+    try {
+      if (!socket || !token) return;
+      await postFetcher.updateMadeRecipe(_id, data, token);
+      success('Updated made successfully');
+      madePosts[0].image = 'Test image';
+
+      const handleMadeUpdate = async (id: string) => {
+        if (id === _id) {
+          try {
+            const updatedMadePost = await postFetcher.getMadeRecipeById(_id, token) as unknown as MadePostData;
+            const currentPost = madePosts.find((post) => post._id === _id);
+            if (!currentPost) return;
+            updatedMadePost.author = currentPost.author;
+            setMadePosts((prevPosts) =>
+              prevPosts.map((post) =>
+                post._id === _id ? updatedMadePost : post
+              ) as MadePostData[]
+            );
+            socket.off('made-update', handleMadeUpdate);
+          } catch (error) {
+            console.error('Error updating post:', error);
+          }
+        }
+      };
+
+      socket.on('made-update', handleMadeUpdate);
+    } catch (err) {
+      error("Can't update made", (err as Error).message);
+    }
+  };
 
   return (
     <div className="mt-4 flex flex-col gap-4">
-      {/* Loading Indicator */}
       {loading ? (
-        <div className="flex justify-center items-center h-32">
-          <p className="text-lg font-semibold">Loading...</p>
+        <div className="flex flex-col gap-4">
+          {/* Summary Skeleton */}
+          <div className="p-4 flex flex-row items-center justify-center gap-20">
+            <div className="flex flex-col items-center">
+              <div className="w-24 h-6 bg-gray-300 animate-pulse mb-2"></div>
+              <div className="w-16 h-8 bg-gray-300 animate-pulse"></div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-24 h-6 bg-gray-300 animate-pulse mb-2"></div>
+              <div className="w-16 h-8 bg-gray-300 animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Post Skeletons */}
+          {[1, 2, 3].map((_, index) => (
+            <MadePostSkeleton key={index} />
+          ))}
         </div>
       ) : (
         <>
@@ -54,18 +139,12 @@ const MadeSection: React.FC<MadeSectionProps> = ({ postId, token }) => {
             <div className="flex flex-col items-center">
               <p className="text-lg font-semibold">Average Rating</p>
               <div className="flex items-center mt-1">
-                <p className="text-2xl font-bold mr-2">
-                  {averageRating.toFixed(1)}
-                </p>
+                <p className="text-2xl font-bold mr-2">{averageRating.toFixed(1)}</p>
                 <div className="flex">
                   {[...Array(5)].map((_, index) => (
                     <svg
                       key={index}
-                      className={`w-6 h-6 ${
-                        index < Math.round(averageRating)
-                          ? "text-yellow-500"
-                          : "text-gray-300"
-                      }`}
+                      className={`w-6 h-6 ${index < Math.round(averageRating) ? 'text-yellow-500' : 'text-gray-300'}`}
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
@@ -80,17 +159,25 @@ const MadeSection: React.FC<MadeSectionProps> = ({ postId, token }) => {
           </div>
 
           {/* List of MadePostCard Components */}
-          {madePosts.map((post) => (
-            <MadePostCard
-              key={post._id}
-              author={post.author}
-              createdAt={new Date(post.createdAt)} // Ensure proper Date object
-              review={post.review}
-              profileImageUrl={post.image}
-              productImageUrl={post.image}
-              rating={Number(post.rating)}
-            />
-          ))}
+          {madePosts.map((madePost) =>
+            madePost.image === 'Test image' ? (
+              <MadePostSkeleton key={madePost._id} />
+            ) : (
+              <MadePostCard
+                key={madePost._id}
+                _id={madePost._id}
+                post={post}
+                author={madePost.author}
+                createdAt={new Date(madePost.createdAt)}
+                review={madePost.review}
+                profileImageUrl={madePost.author.avatar}
+                productImageUrl={madePost.image}
+                rating={Number(madePost.rating)}
+                onSubmit={handleSubmitMadeModal}
+                onDelete={() => {}}
+              />
+            )
+          )}
         </>
       )}
     </div>
