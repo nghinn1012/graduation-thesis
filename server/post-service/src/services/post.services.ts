@@ -1,5 +1,5 @@
 import postModel from "../models/postModel";
-import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from "../services/index.services";
+import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from "./index.services";
 import { IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
 import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";

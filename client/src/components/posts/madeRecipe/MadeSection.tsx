@@ -12,15 +12,17 @@ interface MadeSectionProps {
 
 const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
   const [madePosts, setMadePosts] = useState<MadePostData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingPosts, setLoadingPosts] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
   const { success, error } = useToastContext();
   const { socket } = useSocket();
 
   useEffect(() => {
+    if (!socket || !token) return;
     const fetchPosts = async () => {
       try {
         const response = await postFetcher.getMadeRecipeOfPost(post._id, token);
-        const posts = response  as unknown as MadePostData[];
+        const posts = response as unknown as MadePostData[];
         setMadePosts(posts);
       } catch (error) {
         console.error('Failed to fetch posts:', error);
@@ -28,8 +30,14 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
         setLoading(false);
       }
     };
-
+    socket.on("made-create", () => {
+      fetchPosts();
+      return;
+    });
     fetchPosts();
+    return () => {
+      socket.off('made-create', () => {});
+    };
   }, [post, token]);
 
   useEffect(() => {
@@ -41,14 +49,18 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
         const author = madePosts.find((post) => post._id === id)?.author;
         if (!author) return;
         updatedMadePost.author = author;
-        console.log(madePosts);
 
         setMadePosts((prevPosts) =>
           prevPosts.map((post) =>
             post._id === id ? updatedMadePost : post
           ) as MadePostData[]
         );
-        setLoading(false);
+
+        setLoadingPosts((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
       } catch (error) {
         console.error('Error updating post:', error);
       }
@@ -59,34 +71,34 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     return () => {
       socket.off('made-update', handleMadeUpdate);
     };
-  }, [socket, token]);
-
-  const totalPosts = madePosts.length;
-  const averageRating =
-    totalPosts > 0
-      ? madePosts.reduce((acc, post) => acc + Number(post.rating), 0) / totalPosts
-      : 0;
+  }, [socket, token, madePosts]);
 
   const handleSubmitMadeModal = async (
     _id: string,
     review: string,
     rating: number,
-    newImage: string | null
+    newImage: string | undefined
   ) => {
     const data: MadePostUpdate = {};
     if (review) data.review = review;
     if (rating) data.rating = rating;
-    if (newImage) data.image = newImage;
+
+    if (newImage) {
+      if (newImage === madePosts.find((post) => post._id === _id)?.image) {
+        data.image = undefined;
+      } else {
+        data.image = newImage;
+      }
+    }
 
     try {
       if (!socket || !token) return;
-      if (data.image = madePosts.find((post) => post._id === _id)?.image) {
-        data.image = undefined;
-      }
-      console.log(data);
+
+      setLoadingPosts((prev) => new Set(prev).add(_id));
+
       await postFetcher.updateMadeRecipe(_id, data, token);
       success('Updated made successfully');
-      setLoading(true);
+
       const handleMadeUpdate = async (id: string) => {
         if (id === _id) {
           try {
@@ -94,11 +106,19 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
             const currentPost = madePosts.find((post) => post._id === _id);
             if (!currentPost) return;
             updatedMadePost.author = currentPost.author;
+
             setMadePosts((prevPosts) =>
               prevPosts.map((post) =>
                 post._id === _id ? updatedMadePost : post
               ) as MadePostData[]
             );
+
+            setLoadingPosts((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(_id);
+              return newSet;
+            });
+
             socket.off('made-update', handleMadeUpdate);
           } catch (error) {
             console.error('Error updating post:', error);
@@ -109,6 +129,12 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
       socket.on('made-update', handleMadeUpdate);
     } catch (err) {
       error("Can't update made", (err as Error).message);
+
+      setLoadingPosts((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(_id);
+        return newSet;
+      });
     }
   };
 
@@ -121,6 +147,12 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
       error("Can't delete made", (err as Error).message);
     }
   }
+
+  const totalPosts = madePosts.length;
+  const averageRating =
+    totalPosts > 0
+      ? madePosts.reduce((acc, post) => acc + Number(post.rating), 0) / totalPosts
+      : 0;
 
   return (
     <div className="mt-4 flex flex-col gap-4">
@@ -176,7 +208,7 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
 
           {/* List of MadePostCard Components */}
           {madePosts.map((madePost) =>
-            madePost.image === 'Test image' ? (
+            (loadingPosts.has(madePost._id) || madePost.image === "Test image") ? (
               <MadePostSkeleton key={madePost._id} />
             ) : (
               <MadePostCard

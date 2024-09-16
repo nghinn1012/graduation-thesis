@@ -23,8 +23,8 @@ interface MadePostCardProps {
     _id: string,
     review: string,
     rating: number,
-    newImage: string | null
-  ) => void; 
+    newImage: string | undefined
+  ) => void;
   onDelete: (_id: string) => void;
 }
 
@@ -70,7 +70,7 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
     _id: string,
     newReview: string,
     newRating: number,
-    newImage: string | null
+    newImage: string | undefined
   ) => {
     onSubmit(_id, newReview, newRating, newImage); // Pass the _id here
     console.log("Edit submitted", _id);

@@ -3,15 +3,15 @@ export {
   getAllPostsService,
   getPostService,
   updatePostService,
-} from "../services/post.services";
+} from "./post.services";
 
 export {
   rpcGetUser,
   rpcGetUsers,
   Id,
   IAuthor,
-} from "../services/rpc.services";
+} from "./rpc.services";
 
 export {
   uploadImageToCloudinary
-} from "../services/imagesuploader.services";
+} from "./imagesuploader.services";

@@ -1,12 +1,12 @@
 import mongoose, { model, Schema } from "mongoose";
 
 const CommentSchema = new Schema({
-  user: {
+  userId: {
     type: String,
     required: true,
     index: true,
   },
-  post: {
+  postId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Post",
     required: true,
@@ -21,12 +21,10 @@ const CommentSchema = new Schema({
     ref: "Comment",
     default: null,
   },
-  replies: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment",
-    },
-  ],
+  userMention: {
+    type: Array,
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

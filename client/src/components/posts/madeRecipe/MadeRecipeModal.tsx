@@ -11,7 +11,7 @@ interface MadeRecipeModalProps {
   initialRating?: number;
   _id?: string;
   onClose: () => void;
-  onSubmit: (id: string, review: string, rating: number, newImage: string | null) => void; // Adjusted parameter types
+  onSubmit: (id: string, review: string, rating: number, newImage: string | undefined) => void; // Adjusted parameter types
 }
 
 const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
@@ -53,7 +53,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.result) {
-          setNewImage(reader.result as string); 
+          setNewImage(reader.result as string);
         }
       };
       reader.readAsDataURL(file);

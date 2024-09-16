@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { verifyToken } from "../utlis/token";
 import { AuthRequest } from "../data";
 
-
 export const tokenValidate = (
   request: AuthRequest,
   _response: Response,

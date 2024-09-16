@@ -22,6 +22,7 @@ export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
           console.error("Error uploading image:", error);
         }
       }
+      io.emit('made-create', madeRecipe.id);
     };
 
     handleImageUpload();

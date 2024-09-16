@@ -48,7 +48,6 @@ const PostDetails: React.FunctionComponent = () => {
   const { toggleLikePost, toggleSavePost } = usePostContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -263,7 +262,7 @@ const PostDetails: React.FunctionComponent = () => {
     setSelectedImage(null);
   };
 
-  const handleSubmitMadeModal = async (_id: string, review: string, rating: number, newImage: string | null) => {
+  const handleSubmitMadeModal = async (_id: string, review: string, rating: number, newImage: string | undefined) => {
     const token = auth?.token;
     if (!token) return;
     console.log("Submit image:", selectedImage);
