@@ -24,7 +24,7 @@ interface MadePostCardProps {
     review: string,
     rating: number,
     newImage: string | null
-  ) => void; // Updated signature
+  ) => void; 
   onDelete: (_id: string) => void;
 }
 

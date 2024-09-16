@@ -30,7 +30,7 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     };
 
     fetchPosts();
-  }, [post, token, madePosts]);
+  }, [post, token]);
 
   useEffect(() => {
     if (!socket) return;
@@ -38,14 +38,17 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     const handleMadeUpdate = async (id: string) => {
       try {
         const updatedMadePost = await postFetcher.getMadeRecipeById(id, token) as unknown as MadePostData;
-        console.log(post);
-        updatedMadePost.author = post.author;
+        const author = madePosts.find((post) => post._id === id)?.author;
+        if (!author) return;
+        updatedMadePost.author = author;
+        console.log(madePosts);
 
         setMadePosts((prevPosts) =>
           prevPosts.map((post) =>
             post._id === id ? updatedMadePost : post
           ) as MadePostData[]
         );
+        setLoading(false);
       } catch (error) {
         console.error('Error updating post:', error);
       }
@@ -77,10 +80,13 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
 
     try {
       if (!socket || !token) return;
+      if (data.image = madePosts.find((post) => post._id === _id)?.image) {
+        data.image = undefined;
+      }
+      console.log(data);
       await postFetcher.updateMadeRecipe(_id, data, token);
       success('Updated made successfully');
-      madePosts[0].image = 'Test image';
-
+      setLoading(true);
       const handleMadeUpdate = async (id: string) => {
         if (id === _id) {
           try {
