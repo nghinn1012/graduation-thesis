@@ -27,6 +27,7 @@ import { useToastContext } from "../../hooks/useToastContext";
 import MadeRecipeModal from "../../components/posts/madeRecipe/MadeRecipeModal";
 import MadeSection from "../../components/posts/madeRecipe/MadeSection";
 import imageCompression from "browser-image-compression";
+import CommentSection from "../../components/posts/comment/CommentSection";
 const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
@@ -532,7 +533,10 @@ const PostDetails: React.FunctionComponent = () => {
 
             {activeTab === "comments" && (
               <div className="mt-4">
-                <p>Made section content...</p>
+                <CommentSection
+                postId={post._id}
+                token={auth?.token || ""}
+                author={postAuthor} />
               </div>
             )}
 

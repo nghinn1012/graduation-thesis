@@ -5,6 +5,12 @@ import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 
 export const postEndpoints = {
+  //comment
+  getCommentByPostId: "/posts/:postId/comment",
+  createComment: "/posts/:postId/comment",
+  updateComment: "/posts/:commentId/comment",
+  deleteComment: "/posts/:commentId/comment",
+
   // posts
   createPost: "/posts/create",
   getAllPosts: "/posts",
@@ -159,6 +165,42 @@ export interface MadePostUpdate {
   rating?: number;
 }
 
+export interface Comment {
+  _id: string;
+  author: {
+    _id: string;
+    username: string;
+    avatar: string;
+    name: string;
+  };
+  content: string;
+  userMention: {
+    _id: string;
+    username: string;
+  }
+  createdAt: string;
+  likes: number;
+  replies?: Comment[];
+}
+
+export interface createCommentData {
+  content: string;
+  parentCommentId?: string | null;
+  userMention?: string;
+}
+
+export interface CommentAuthor {
+  _id: string;
+  username: string;
+  name: string;
+  avatar: string;
+}
+
+export interface updateComment {
+  content?: string;
+  userMention?: string | null;
+  parentCommentId?: string;
+}
 export interface PostFetcher {
   // posts
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
@@ -179,6 +221,12 @@ export interface PostFetcher {
   updateMadeRecipe: (madeRecipeId: string, data: MadePostUpdate, token: string) => Promise<PostResponse<MadePostUpdate>>;
   getMadeRecipeById: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
   deleteMadeRecipe: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
+
+  //comment
+  getCommentByPostId: (postId: string, token: string) => Promise<PostResponse<Comment[]>>;
+  createComment: (postId: string, data: createCommentData, token: string) => Promise<PostResponse<Comment>>;
+  updateComment: (commentId: string, data: updateComment, token: string) => Promise<PostResponse<Comment>>;
+  deleteComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -326,6 +374,42 @@ export const postFetcher: PostFetcher = {
   },
   deleteMadeRecipe: async (madeRecipeId: string, token: string): Promise<PostResponse<MadePostData>> => {
     return postInstance.delete(postEndpoints.deleteMadeRecipe.replace(":madeRecipeId", madeRecipeId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getCommentByPostId: async (postId: string, token: string): Promise<PostResponse<Comment[]>> => {
+    return postInstance.get(postEndpoints.getCommentByPostId.replace(":postId", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  createComment: async (postId: string, data: createCommentData, token: string): Promise<PostResponse<Comment>> => {
+    return postInstance.post(postEndpoints.createComment.replace(":postId", postId), data,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateComment: async (commentId: string, data: updateComment, token: string): Promise<PostResponse<Comment>> => {
+    return postInstance.patch(postEndpoints.updateComment.replace(":commentId", commentId), data,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  deleteComment: async (commentId: string, token: string): Promise<PostResponse<Comment>> => {
+    return postInstance.delete(postEndpoints.deleteComment.replace(":commentId", commentId),
       {
         headers: {
           'Authorization': `Bearer ${token}`,

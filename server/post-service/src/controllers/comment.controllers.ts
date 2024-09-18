@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { createCommentService, getCommentByIdService, getCommentByPostIdService } from "../services/comment.services";
+import { createCommentService, deleteCommentService, getCommentByIdService, getCommentByPostIdService, updateCommentService } from "../services/comment.services";
 import { Response } from "express";
 
 export const createCommentController = async (req: AuthRequest, res: Response) => {
@@ -32,7 +32,7 @@ export const getCommentByPostIdController = async (req: AuthRequest, res: Respon
   catch (error) {
     return res.status(400).json({
       message: "Cannot get comments",
-      error: (error as Error).message
+      error: error as Error
     });
   }
 }
@@ -47,6 +47,47 @@ export const getCommentByIdController = async (req: AuthRequest, res: Response) 
     return res.status(400).json({
       message: "Cannot get comment",
       error: (error as Error).message
+    });
+  }
+}
+
+export const updateCommentController = async (req: AuthRequest, res: Response) => {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.authContent?.data.userId;
+    if (!userId) {
+      return res.status(400).json({
+        message: "Cannot update comment"
+      });
+    }
+    const commentData = req.body;
+    const comment = await updateCommentService(userId, commentId, commentData);
+    return res.status(200).json(comment);
+  }
+  catch (error) {
+    return res.status(400).json({
+      message: "Cannot update comment",
+      error: (error as Error)
+    });
+  }
+}
+
+export const deleteCommentController = async (req: AuthRequest, res: Response) => {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.authContent?.data.userId;
+    if (!userId) {
+      return res.status(400).json({
+        message: "Cannot delete comment"
+      });
+    }
+    const comment = await deleteCommentService(userId, commentId);
+    return res.status(200).json(comment);
+  }
+  catch (error) {
+    return res.status(400).json({
+      message: "Cannot delete comment",
+      error: (error as Error)
     });
   }
 }

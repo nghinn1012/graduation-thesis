@@ -3,7 +3,7 @@ import { createPostController, deletePostController, getAllPostsController, getP
 import { tokenValidate, errorHandler } from "../middlewares/index";
 import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
 import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeByIdController, getMadeRecipeOfPostController, updateMadeRecipeController } from "../controllers/madeRecipe.controllers";
-import { createCommentController, getCommentByIdController, getCommentByPostIdController } from "../controllers/comment.controllers";
+import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, updateCommentController } from "../controllers/comment.controllers";
 
 const postRouter = express.Router();
 postRouter.post("/:id/like", tokenValidate, likeOrUnlikePostController);
@@ -24,6 +24,8 @@ postRouter.delete("/:madeRecipeId/made", tokenValidate, deleteMadeRecipeControll
 postRouter.post("/:postId/comment", tokenValidate, createCommentController);
 postRouter.get("/:postId/comment", tokenValidate, getCommentByPostIdController);
 postRouter.get("/:commentId/getComment", tokenValidate, getCommentByIdController);
+postRouter.patch("/:commentId/comment", tokenValidate, updateCommentController);
+postRouter.delete("/:commentId/comment", tokenValidate, deleteCommentController);
 
 postRouter.post("/create", tokenValidate, createPostController);
 postRouter.get("/:id", tokenValidate, getPostController);

@@ -12,7 +12,7 @@ const CommentSchema = new Schema({
     required: true,
     index: true,
   },
-  comment: {
+  content: {
     type: String,
     required: true,
   },
@@ -22,8 +22,8 @@ const CommentSchema = new Schema({
     default: null,
   },
   userMention: {
-    type: Array,
-    default: [],
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,

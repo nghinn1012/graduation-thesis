@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PostInfo } from "../../../api/post";
-
+import * as yup from "yup";
 interface MadeRecipeModalProps {
   post: PostInfo;
   postAuthor: any;
@@ -11,7 +11,12 @@ interface MadeRecipeModalProps {
   initialRating?: number;
   _id?: string;
   onClose: () => void;
-  onSubmit: (id: string, review: string, rating: number, newImage: string | undefined) => void; // Adjusted parameter types
+  onSubmit: (
+    id: string,
+    review: string,
+    rating: number,
+    newImage: string | undefined
+  ) => void;
 }
 
 const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
@@ -30,7 +35,19 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
   const [rating, setRating] = useState<number>(initialRating);
   const [newImage, setNewImage] = useState<string | null>(image);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [validationError, setValidationError] = useState<{
+    rating?: string;
+    review?: string;
+  }>({});
 
+  const madePostSchema = yup.object().shape({
+    review: yup.string().required("Review is required"),
+    rating: yup
+      .number()
+      .required("Rating is required")
+      .min(1, "Rating must be at least 1")
+      .max(5, "Rating cannot exceed 5"),
+  });
   useEffect(() => {
     if (isOpen) {
       setReview(initialReview);
@@ -65,9 +82,19 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
       alert("Please select an image.");
       return;
     }
-    onSubmit(_id, review, rating, newImage);
-    onClose();
+
+    madePostSchema
+      .validate({ review, rating })
+      .then(() => {
+        setValidationError({});
+        onSubmit(_id, review, rating, newImage);
+        onClose();
+      })
+      .catch((error) => {
+        setValidationError({ [error.path]: error.message });
+      });
   };
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -120,23 +147,23 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
             />
           </div>
           {isEditing && (
-              <div className="flex flex-col gap-4 justify-center items-center">
-                <button
-                  type="button"
-                  className="w-full py-3 bg-red-500 text-white font-semibold rounded-lg mb-6"
-                  onClick={handleClick}
-                >
-                  Change photo
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden mt-2"
-                  onChange={handleImageChange}
-                  ref={fileInputRef}
-                />
-              </div>
-            )}
+            <div className="flex flex-col gap-4 justify-center items-center">
+              <button
+                type="button"
+                className="w-full py-3 bg-red-500 text-white font-semibold rounded-lg mb-6"
+                onClick={handleClick}
+              >
+                Change photo
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden mt-2"
+                onChange={handleImageChange}
+                ref={fileInputRef}
+              />
+            </div>
+          )}
         </div>
 
         {/* Rating Section */}
@@ -155,12 +182,18 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
               </button>
             ))}
           </div>
+          {validationError && validationError?.rating && (
+            <div className="text-red-500 mb-4">{validationError.rating}</div>
+          )}
           <textarea
             className="w-full p-2 border border-gray-300 rounded"
             placeholder="Tell us what you thought of this recipe and anything you changed"
             value={review}
             onChange={(e) => setReview(e.target.value)}
           ></textarea>
+          {validationError && validationError?.review && (
+            <div className="text-red-500 mb-4">{validationError.review}</div>
+          )}
         </div>
 
         {/* Action Buttons */}

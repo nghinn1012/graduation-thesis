@@ -26,6 +26,10 @@ interface MadePostCardProps {
     newImage: string | undefined
   ) => void;
   onDelete: (_id: string) => void;
+  validationErrors?: {
+    review?: string;
+    rating?: string;
+  };
 }
 
 const MadePostCard: React.FC<MadePostCardProps> = ({
@@ -39,6 +43,7 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
   productImageUrl,
   onSubmit,
   onDelete,
+  validationErrors,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);

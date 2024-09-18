@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as yup from 'yup';
 import MadePostCard from './MadePostCard';
 import { MadePostData, MadePostUpdate, postFetcher, PostInfo } from '../../../api/post';
 import MadePostSkeleton from '../../skeleton/MadePostSkeleton';
@@ -16,6 +17,19 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
   const [loading, setLoading] = useState(true);
   const { success, error } = useToastContext();
   const { socket } = useSocket();
+
+  // State để lưu lỗi xác thực
+  const [validationError, setValidationError] = useState<{rating?: string, review?: string}>({});
+
+  // Schema xác thực với yup
+  const madePostSchema = yup.object().shape({
+    review: yup.string().required('Review is required'),
+    rating: yup
+      .number()
+      .required('Rating is required')
+      .min(1, 'Rating must be at least 1')
+      .max(5, 'Rating cannot exceed 5'),
+  });
 
   useEffect(() => {
     if (!socket || !token) return;
@@ -92,6 +106,10 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     }
 
     try {
+      // Xác thực dữ liệu với yup
+      await madePostSchema.validate({ review, rating });
+      setValidationError({}); // Xóa lỗi trước đó nếu xác thực thành công
+
       if (!socket || !token) return;
 
       setLoadingPosts((prev) => new Set(prev).add(_id));
@@ -128,7 +146,14 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
 
       socket.on('made-update', handleMadeUpdate);
     } catch (err) {
-      error("Can't update made", (err as Error).message);
+      if (err instanceof yup.ValidationError) {
+        setValidationError({
+          review: err.path === 'review' ? err.message : undefined,
+          rating: err.path === 'rating' ? err.message : undefined,
+        });
+      } else {
+        error("Can't update made", (err as Error).message);
+      }
 
       setLoadingPosts((prev) => {
         const newSet = new Set(prev);
@@ -223,6 +248,7 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
                 rating={Number(madePost.rating)}
                 onSubmit={handleSubmitMadeModal}
                 onDelete={handleDeleteMadeModal}
+                validationErrors={validationError}
               />
             )
           )}
