@@ -12,7 +12,7 @@ import React from "react";
 import { usePostContext } from "../../context/PostContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { postFetcher, PostLikeResponse } from "../../api/post";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { useToastContext } from "../../hooks/useToastContext";
 
 interface Ingredient {
@@ -47,6 +47,7 @@ interface PostProps {
     updatedAt: string;
     likeCount: number;
     savedCount: number;
+    commentCount: number;
     liked: boolean;
     saved: boolean;
   };
@@ -54,18 +55,23 @@ interface PostProps {
 
 const Post: React.FC<PostProps> = ({ post }) => {
   const postAuthor = post.author;
-  const [comment, setComment] = useState<string>("");
   const [isLiked, setIsLiked] = useState(post.liked);
   const [isSaved, setIsSaved] = useState(post.saved);
   const [isMyPost, setIsMyPost] = useState(false);
   const formattedDate = "1h";
-  const isCommenting = false;
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { posts, setPosts, toggleLikePost, toggleSavePost } = usePostContext();
+  const { posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
+    usePostContext();
   const { success, error } = useToastContext();
+  const [commentCount, setCommentCount] = useState<number>(
+    postCommentCounts[post._id] || post.commentCount
+  );
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  useEffect(() => {
+    setCommentCount(postCommentCounts[post._id] || post.commentCount);
+  }, [postCommentCounts, post._id, post.commentCount]);
 
   const goToPrevious = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -105,16 +111,15 @@ const Post: React.FC<PostProps> = ({ post }) => {
     }
   };
 
-  const handlePostComment = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
   const handleLikePost = async () => {
     const token = auth?.auth?.token;
     if (!token) return;
 
     try {
-      const response = await postFetcher.likeOrUnlikePost(post._id, token) as unknown as PostLikeResponse;
+      const response = (await postFetcher.likeOrUnlikePost(
+        post._id,
+        token
+      )) as unknown as PostLikeResponse;
       if (response.liked === true) {
         setIsLiked(true);
         toggleLikePost(post._id, true);
@@ -133,7 +138,10 @@ const Post: React.FC<PostProps> = ({ post }) => {
     if (!token) return;
 
     try {
-      const response = await postFetcher.postSavedOrUnsaved(post._id, token) as unknown as PostLikeResponse;
+      const response = (await postFetcher.postSavedOrUnsaved(
+        post._id,
+        token
+      )) as unknown as PostLikeResponse;
       if (response.saved === true) {
         success("Post saved successfully");
         setIsSaved(true);
@@ -147,7 +155,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
       console.error("An error occurred while saving the post:", err);
       error("An error occurred while saving the post");
     }
-  }
+  };
 
   useEffect(() => {
     const account = auth.account;
@@ -159,14 +167,19 @@ const Post: React.FC<PostProps> = ({ post }) => {
     navigate(`/post/${id}`, { state: { post, postAuthor } });
   };
 
+  const handleCommentIconClick = (id: string) => {
+    navigate(`/post/${id}`, {
+      state: { post, postAuthor, activeTab: "comments" },
+    });
+  };
+
   useEffect(() => {
     setIsLiked(post.liked);
   }, [post.liked]);
 
   useEffect(() => {
     setIsSaved(post.saved);
-  }
-  ,[post.saved]);
+  }, [post.saved]);
 
   return (
     <>
@@ -242,47 +255,16 @@ const Post: React.FC<PostProps> = ({ post }) => {
 
           <div className="flex justify-between mt-3">
             <div className="flex gap-4 items-center w-2/3 justify-between">
-              <div className="flex gap-1 items-center cursor-pointer group">
+              <div className="flex gap-1 items-center cursor-pointer group"
+                  onClick={() => handleCommentIconClick(post._id)}
+              >
                 <FaRegComment className="w-4 h-4 text-slate-500 group-hover:text-sky-400" />
-                <span className="text-sm text-slate-500 group-hover:text-sky-400">
-                  0
+                <span
+                  className="text-sm text-slate-500 group-hover:text-sky-400"
+                >
+                  {commentCount}
                 </span>
               </div>
-
-              <dialog
-                id={`comments_modal${post._id}`}
-                className="modal border-none outline-none"
-              >
-                <div className="modal-box rounded border border-gray-600">
-                  <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
-                  <div className="flex flex-col gap-3 max-h-60 overflow-auto">
-                    <p className="text-sm text-slate-500">
-                      No comments yet 🤔 Be the first one 😉
-                    </p>
-                  </div>
-                  <form
-                    className="flex gap-2 items-center mt-4 border-t border-gray-600 pt-2"
-                    onSubmit={handlePostComment}
-                  >
-                    <textarea
-                      className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none border-gray-800"
-                      placeholder="Add a comment..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                    />
-                    <button className="btn btn-primary rounded-full btn-sm text-white px-4">
-                      {isCommenting ? (
-                        <span className="loading loading-spinner loading-md"></span>
-                      ) : (
-                        "Post"
-                      )}
-                    </button>
-                  </form>
-                </div>
-                <form method="dialog" className="modal-backdrop">
-                  <button className="outline-none">close</button>
-                </form>
-              </dialog>
               <div className="flex gap-1 items-center group cursor-pointer">
                 <BiRepost className="w-6 h-6 text-slate-500 group-hover:text-green-500" />
                 <span className="text-sm text-slate-500 group-hover:text-green-500">
@@ -308,19 +290,17 @@ const Post: React.FC<PostProps> = ({ post }) => {
                 </span>
               </div>
             </div>
-            <div className="flex w-1/3 justify-end gap-2 items-center"
-            onClick={handleSavePost}>
-            {isSaved ? (
-              <FaBookmark
-                className="w-4 h-4 text-blue-500 cursor-pointer"
-              />
-            ) : (
-              <FaRegBookmark
-                className="w-4 h-4 text-slate-500 cursor-pointer"
-              />
-            )}
-            <span className="text-sm text-slate-500">{post.savedCount}</span>
-          </div>
+            <div
+              className="flex w-1/3 justify-end gap-2 items-center"
+              onClick={handleSavePost}
+            >
+              {isSaved ? (
+                <FaBookmark className="w-4 h-4 text-blue-500 cursor-pointer" />
+              ) : (
+                <FaRegBookmark className="w-4 h-4 text-slate-500 cursor-pointer" />
+              )}
+              <span className="text-sm text-slate-500">{post.savedCount}</span>
+            </div>
           </div>
         </div>
       </div>

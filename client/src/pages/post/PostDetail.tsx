@@ -28,10 +28,10 @@ import imageCompression from "browser-image-compression";
 import CommentSection from "../../components/posts/comment/CommentSection";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 const PostDetails: React.FunctionComponent = () => {
-  const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
-    "recipe"
-  );
   const location = useLocation();
+  const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
+    location?.state.activeTab || "recipe"
+  );
   const navigate = useNavigate();
   const [post, setPost] = useState<PostInfo>([] as unknown as PostInfo);
   const postAuthor = location.state?.postAuthor;
@@ -233,7 +233,6 @@ const PostDetails: React.FunctionComponent = () => {
       error("An error occurred while saving the post");
     }
   };
-
 
   const handleImageSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -463,19 +462,19 @@ const PostDetails: React.FunctionComponent = () => {
 
                     <div className="flex items-center border border-gray-300 rounded-full">
                       <button
-                        className="px-2.5 py-1 text-red-500 border-r border-gray-300 sm:px-2 sm:py-0.5 sm:text-xs"
+                        className="px-3 py-1.5 text-red-500 border-r border-gray-300 md:px-2.5 md:py-1 md:text-sm sm:px-2 sm:py-0.5 sm:text-xs"
                         onClick={() => updateServings(-1)}
                       >
-                        <span className="text-lg sm:text-xs">−</span>
+                        <span className="text-xl md:text-lg sm:text-xs">−</span>
                       </button>
-                      <span className="px-3 py-1 sm:px-1.5 sm:py-0.5 sm:text-xs">
+                      <span className="px-4 py-1.5 md:px-3 md:py-1 md:text-sm sm:px-1.5 sm:py-0.5 sm:text-xs">
                         {servings} servings
                       </span>
                       <button
-                        className="px-2.5 py-1 text-red-500 border-l border-gray-300 sm:px-2 sm:py-0.5 sm:text-xs"
+                        className="px-3 py-1.5 text-red-500 border-l border-gray-300 md:px-2.5 md:py-1 md:text-sm sm:px-2 sm:py-0.5 sm:text-xs"
                         onClick={() => updateServings(1)}
                       >
-                        <span className="text-lg sm:text-xs">+</span>
+                        <span className="text-xl md:text-lg sm:text-xs">+</span>
                       </button>
                     </div>
                   </div>

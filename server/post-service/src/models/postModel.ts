@@ -60,6 +60,10 @@ const postSchema = new Schema({
     type: Number,
     default: 0,
   },
+  commentCount: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

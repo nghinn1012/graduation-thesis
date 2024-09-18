@@ -89,6 +89,7 @@ export interface PostInfo {
   instructions: InstructionInfo[];
   likeCount: number;
   savedCount: number;
+  commentCount: number;
   createdAt: string;
   updatedAt: string;
   liked: boolean;

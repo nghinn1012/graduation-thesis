@@ -17,6 +17,8 @@ interface PostContextType {
   fetchLikedPosts: () => Promise<void>;
   toggleLikePost: (postId: string, liked: boolean) => void;
   toggleSavePost: (postId: string, saved: boolean) => void;
+  updateCommentCount: (postId: string, count: number) => void;
+  postCommentCounts: Record<string, number>;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -29,6 +31,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [page, setPage] = useState<number>(1);
   const { auth } = useAuthContext();
   const { error } = useToastContext();
+  const [postCommentCounts, setPostCommentCounts] = useState<Record<string, number>>({});
 
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
@@ -152,8 +155,18 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const updateCommentCount = (postId: string, count: number) => {
+    setPostCommentCounts(prevState => ({
+      ...prevState,
+      [postId]: count
+    }));
+    console.log("postCommentCounts:", postCommentCounts);
+  };
+
+
+
   return (
-    <PostContext.Provider value={{ setIsLoading, fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
+    <PostContext.Provider value={{ postCommentCounts, updateCommentCount, setIsLoading, fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
       {children}
     </PostContext.Provider>
   );

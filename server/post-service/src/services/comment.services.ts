@@ -2,7 +2,7 @@ import { InternalError } from "../data";
 import { createComment } from "../data/interface/comment_interface";
 import CommentModel from "../models/commentModel";
 import { IAuthor, Id, rpcGetUser, rpcGetUsers } from "./rpc.services";
-
+import PostModel from "../models/postModel";
 export const createCommentService = async (postId: string, userId: string, commentData: createComment) => {
     const author = await rpcGetUser<Id>(userId, "_id");
     if (!author) {
@@ -20,6 +20,7 @@ export const createCommentService = async (postId: string, userId: string, comme
             postId,
             userId,
         });
+        await PostModel.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
         return comment;
     }
     catch (error) {
@@ -46,13 +47,11 @@ export const getCommentByPostIdService = async (postId: string) => {
             });
         }
 
-        // Lọc các userMention không phải là null và tạo một danh sách duy nhất
         const uniqueUserMentions = Array.from(new Set(comments
             .map(comment => comment.userMention)
             .filter(userMention => userMention !== null) as string[]
         ));
 
-        // Lấy thông tin cho các userMention từ RPC
         const userMentions = await rpcGetUsers<IAuthor[]>(
             uniqueUserMentions,
             ["_id", "name", "avatar", "username"]
@@ -67,7 +66,6 @@ export const getCommentByPostIdService = async (postId: string) => {
             });
         };
 
-        // Tạo map cho userMention để dễ dàng truy cập
         const userMentionMap = new Map<string, IAuthor | null>();
         userMentions.forEach(userMention => {
             if (userMention) {
@@ -75,7 +73,6 @@ export const getCommentByPostIdService = async (postId: string) => {
             }
         });
 
-        // Duyệt qua từng comment để tạo danh sách các comment với thông tin đầy đủ
         const commentWithAuthors = comments.map((comment) => {
             const userMention = comment.userMention ? userMentionMap.get(comment.userMention) || null : null;
 
@@ -87,7 +84,6 @@ export const getCommentByPostIdService = async (postId: string) => {
             };
         });
 
-        // Tạo map để tổ chức comment theo ID
         const commentsMap = new Map<string, any>();
         const rootComments: any[] = [];
 
@@ -190,7 +186,17 @@ export const deleteCommentService = async (userId: string, commentId: string) =>
                 },
             });
         }
-        const comment = await CommentModel.findByIdAndDelete(commentId);
+        const comment = await CommentModel.findById(commentId);
+        if (!comment) {
+            throw new InternalError({
+                data: {
+                    target: "comment",
+                    reason: "not-found",
+                },
+            });
+        }
+        await PostModel.findByIdAndUpdate(comment.postId, { $inc: { commentCount: -1 } });
+        await CommentModel.findByIdAndDelete(commentId);
         return comment;
     }
     catch (error) {

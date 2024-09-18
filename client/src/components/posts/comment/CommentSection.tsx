@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import CommentSkeleton from "../../skeleton/CommentSkeleton";
 import * as yup from "yup";
 import { FaHeart as FaHeartSolid } from "react-icons/fa";
+import { usePostContext } from "../../../context/PostContext";
 interface CommentSectionProps {
   postId: string;
   token: string;
@@ -34,6 +35,25 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [editCommentError, setEditCommentError] = useState<string | null>(null);
   const [newCommentError, setNewCommentError] = useState<string | null>(null);
+  const {postCommentCounts, updateCommentCount} = usePostContext();
+
+  const getTotalCommentCount = (comments: Comment[]): number => {
+    let count = comments.length;
+
+    const countReplies = (replies: Comment[] | undefined): number => {
+      let replyCount = replies ? replies.length : 0;
+      for (const reply of replies || []) {
+        replyCount += countReplies(reply.replies);
+      }
+      return replyCount;
+    };
+
+    for (const comment of comments) {
+      count += countReplies(comment.replies);
+    }
+
+    return count;
+  };
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -89,6 +109,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         createData,
         token
       )) as unknown as Comment;
+      updateCommentCount(postId, getTotalCommentCount(comments) + 1);
       response.author = author;
       response.userMention = userMention ? userMention : ({} as CommentAuthor);
       if (parentCommentId) {
@@ -107,6 +128,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       } else {
         setComments([...comments, response]);
       }
+      console.log(postCommentCounts[postId]);
       setNewComment("");
       setParentCommentId(null);
       setUserMention({} as CommentAuthor);
@@ -196,6 +218,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
     try {
       await postFetcher.deleteComment(commentId, token);
+      updateCommentCount(postId, getTotalCommentCount(comments) - 1);
       setComments((prev) => {
         if (parentCommentId) {
           return prev.map((comment) => {
@@ -210,7 +233,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             return comment;
           });
         } else {
-          // Xóa comment chính
           return prev.filter((comment) => comment._id !== commentId);
         }
       });
