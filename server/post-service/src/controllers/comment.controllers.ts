@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { createCommentService, deleteCommentService, getCommentByIdService, getCommentByPostIdService, updateCommentService } from "../services/comment.services";
+import { createCommentService, deleteCommentService, getCommentByIdService, getCommentByPostIdService, likeOrUnlikeCommentService, updateCommentService } from "../services/comment.services";
 import { Response } from "express";
 
 export const createCommentController = async (req: AuthRequest, res: Response) => {
@@ -87,6 +87,26 @@ export const deleteCommentController = async (req: AuthRequest, res: Response) =
   catch (error) {
     return res.status(400).json({
       message: "Cannot delete comment",
+      error: (error as Error)
+    });
+  }
+}
+
+export const likeOrUnlikeCommentController = async (req: AuthRequest, res: Response) => {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.authContent?.data.userId;
+    if (!userId) {
+      return res.status(400).json({
+        message: "Cannot like or unlike comment"
+      });
+    }
+    const comment = await likeOrUnlikeCommentService(userId, commentId);
+    return res.status(200).json(comment);
+  }
+  catch (error) {
+    return res.status(400).json({
+      message: "Cannot like or unlike comment",
       error: (error as Error)
     });
   }

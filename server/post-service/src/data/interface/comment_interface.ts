@@ -1,5 +1,3 @@
-import { IAuthor } from "../../services/rpc.services";
-
 export interface Comment {
   _id: string;
   userId: string;
@@ -8,6 +6,7 @@ export interface Comment {
   parentCommentId: string;
   userMention: string[];
   replies: Comment[];
+  likes: string[];
   createdAt: Date;
 }
 

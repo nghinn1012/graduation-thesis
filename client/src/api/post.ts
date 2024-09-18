@@ -10,6 +10,7 @@ export const postEndpoints = {
   createComment: "/posts/:postId/comment",
   updateComment: "/posts/:commentId/comment",
   deleteComment: "/posts/:commentId/comment",
+  likeOrUnlikeComment: "/posts/:commentId/likeComment",
 
   // posts
   createPost: "/posts/create",
@@ -36,6 +37,7 @@ export interface PostResponseError
   extends ResponseErrorLike<UserErrorTarget, UserErrorReason> { }
 export interface PostResponse<DataLike>
   extends ResponseLike<DataLike, PostResponseError> {
+  replies: Comment[] | undefined;
   token(token: any): unknown;
   liked: boolean;
   saved: boolean;
@@ -179,7 +181,7 @@ export interface Comment {
     username: string;
   }
   createdAt: string;
-  likes: number;
+  likes: string[];
   replies?: Comment[];
 }
 
@@ -227,6 +229,7 @@ export interface PostFetcher {
   createComment: (postId: string, data: createCommentData, token: string) => Promise<PostResponse<Comment>>;
   updateComment: (commentId: string, data: updateComment, token: string) => Promise<PostResponse<Comment>>;
   deleteComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
+  likeOrUnlikeComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -410,6 +413,15 @@ export const postFetcher: PostFetcher = {
   },
   deleteComment: async (commentId: string, token: string): Promise<PostResponse<Comment>> => {
     return postInstance.delete(postEndpoints.deleteComment.replace(":commentId", commentId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  likeOrUnlikeComment: async (commentId: string, token: string): Promise<PostResponse<Comment>> => {
+    return postInstance.post(postEndpoints.likeOrUnlikeComment.replace(":commentId", commentId), {},
       {
         headers: {
           'Authorization': `Bearer ${token}`,

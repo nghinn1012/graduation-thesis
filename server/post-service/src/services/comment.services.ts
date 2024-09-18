@@ -27,81 +27,10 @@ export const createCommentService = async (postId: string, userId: string, comme
     }
 }
 
-// export const getCommentByPostIdService = async (postId: string) => {
-//     try {
-//         const comments = await CommentModel.find({ postId });
-
-//         const authors = await rpcGetUsers<IAuthor[]>(
-//             comments.map(comment => comment.userId),
-//             ["_id", "email", "name", "avatar", "username"]
-//         );
-//         if (!authors) {
-//             console.log("rpc-author", "unknown");
-//             throw new InternalError({
-//                 data: {
-//                     target: "rpc-author",
-//                     reason: "unknown",
-//                 },
-//             });
-//         };
-//         const uniqueUserMentions = Array.from(new Set(comments
-//             .map(comment => comment.userMention)
-//             .filter(userMention => userMention !== null)
-//         )) as string[];
-
-//         // Lấy thông tin cho các userMention từ RPC
-//         const userMentions = await rpcGetUsers<IAuthor[]>(
-//             uniqueUserMentions,
-//             ["_id", "name", "avatar", "username"]
-//         );
-//         const commentPromises = comments.map(async (comment) => {
-//             let userMention: IAuthor | null = null;
-
-//             if (comment.userMention) {
-//                 const userMentionResult = await rpcGetUser<IAuthor>(comment.userMention, ["_id", "name", "avatar", "username"]);
-//                 userMention = userMentionResult || null;
-//             }
-
-//             return {
-//                 ...comment.toObject(),
-//                 author: authors.find(author => author._id === comment.userId) || null,
-//                 userMention: userMention,
-//                 replies: []
-//             };
-//         });
-
-//         const commentWithAuthors = await Promise.all(commentPromises);
-
-//         const commentsMap = new Map<string, any>();
-//         const rootComments: any[] = [];
-
-//         commentWithAuthors.forEach(comment => {
-//             commentsMap.set(comment._id.toString(), comment);
-//         });
-
-//         commentWithAuthors.forEach(comment => {
-//             if (comment.parentCommentId) {
-//                 const parentComment = commentsMap.get(comment.parentCommentId.toString());
-//                 if (parentComment) {
-//                     parentComment.replies.push(comment);
-//                 }
-//             } else {
-//                 rootComments.push(comment);
-//             }
-//         });
-
-//         return rootComments;
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
 export const getCommentByPostIdService = async (postId: string) => {
     try {
-        // Lấy tất cả comments
         const comments = await CommentModel.find({ postId });
 
-        // Lấy thông tin các tác giả cho tất cả userId
         const authors = await rpcGetUsers<IAuthor[]>(
             comments.map(comment => comment.userId),
             ["_id", "email", "name", "avatar", "username"]
@@ -122,7 +51,6 @@ export const getCommentByPostIdService = async (postId: string) => {
             .map(comment => comment.userMention)
             .filter(userMention => userMention !== null) as string[]
         ));
-        console.log(uniqueUserMentions);
 
         // Lấy thông tin cho các userMention từ RPC
         const userMentions = await rpcGetUsers<IAuthor[]>(
@@ -234,7 +162,6 @@ export const updateCommentService = async (userId: string, commentId: string, co
 
 export const deleteCommentService = async (userId: string, commentId: string) => {
     try {
-        console.log(userId)
         const author = await rpcGetUser<Id>(userId, "_id");
         if (!author) {
             console.log("rpc-author", "unknown");
@@ -265,6 +192,38 @@ export const deleteCommentService = async (userId: string, commentId: string) =>
         }
         const comment = await CommentModel.findByIdAndDelete(commentId);
         return comment;
+    }
+    catch (error) {
+        throw error;
+    }
+}
+
+export const likeOrUnlikeCommentService = async (userId: string, commentId: string) => {
+    try {
+        const comment = await CommentModel.findById(commentId);
+        if (!comment) {
+            throw new InternalError({
+                data: {
+                    target: "comment",
+                    reason: "not-found",
+                },
+            });
+        }
+        const isLiked = comment.likes.includes(userId);
+        if (isLiked) {
+            comment.likes = comment.likes.filter(like => like !== userId);
+        } else {
+            comment.likes.push(userId);
+        }
+        await comment.save();
+        const author = await rpcGetUser<Id>(comment.userId, ["_id", "name", "avatar", "username"]);
+        const userMention = comment.userMention ? await rpcGetUser<Id>(comment.userMention, ["_id", "username"]) : null;
+        const returnComment = {
+            ...comment.toObject(),
+            author,
+            userMention,
+        };
+        return returnComment;
     }
     catch (error) {
         throw error;

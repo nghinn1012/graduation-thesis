@@ -61,9 +61,7 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
   };
 
   const handleDelete = () => {
-    const isConfirmed = window.confirm(
-      "Are you sure to delete this made?"
-    );
+    const isConfirmed = window.confirm("Are you sure to delete this made?");
 
     if (isConfirmed) {
       onDelete(_id);
@@ -113,19 +111,22 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
           </div>
           {isMyPostMade && (
             <div className="relative ml-4">
-              <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center">
-                <IoIosMore onClick={handleDropdownToggle} />
+              <button className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-md flex items-center justify-center">
+                <IoIosMore
+                  className="text-lg sm:text-xl"
+                  onClick={handleDropdownToggle}
+                />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-300 rounded-lg shadow-lg">
+                <div className="absolute right-0 mt-2 w-28 sm:w-32 bg-white border border-gray-300 rounded-lg shadow-lg">
                   <button
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="block w-full text-left px-3 py-2 sm:px-4 sm:py-2 text-gray-700 text-sm sm:text-base hover:bg-gray-100"
                     onClick={handleEdit}
                   >
                     Edit
                   </button>
                   <button
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="block w-full text-left px-3 py-2 sm:px-4 sm:py-2 text-gray-700 text-sm sm:text-base hover:bg-gray-100"
                     onClick={handleDelete}
                   >
                     Delete

@@ -3,6 +3,7 @@ import { Comment, CommentAuthor, postFetcher } from "../../../api/post";
 import { formatDistanceToNow } from "date-fns";
 import CommentSkeleton from "../../skeleton/CommentSkeleton";
 import * as yup from "yup";
+import { FaHeart as FaHeartSolid } from "react-icons/fa";
 interface CommentSectionProps {
   postId: string;
   token: string;
@@ -74,7 +75,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   const handlePostComment = async () => {
-    setNewCommentError(null); // Clear previous error
+    setNewCommentError(null);
     const createData = {
       content: newComment,
       userMention: userMention._id,
@@ -218,6 +219,46 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     }
   };
 
+  const toggleLike = async (commentId: string) => {
+    try {
+      const likedComment = await postFetcher.likeOrUnlikeComment(
+        commentId,
+        token
+      );
+      console.log(likedComment);
+
+      setComments((prev) =>
+        prev.map((comment) => {
+          if (comment._id === commentId) {
+            const newData = {
+              ...likedComment,
+              replies: comment.replies,
+            };
+            return newData as unknown as Comment;
+          }
+          if (comment.replies && comment.replies.length > 0) {
+            const updatedReplies = comment.replies.map((reply) =>
+              reply._id === commentId
+                ? (likedComment as unknown as Comment)
+                : reply
+            );
+            if (updatedReplies !== comment.replies) {
+              return {
+                ...comment,
+                replies: updatedReplies,
+                userMention: comment.userMention,
+              };
+            }
+          }
+          return comment;
+        })
+      );
+      console.log(comments);
+    } catch (error) {
+      console.error("Failed to toggle like", error);
+    }
+  };
+
   const renderReplies = (replies: Comment[] = [], parentCommentId: string) => (
     <div className="ml-4 mt-2 space-y-3">
       {replies.map((reply) => (
@@ -240,16 +281,27 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     })}{" "}
                   </span>
                 </div>
-                <button className="text-gray-500 hover:text-gray-700 text-sm flex items-center">
-                  {reply.likes} ❤️
+                <button
+                  onClick={() => toggleLike(reply._id)}
+                  className="flex items-center"
+                >
+                  <FaHeartSolid
+                    className={`cursor-pointer ${
+                      reply.likes.includes(author._id)
+                        ? "text-red-600"
+                        : "text-gray-400"
+                    }`}
+                  />
+                  <span className="ml-2">{reply.likes.length}</span>
                 </button>
               </div>
             </div>
             {editingCommentId === reply._id ? (
               <>
-                {Object.keys(userMention).length !== 0 &&
+                {userMention &&
                   userMention._id &&
-                  editingCommentId && (
+                  editingCommentId &&
+                  userMention?.username != undefined && (
                     <div className="mb-4 text-gray-500 flex items-center">
                       <span className="mr-2">
                         Replying to{" "}
@@ -342,7 +394,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 )
               }
             >
-              reply
+              Reply
             </button>
           </div>
         </div>
@@ -352,20 +404,22 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
   return (
     <div className="p-5 bg-white shadow-md rounded-lg">
-      {userMention?._id && !editingCommentId && (
-        <div className="mb-4 text-gray-500 flex items-center">
-          <span className="mr-2">
-            Replying to{" "}
-            <span className="font-semibold">@{userMention.username}</span>
-          </span>
-          <button
-            onClick={handleRemoveUserMention}
-            className="text-red-500 hover:text-red-700"
-          >
-            &times;
-          </button>
-        </div>
-      )}
+      {userMention?._id &&
+        !editingCommentId &&
+        userMention.username != undefined && (
+          <div className="mb-4 text-gray-500 flex items-center">
+            <span className="mr-2">
+              Replying to{" "}
+              <span className="font-semibold">@{userMention.username}</span>
+            </span>
+            <button
+              onClick={handleRemoveUserMention}
+              className="text-red-500 hover:text-red-700"
+            >
+              &times;
+            </button>
+          </div>
+        )}
       {/* Comment Input */}
       <div className="mb-4 flex items-center border-b border-gray-200 pb-3">
         <div className="w-full flex flex-col gap-2">
@@ -421,14 +475,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                           })}
                         </span>
                       </div>
-                      <button className="text-gray-500 hover:text-gray-700 text-sm flex items-center">
-                        {comment.likes} ❤️
+                      <button
+                        onClick={() => toggleLike(comment._id)}
+                        className="flex items-center"
+                      >
+                        <FaHeartSolid
+                          className={`cursor-pointer ${
+                            comment.likes.includes(author._id)
+                              ? "text-red-600"
+                              : "text-gray-400"
+                          }`}
+                        />
+                        <span className="ml-2">{comment.likes.length}</span>
                       </button>
                     </div>
                   </div>
                   {editingCommentId === comment._id ? (
                     <>
-                      {userMention && (
+                      {userMention && userMention.username != undefined && (
                         <div className="mb-4 text-gray-500 flex items-center">
                           <span className="mr-2">
                             Replying to{" "}
@@ -521,7 +585,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                       handleReplyClick(comment.author, comment._id.toString())
                     }
                   >
-                    reply
+                    Reply
                   </button>
                   {comment.replies && comment.replies.length > 0 && (
                     <>

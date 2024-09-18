@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  MadePostUpdate,
+  CommentAuthor,
   postFetcher,
   PostInfo,
   PostInfoUpdate,
@@ -9,8 +9,6 @@ import {
 import {
   AiOutlineHeart,
   AiFillHeart,
-  AiOutlineBook,
-  AiFillBook,
   AiOutlineOrderedList,
   AiOutlineShareAlt,
 } from "react-icons/ai";
@@ -28,6 +26,7 @@ import MadeRecipeModal from "../../components/posts/madeRecipe/MadeRecipeModal";
 import MadeSection from "../../components/posts/madeRecipe/MadeSection";
 import imageCompression from "browser-image-compression";
 import CommentSection from "../../components/posts/comment/CommentSection";
+import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 const PostDetails: React.FunctionComponent = () => {
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     "recipe"
@@ -49,6 +48,8 @@ const PostDetails: React.FunctionComponent = () => {
   const { toggleLikePost, toggleSavePost } = usePostContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [servings, setServings] = useState<number>(post.servings);
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -68,13 +69,13 @@ const PostDetails: React.FunctionComponent = () => {
           postId,
           auth.token
         );
-        console.log(isSavedPost);
         setIsLiked(isLikedPost as unknown as boolean);
         setIsSaved(isSavedPost as unknown as boolean);
         currentPost.liked = isLiked as unknown as boolean;
         currentPost.saved = isSaved as unknown as boolean;
 
         setPost(currentPost as unknown as PostInfo);
+        setServings(currentPost.servings || 1);
       } catch (error) {
         console.error("Error fetching post:", error);
       } finally {
@@ -223,11 +224,9 @@ const PostDetails: React.FunctionComponent = () => {
       if (response.saved === true) {
         setIsSaved(true);
         toggleSavePost(post._id, true);
-        success("Post saved successfully");
       } else {
         setIsSaved(false);
         toggleSavePost(post._id, false);
-        success("Post unsaved successfully");
       }
     } catch (err) {
       console.error("An error occurred while saving the post:", err);
@@ -235,7 +234,10 @@ const PostDetails: React.FunctionComponent = () => {
     }
   };
 
-  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleImageSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0]; // Remove duplicate file declaration
 
     if (file) {
@@ -263,7 +265,36 @@ const PostDetails: React.FunctionComponent = () => {
     setSelectedImage(null);
   };
 
-  const handleSubmitMadeModal = async (_id: string, review: string, rating: number, newImage: string | undefined) => {
+  const updateServings = (increment: number) => {
+    setServings((prevServings) => Math.max(prevServings + increment, 1));
+  };
+  const parseQuantity = (quantity: string) => {
+    const match = quantity.match(/^(\d+\.?\d*)\s*(.*)$/);
+    if (match) {
+      return {
+        value: parseFloat(match[1]),
+        unit: match[2].trim(),
+      };
+    }
+    return { value: 0, unit: "" };
+  };
+
+  const calculateNewQuantity = (
+    quantity: string,
+    servings: number,
+    postServings: number
+  ) => {
+    const { value, unit } = parseQuantity(quantity);
+    const newValue = (value / postServings) * servings;
+    return { value: newValue, unit };
+  };
+
+  const handleSubmitMadeModal = async (
+    _id: string,
+    review: string,
+    rating: number,
+    newImage: string | undefined
+  ) => {
     const token = auth?.token;
     if (!token) return;
     console.log("Submit image:", selectedImage);
@@ -340,16 +371,16 @@ const PostDetails: React.FunctionComponent = () => {
             </div>
 
             <div className="flex items-center justify-between mt-4 text-gray-600 w-full">
-              <div className="flex space-x-4 items-center justify-center flex-grow">
-                <div className="flex gap-8 items-center">
+              <div className="flex space-x-4 md:space-x-8 items-center justify-center flex-grow">
+                <div className="flex gap-4 md:gap-8 items-center">
                   <button
                     className="flex items-center space-x-1"
                     onClick={handleLikePost}
                   >
                     {isLiked ? (
-                      <AiFillHeart className="w-8 h-8 text-pink-500" /> // Màu hồng khi đã like
+                      <AiFillHeart className="w-8 h-8 text-pink-500" />
                     ) : (
-                      <AiOutlineHeart className="w-8 h-8 text-gray-500" /> // Màu xám khi chưa like
+                      <AiOutlineHeart className="w-8 h-8 text-gray-500" />
                     )}
                     <span>{post.likeCount}</span>
                   </button>
@@ -359,20 +390,20 @@ const PostDetails: React.FunctionComponent = () => {
                     onClick={handleSavedPost}
                   >
                     {isSaved ? (
-                      <AiFillBook className="w-8 h-8" />
+                      <FaBookmark className="w-6 h-6" />
                     ) : (
-                      <AiOutlineBook className="w-8 h-8" />
+                      <FaRegBookmark className="w-6 h-6" />
                     )}
                     <span>{post.savedCount}</span>
                   </button>
 
                   <button className="flex items-center space-x-1">
-                    <AiOutlineOrderedList className="w-8 h-8" />
+                    <AiOutlineOrderedList className="w-6 h-6" />
                     <span>List</span>
                   </button>
 
                   <button className="flex items-center space-x-1">
-                    <AiOutlineShareAlt className="w-8 h-8" />
+                    <AiOutlineShareAlt className="w-6 h-6" />
                     <span>Share</span>
                   </button>
                 </div>
@@ -426,42 +457,60 @@ const PostDetails: React.FunctionComponent = () => {
               <div>
                 <div className="mt-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold uppercase">Ingredients</span>
+                    <span className="font-semibold uppercase text-lg md:text-xl">
+                      Ingredients
+                    </span>
 
                     <div className="flex items-center border border-gray-300 rounded-full">
-                      <button className="px-3 py-1 text-red-500 border-r border-gray-300">
-                        <span className="text-xl">−</span>
+                      <button
+                        className="px-2.5 py-1 text-red-500 border-r border-gray-300 sm:px-2 sm:py-0.5 sm:text-xs"
+                        onClick={() => updateServings(-1)}
+                      >
+                        <span className="text-lg sm:text-xs">−</span>
                       </button>
-                      <span className="px-4 py-1">
-                        {post.servings} servings
+                      <span className="px-3 py-1 sm:px-1.5 sm:py-0.5 sm:text-xs">
+                        {servings} servings
                       </span>
-                      <button className="px-3 py-1 text-red-500 border-l border-gray-300">
-                        <span className="text-xl">+</span>
+                      <button
+                        className="px-2.5 py-1 text-red-500 border-l border-gray-300 sm:px-2 sm:py-0.5 sm:text-xs"
+                        onClick={() => updateServings(1)}
+                      >
+                        <span className="text-lg sm:text-xs">+</span>
                       </button>
                     </div>
                   </div>
 
                   <ul className="mt-2 mx-4">
-                    {post.ingredients.map((ingredient, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between py-4 border-b border-gray-300 last:border-b-0"
-                      >
-                        <span>{ingredient.name}</span>
-                        <span>{ingredient.quantity}</span>
-                      </li>
-                    ))}
+                    {post.ingredients.map((ingredient, index) => {
+                      const { value, unit } = calculateNewQuantity(
+                        ingredient.quantity,
+                        servings,
+                        post.servings
+                      );
+                      return (
+                        <li
+                          key={index}
+                          className="flex justify-between py-4 border-b border-gray-300 last:border-b-0"
+                        >
+                          <span>{ingredient.name}</span>
+                          <span>
+                            {value} {unit}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
 
-                  <div className="flex flex-row gap-10 mt-4 justify-center">
-                    <button className="btn btn-outline btn-md">
+                  <div className="flex flex-col md:flex-row gap-2 md:gap-10 mt-4 justify-center">
+                    <button className="btn btn-outline btn-md w-full md:w-auto">
                       Add to List
                     </button>
-                    <button className="btn btn-md btn-success">
+                    <button className="btn btn-md btn-success w-full md:w-auto">
                       Get Ingredients
                     </button>
                   </div>
                 </div>
+
                 <div className="mt-6 ml-4">
                   <h2 className="text-lg font-semibold uppercase">
                     Instructions
@@ -500,7 +549,6 @@ const PostDetails: React.FunctionComponent = () => {
                 <div className="mt-6 ml-4">
                   <span className="font-semibold uppercase">MADE IT?</span>
                   <div className="flex flex-col gap-2 items-center justify-between">
-                    {/* Hidden file input */}
                     <input
                       type="file"
                       accept="image/*"
@@ -515,7 +563,9 @@ const PostDetails: React.FunctionComponent = () => {
                       }
                     >
                       <IoCameraOutline />
-                      <span>Share the finished product!</span>
+                      <span className="text-base md:text-lg sm:text-md xs:text-sm">
+                        Share the finished product!
+                      </span>
                     </button>
                   </div>
 
@@ -534,14 +584,15 @@ const PostDetails: React.FunctionComponent = () => {
             {activeTab === "comments" && (
               <div className="mt-4">
                 <CommentSection
-                postId={post._id}
-                token={auth?.token || ""}
-                author={postAuthor} />
+                  postId={post._id}
+                  token={auth?.token || ""}
+                  author={account as unknown as CommentAuthor}
+                />
               </div>
             )}
 
             {activeTab === "made" && (
-              <MadeSection post={post} token={auth?.token || ""}/>
+              <MadeSection post={post} token={auth?.token || ""} />
             )}
           </div>
           {isModalOpen && (
