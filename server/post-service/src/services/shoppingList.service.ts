@@ -59,3 +59,16 @@ export const addIngredientToShoppingListService = async (
     throw new Error((error as Error).message);
   }
 };
+
+export const getShoppingListService = async (userId: string) => {
+  try {
+    const shoppingList = await ShoppingListModel.findOne({ userId }).exec();
+    if (!shoppingList) {
+      return [];
+    }
+    return shoppingList;
+  } catch (error) {
+    console.error("Error getting shopping list:", error);
+    throw new Error((error as Error).message);
+  }
+}

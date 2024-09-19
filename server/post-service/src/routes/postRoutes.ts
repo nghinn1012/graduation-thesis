@@ -4,11 +4,13 @@ import { tokenValidate, errorHandler } from "../middlewares/index";
 import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
 import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeByIdController, getMadeRecipeOfPostController, updateMadeRecipeController } from "../controllers/madeRecipe.controllers";
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
-import { addIngredientToShoppingListController } from "../controllers/shoppingList.controllers";
+import { addIngredientToShoppingListController, getShoppingListController } from "../controllers/shoppingList.controllers";
 
 const postRouter = express.Router();
 // shoppinglist
 postRouter.post("/shoppingList/add", tokenValidate, addIngredientToShoppingListController);
+postRouter.get("/shoppingList", tokenValidate, getShoppingListController);
+
 // comment
 postRouter.post("/:commentId/likeComment", tokenValidate, likeOrUnlikeCommentController);
 
