@@ -9,6 +9,7 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import { FiMoreVertical } from "react-icons/fi";
 import CreateIngredientModal from "../../components/shoppingList/CreateIngredientModal";
 import { BsCheckCircle } from "react-icons/bs";
+import { FaCheckCircle } from "react-icons/fa";
 const ShoppingList: React.FC = () => {
   const [list, setList] = useState<ShoppingListData>({} as ShoppingListData);
   const [editingIngredientId, setEditingIngredientId] = useState<string | null>(
@@ -19,13 +20,14 @@ const ShoppingList: React.FC = () => {
     quantity: string;
     checked?: boolean;
   } | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null); // Track open dropdowns
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const auth = useAuthContext();
-  const [isModalOpen, setIsModalOpen] = useState(false); // Manage modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
   const [selectedIngredientIds, setSelectedIngredientIds] = useState<string[]>(
     []
   );
+  const [allStandaloneSelected, setAllStandaloneSelected] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       const token = auth.auth?.token;
@@ -45,6 +47,18 @@ const ShoppingList: React.FC = () => {
 
     fetchData();
   }, [auth.token]);
+
+  useEffect(() => {
+    const token = auth.auth?.token;
+    if (!token) {
+      return;
+    }
+    if (!list.standaloneIngredients) {
+      return;
+    }
+    const allSelected = list.standaloneIngredients.every(item => selectedIngredientIds.includes(item._id));
+    setAllStandaloneSelected(allSelected);
+  }, [list.standaloneIngredients, auth.token, selectedIngredientIds]);
 
   const [expandedPosts, setExpandedPosts] = useState<{
     [key: string]: boolean;
@@ -298,10 +312,25 @@ const ShoppingList: React.FC = () => {
         setList(newIngredients);
         setSelectedPostIds([]);
         setSelectedIngredientIds([]);
+        setAllStandaloneSelected(false);
       }
     };
 
     deleteIngredients();
+  };
+
+  const toggleStandaloneSelection = () => {
+    const standaloneIngredientIds = list.standaloneIngredients?.map(
+      (ing) => ing._id
+    );
+    if (allStandaloneSelected) {
+      setSelectedIngredientIds((prev) =>
+        prev.filter((id) => !standaloneIngredientIds.includes(id))
+      );
+    } else {
+      setSelectedIngredientIds((prev) => [...prev, ...standaloneIngredientIds]);
+    }
+    setAllStandaloneSelected(!allStandaloneSelected);
   };
 
   return (
@@ -401,19 +430,14 @@ const ShoppingList: React.FC = () => {
                                 <input
                                   type="text"
                                   name="name"
-                                  value={
-                                    editedIngredient?.name || ingredient.name
-                                  }
+                                  value={editedIngredient?.name || ""}
                                   onChange={handleInputChange}
                                   className="input input-bordered w-full mb-2"
                                 />
                                 <input
                                   type="text"
                                   name="quantity"
-                                  value={
-                                    editedIngredient?.quantity ||
-                                    ingredient.quantity
-                                  }
+                                  value={editedIngredient?.quantity || ""}
                                   onChange={handleInputChange}
                                   className="input input-bordered w-full mb-2"
                                 />
@@ -466,7 +490,6 @@ const ShoppingList: React.FC = () => {
                           ) : null}
                         </div>
 
-                        {/* Dropdown Menu */}
                         {dropdownOpen === ingredient._id && (
                           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                             <button
@@ -500,101 +523,149 @@ const ShoppingList: React.FC = () => {
           )
       )}
 
-      {/* Render Standalone Ingredients */}
       <div className="card bg-base-100 shadow-md my-4">
         <div className="card-body">
-          <h2 className="card-title">Standalone Ingredients</h2>
-          {list.standaloneIngredients?.map((ingredient) => (
-            <div
-              key={ingredient._id}
-              className="card bg-base-100 shadow-md my-2 p-4 relative"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  {editingIngredientId === ingredient._id ? (
-                    <div>
-                      <input
-                        type="text"
-                        name="name"
-                        value={editedIngredient?.name || ingredient.name}
-                        onChange={handleInputChange}
-                        className="input input-bordered w-full mb-2"
-                      />
-                      <input
-                        type="text"
-                        name="quantity"
-                        value={
-                          editedIngredient?.quantity || ingredient.quantity
-                        }
-                        onChange={handleInputChange}
-                        className="input input-bordered w-full mb-2"
-                      />
-                      <button
-                        onClick={() => saveChanges(ingredient._id)}
-                        className="btn btn-success mr-2"
-                      >
-                        Save
-                      </button>
-                      <button onClick={cancelEditing} className="btn btn-error">
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-row gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedIngredientIds.includes(ingredient._id)}
-                        onChange={() =>
-                          toggleIngredientSelection(ingredient._id)
-                        }
-                        className="checkbox checkbox-success border-2"
-                      />
-                      <span className="font-bold">{ingredient.name}</span>
-                      <span className="ml-4">{ingredient.quantity}</span>
-                    </div>
-                  )}
-                </div>
-                {!editingIngredientId ||
-                editingIngredientId !== ingredient._id ? (
-                  <button
-                    onClick={() => toggleDropdown(ingredient._id)}
-                    disabled={isModalOpen}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <h2 className="card-title">Standalone Ingredients</h2>
+              <button
+                className="p-2"
+                onClick={() => toggleExpand("standalone")}
+              >
+                {expandedPosts["standalone"] ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    className="w-6 h-6"
                   >
-                    <FiMoreVertical />
-                  </button>
-                ) : null}
-              </div>
-
-              {/* Dropdown Menu */}
-              {dropdownOpen === ingredient._id && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                  <button
-                    onClick={() =>
-                      startEditing(
-                        ingredient._id,
-                        ingredient.name,
-                        ingredient.quantity
-                      )
-                    }
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 15l7-7 7 7"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    className="w-6 h-6"
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(ingredient._id)}
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
-          ))}
+            <FaCheckCircle
+              onClick={toggleStandaloneSelection}
+              className={`h-6 w-6 ${
+                allStandaloneSelected ? "text-green-500" : "text-gray-500"
+              }`}
+            />
+          </div>
+
+          {expandedPosts["standalone"] &&
+            list.standaloneIngredients?.map((ingredient) => (
+              <div
+                key={ingredient._id}
+                className="card bg-base-100 shadow-md my-2 p-4 relative"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex-1">
+                    {editingIngredientId === ingredient._id ? (
+                      <div>
+                        <input
+                          type="text"
+                          name="name"
+                          value={editedIngredient?.name || ""}
+                          onChange={handleInputChange}
+                          className="input input-bordered w-full mb-2"
+                        />
+                        <input
+                          type="text"
+                          name="quantity"
+                          value={editedIngredient?.quantity || ""}
+                          onChange={handleInputChange}
+                          className="input input-bordered w-full mb-2"
+                        />
+                        <button
+                          onClick={() => saveChanges(ingredient._id)}
+                          className="btn btn-success mr-2"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="btn btn-error"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedIngredientIds.includes(
+                            ingredient._id
+                          )}
+                          onChange={() =>
+                            toggleIngredientSelection(ingredient._id)
+                          }
+                          className="checkbox checkbox-success border-2"
+                        />
+                        <span className="font-bold">{ingredient.name}</span>
+                        <span className="ml-4">{ingredient.quantity}</span>
+                      </div>
+                    )}
+                  </div>
+                  {!editingIngredientId ||
+                  editingIngredientId !== ingredient._id ? (
+                    <button
+                      onClick={() => toggleDropdown(ingredient._id)}
+                      disabled={isModalOpen}
+                    >
+                      <FiMoreVertical />
+                    </button>
+                  ) : null}
+                </div>
+
+                {dropdownOpen === ingredient._id && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <button
+                      onClick={() =>
+                        startEditing(
+                          ingredient._id,
+                          ingredient.name,
+                          ingredient.quantity
+                        )
+                      }
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(ingredient._id)}
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
         </div>
       </div>
 
       <div className="flex flex-col justify-between items-center">
-        {/* Add Ingredient Button */}
         <button
           className="btn btn-primary mt-4"
           onClick={() => setIsModalOpen(true)}
@@ -602,7 +673,6 @@ const ShoppingList: React.FC = () => {
           Add to List
         </button>
 
-        {/* Modal */}
         <CreateIngredientModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

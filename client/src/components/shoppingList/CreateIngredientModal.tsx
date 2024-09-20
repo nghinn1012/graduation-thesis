@@ -1,13 +1,26 @@
 import { useState } from "react";
-import { IngredientOfList, ingredientOfListSchema } from "../../api/post";
+import { ingredientOfListSchema } from "../../api/post";
 
 const parseIngredients = (input: string) => {
   const lines = input
     .trim()
     .split('\n')
-    .map(line => line.replace(/^-/, '').trim());
+    .map(line => line.replace(/^-/, '').trim())
+    .filter(line => line.length > 0);
 
   const ingredients = lines.flatMap(line => {
+    const firstDigitIndex = line.search(/\d/);
+
+    if (firstDigitIndex === 0) {
+      const quantityEndIndex = line.search(/\D/);
+      const nameStartIndex = line.indexOf(' ', quantityEndIndex);
+      const quantity = line.slice(0, nameStartIndex).trim();
+      const name = line.slice(nameStartIndex).trim();
+
+      if (!name && !quantity) return [];
+      return { name, quantity };
+    }
+
     const parts = line.split(':').map(part => part.trim());
 
     if (parts.length === 2) {
@@ -18,22 +31,7 @@ const parseIngredients = (input: string) => {
       return { name, quantity };
     }
 
-    const firstDigitIndex = line.search(/\d/);
-
-    if (firstDigitIndex !== -1) {
-      const name = line.slice(0, firstDigitIndex).trim();
-      const quantity = line.slice(firstDigitIndex).trim();
-
-      if (!name && !quantity) return [];
-      return { name, quantity };
-    }
-
-    const name = line.trim();
-    const quantity = '1';
-
-    if (!name) return [];
-
-    return { name, quantity };
+    return { name: line.trim(), quantity: '1' };
   });
 
   return ingredients;
