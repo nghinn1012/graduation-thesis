@@ -4,13 +4,16 @@ import { tokenValidate, errorHandler } from "../middlewares/index";
 import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
 import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeByIdController, getMadeRecipeOfPostController, updateMadeRecipeController } from "../controllers/madeRecipe.controllers";
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
-import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removePostFromShoppingListController } from "../controllers/shoppingList.controllers";
+import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
 
 const postRouter = express.Router();
 // shoppinglist
+postRouter.patch("/shoppingList/removeIngredients", tokenValidate, removeIngredientsFromShoppingListController);
 postRouter.post("/shoppingList/add", tokenValidate, addIngredientToShoppingListController);
 postRouter.get("/shoppingList", tokenValidate, getShoppingListController);
 postRouter.get("/shoppingList/:postId", tokenValidate, checkPostInShoppingListController);
+postRouter.patch("/shoppingList/removeIngredient", tokenValidate, removeIngredientFromShoppingListController);
+postRouter.patch("/shoppingList/update", tokenValidate, updateIngredientInShoppingListController);
 postRouter.patch("/shoppingList/:postId", tokenValidate, removePostFromShoppingListController);
 // comment
 postRouter.post("/:commentId/likeComment", tokenValidate, likeOrUnlikeCommentController);

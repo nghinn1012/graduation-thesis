@@ -34,9 +34,12 @@ export const postEndpoints = {
 
   //shoppingList
   addIngredientToShoppingList: "/posts/shoppingList/add",
+  updateIngredientInShoppingList: "/posts/shoppingList/update",
   getShoppingList: "/posts/shoppingList",
   checkIsPostInShoppingList: "/posts/shoppingList/:postId",
   removePostFromShoppingList: "/posts/shoppingList/:postId",
+  removeIngredientFromShoppingList: "/posts/shoppingList/removeIngredient",
+  removeIngredientsFromShoppingList: "/posts/shoppingList/removeIngredients",
 } as const;
 
 export interface PostResponseError
@@ -237,6 +240,13 @@ export interface ShoppingListData {
   standaloneIngredients: IngredientOfList[];
 }
 
+export interface updateIngredientInShoppingList {
+  _id: string;
+  name: string;
+  quantity: string;
+  checked: boolean;
+}
+
 export interface PostFetcher {
   // posts
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
@@ -270,6 +280,9 @@ export interface PostFetcher {
   getShoppingList: (token: string) => Promise<PostResponse<ShoppingListData>>
   checkPostInShoppingList: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>
   removePostFromShoppingList: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>
+  updateIngredientInShoppingList: (token: string, ingredient: updateIngredientInShoppingList, postId?: string) => Promise<PostResponse<ShoppingListData>>
+  removeIngredientFromShoppingList: (token: string, ingredientId: string, postId?: string) => Promise<PostResponse<ShoppingListData>>
+  removeIngredientsFromShoppingList: (token: string, ingredientIds: string[], postIds?: string[]) => Promise<PostResponse<ShoppingListData>>
 }
 
 export const postFetcher: PostFetcher = {
@@ -497,6 +510,42 @@ export const postFetcher: PostFetcher = {
   },
   removePostFromShoppingList: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
     return postInstance.patch(postEndpoints.removePostFromShoppingList.replace(":postId", postId), {},
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateIngredientInShoppingList: async (token: string, ingredient: updateIngredientInShoppingList, postId?: string): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.patch(postEndpoints.updateIngredientInShoppingList, {
+      ingredient,
+      postId,
+    },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removeIngredientFromShoppingList: async (token: string, ingredientId: string, postId?: string): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.patch(postEndpoints.removeIngredientFromShoppingList, {
+      ingredientId,
+      postId,
+    },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removeIngredientsFromShoppingList: async (token: string, ingredientIds: string[], postIds?: string[]): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.patch(postEndpoints.removeIngredientsFromShoppingList, {
+      ingredientIds,
+      postIds,
+    },
       {
         headers: {
           'Authorization': `Bearer ${token}`,

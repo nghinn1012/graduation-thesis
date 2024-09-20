@@ -1,6 +1,7 @@
-import { IngredientOfList } from "../data/interface/shoppingList_interface";
+import { IngredientOfList, updateIngredientInShoppingList } from "../data/interface/shoppingList_interface";
 import ShoppingListModel from "../models/shoppingListModel.model";
 import PostModel from "../models/postModel";
+import { isValidObjectId } from "mongoose";
 
 export const addIngredientToShoppingListService = async (
   postId: string | null,
@@ -106,27 +107,164 @@ export const removePostFromShoppingListService = async (userId: string, postId: 
   }
 }
 
-export const updateIngredientInShoppingListService = async (userId: string, ingredients: IngredientOfList[], postId?: string) => {
+export const updateIngredientInShoppingListService = async (
+  userId: string,
+  ingredient: updateIngredientInShoppingList,
+  postId?: string
+) => {
   try {
     const shoppingList = await ShoppingListModel.findOne({ userId }).exec();
     if (!shoppingList) {
       throw new Error("Shopping list not found");
     }
+
+    if (!ingredient.name || !ingredient.quantity) {
+      throw new Error("Ingredient name and quantity are required");
+    }
+
     if (postId) {
-      const postIndex = shoppingList.posts.findIndex(post => post?.postId?.toString() === postId);
+      const postIndex = shoppingList.posts.findIndex(
+        (post) => post?.postId?.toString() === postId
+      );
       if (postIndex === -1) {
         throw new Error("Post not found in shopping list");
       }
-      shoppingList.posts[postIndex].ingredients.splice(
-        0,
-        shoppingList.posts[postIndex].ingredients.length,
-        ...ingredients.map(ingredient => shoppingList.posts[postIndex].ingredients.create(ingredient))
+      const ingredientIndex = shoppingList.posts[postIndex].ingredients.findIndex(
+        (ingr) => ingr._id?.toString() === ingredient._id?.toString()
       );
+      if (ingredientIndex === -1) {
+        throw new Error("Ingredient not found in post");
+      }
+
+      // Update ingredient in post
+      shoppingList.posts[postIndex].ingredients[ingredientIndex].set({
+        name: ingredient.name,
+        quantity: ingredient.quantity,
+        checked: !shoppingList.posts[postIndex].ingredients[ingredientIndex].checked,
+      });
+    } else {
+      const ingredientIndex = shoppingList.standaloneIngredients.findIndex(
+        (ingr) => ingr._id?.toString() === ingredient._id?.toString()
+      );
+      if (ingredientIndex === -1) {
+        throw new Error("Ingredient not found in standalone ingredients");
+      }
+
+      // Update standalone ingredient
+      shoppingList.standaloneIngredients[ingredientIndex].set({
+        name: ingredient.name,
+        quantity: ingredient.quantity,
+        checked: !shoppingList.standaloneIngredients[ingredientIndex].checked,
+      });
     }
+
+    // Save the updated shopping list
     await shoppingList.save();
     return shoppingList;
   } catch (error) {
     console.error("Error updating ingredient in shopping list:", error);
     throw new Error((error as Error).message);
   }
+};
+
+export const removeIngredientFromShoppingListService = async (userId: string, ingredientId: string, postId?: string) => {
+  try {
+    const shoppingList = await ShoppingListModel.findOne({ userId }).exec();
+    if (!shoppingList) {
+      throw new Error("Shopping list not found");
+    }
+    if (postId) {
+      const postIndex = shoppingList.posts.findIndex(
+        (post) => post?.postId?.toString() === postId
+      );
+      if (postIndex === -1) {
+        throw new Error("Post not found in shopping list");
+      }
+      const ingredientIndex = shoppingList.posts[postIndex].ingredients.findIndex(
+        (ingr) => ingr._id?.toString() === ingredientId
+      );
+      if (ingredientIndex === -1) {
+        throw new Error("Ingredient not found in post");
+      }
+
+      shoppingList.posts[postIndex].ingredients.splice(ingredientIndex, 1);
+      if (shoppingList.posts[postIndex].ingredients.length === 0) {
+        shoppingList.posts.splice(postIndex, 1);
+      }
+    }
+    else {
+      const ingredientIndex = shoppingList.standaloneIngredients.findIndex(
+        (ingr) => ingr._id?.toString() === ingredientId
+      );
+      if (ingredientIndex === -1) {
+        throw new Error("Ingredient not found in standalone ingredients");
+      }
+
+      shoppingList.standaloneIngredients.splice(ingredientIndex, 1);
+    }
+    console.log(shoppingList);
+    await shoppingList.save();
+    return shoppingList;
+  } catch (error) {
+    console.error("Error removing ingredient from shopping list:", error);
+    throw new Error((error as Error).message);
+  }
 }
+
+export const removeIngredientsFromShoppingListService = async (
+  userId: string,
+  ingredientIds: string[],
+  postIds?: string[]
+) => {
+  try {
+    const shoppingList = await ShoppingListModel.findOne({ userId }).exec();
+    if (!shoppingList) {
+      throw new Error("Shopping list not found");
+    }
+    await Promise.all(
+      ingredientIds.map(async (ingredientId, index) => {
+        const postId = postIds ? postIds[index] : undefined;
+        console.log(postId);
+        if (postId) {
+          const postIndex = shoppingList.posts.findIndex(
+            (post) => post?.postId?.toString() === postId
+          );
+
+          if (postIndex === -1) {
+            throw new Error(`Post not found in shopping list for postId: ${postId}`);
+          }
+
+          const ingredientIndex = shoppingList.posts[postIndex].ingredients.findIndex(
+            (ingr) => ingr._id?.toString() === ingredientId
+          );
+
+          if (ingredientIndex === -1) {
+            throw new Error(`Ingredient not found in post with postId: ${postId}`);
+          }
+
+          shoppingList.posts[postIndex].ingredients.splice(ingredientIndex, 1);
+
+          if (shoppingList.posts[postIndex].ingredients.length === 0) {
+            shoppingList.posts.splice(postIndex, 1);
+          }
+        } else {
+          const ingredientIndex = shoppingList.standaloneIngredients.findIndex(
+            (ingr) => ingr._id?.toString() === ingredientId
+          );
+
+          if (ingredientIndex === -1) {
+            throw new Error(`Ingredient not found in standalone ingredients for ingredientId: ${ingredientId}`);
+          }
+
+          shoppingList.standaloneIngredients.splice(ingredientIndex, 1);
+        }
+      })
+    );
+
+    await shoppingList.save();
+    return shoppingList;
+  } catch (error) {
+    console.error("Error removing ingredients from shopping list:", error);
+    throw new Error((error as Error).message);
+  }
+};

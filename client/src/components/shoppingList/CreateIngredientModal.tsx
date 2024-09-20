@@ -2,18 +2,40 @@ import { useState } from "react";
 import { IngredientOfList, ingredientOfListSchema } from "../../api/post";
 
 const parseIngredients = (input: string) => {
-  const lines = input.trim().split('\n');
-  const ingredients = lines.map(line => {
+  const lines = input
+    .trim()
+    .split('\n')
+    .map(line => line.replace(/^-/, '').trim());
+
+  const ingredients = lines.flatMap(line => {
+    const parts = line.split(':').map(part => part.trim());
+
+    if (parts.length === 2) {
+      const name = parts[0].trim();
+      const quantity = parts[1].trim();
+
+      if (!name && !quantity) return [];
+      return { name, quantity };
+    }
+
     const firstDigitIndex = line.search(/\d/);
 
     if (firstDigitIndex !== -1) {
       const name = line.slice(0, firstDigitIndex).trim();
       const quantity = line.slice(firstDigitIndex).trim();
+
+      if (!name && !quantity) return [];
       return { name, quantity };
     }
 
-    return { name: line.trim(), quantity: '1' };
+    const name = line.trim();
+    const quantity = '1';
+
+    if (!name) return [];
+
+    return { name, quantity };
   });
+
   return ingredients;
 };
 
