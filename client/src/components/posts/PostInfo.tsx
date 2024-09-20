@@ -164,11 +164,11 @@ const Post: React.FC<PostProps> = ({ post }) => {
   }, [post.author]);
 
   const handleImageClick = (id: string) => {
-    navigate(`/post/${id}`, { state: { post, postAuthor } });
+    navigate(`/posts/${id}`, { state: { post, postAuthor } });
   };
 
   const handleCommentIconClick = (id: string) => {
-    navigate(`/post/${id}`, {
+    navigate(`/posts/${id}`, {
       state: { post, postAuthor, activeTab: "comments" },
     });
   };

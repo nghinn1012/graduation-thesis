@@ -1,13 +1,13 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import PostDetails from "./PostDetail";
+import ShoppingList from "../shoppingList/ShoppingList";
 import ScrollToTop from "../../components/common/ScrollToTop";
-export default function Food() {
+export default function User() {
   return (
     <>
     <ScrollToTop/>
     <Routes>
-      <Route path="/:id" element={<PostDetails />} />
+      <Route path="/shoppingList" element={<ShoppingList />} />
     </Routes>
     </>
   );

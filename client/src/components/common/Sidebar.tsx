@@ -1,14 +1,16 @@
 import XSvg from "../svgs/X";
 
-import { MdHomeFilled } from "react-icons/md";
-import { IoNotifications } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
+import { GoHome } from "react-icons/go";
+import { IoNotificationsOutline } from "react-icons/io5";
+import { FaRegUser } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import React from "react";
-
+import { BiShoppingBag } from "react-icons/bi";
+import { AiOutlineUser } from "react-icons/ai";
+import { PiShoppingCartLight } from "react-icons/pi";
+import { HiOutlineUser } from "react-icons/hi";
 const Sidebar = () => {
 	const [data, setData] = useState<any>(null);
 	const auth = useAuthContext();
@@ -37,7 +39,7 @@ const Sidebar = () => {
 							to='/'
 							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
 						>
-							<MdHomeFilled className='w-8 h-8' />
+							<GoHome className='w-8 h-8' />
 							<span className='text-lg hidden md:block mt-1'>Home</span>
 						</Link>
 					</li>
@@ -46,7 +48,7 @@ const Sidebar = () => {
 							to='/notifications'
 							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
 						>
-							<IoNotifications className='w-6 h-6' />
+							<IoNotificationsOutline className='w-6 h-6' />
 							<span className='text-lg hidden md:block mt-1 ml-1'>Notifications</span>
 						</Link>
 					</li>
@@ -56,8 +58,18 @@ const Sidebar = () => {
 							to={`/profile/${data?.u}`}
 							className='flex gap-4 items-cente hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
 						>
-							<FaUser className='w-6 h-6' />
+							<FaRegUser className='w-6 h-6' />
 							<span className='text-lg hidden md:block mt-1 ml-1'>Profile</span>
+						</Link>
+					</li>
+
+					<li className='flex justify-center md:justify-start'>
+						<Link
+							to='users/shoppingList'
+							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
+						>
+							<PiShoppingCartLight className="w-6 h-6"/>
+							<span className='text-lg hidden md:block mt-1'>Shopping List</span>
 						</Link>
 					</li>
 				</ul>

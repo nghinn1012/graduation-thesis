@@ -3,6 +3,7 @@ import PostSkeleton from "../skeleton/PostSkeleton";
 import Post from "./PostInfo";
 import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Posts: React.FC = () => {
   const {
@@ -20,6 +21,7 @@ const Posts: React.FC = () => {
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
   const updatedPost = location.state?.updatedPost;
+  const auth = useAuthContext();
 
   useEffect(() => {
     if (updatedPost && setPosts) {
@@ -92,6 +94,11 @@ const Posts: React.FC = () => {
 
   return (
     <>
+     {isLoading && posts.length === 0 && (
+        <div className="flex justify-center my-4">
+          <PostSkeleton />
+        </div>
+      )}
       {posts.length > 0 && !isLoading && (
         <div>
           {posts.map((post, index) => (

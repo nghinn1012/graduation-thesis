@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { postFetcher, PostInfo, PostResponse, PostLikesByUser } from "../api/post";
+import { postFetcher, PostInfo, PostResponse, PostLikesByUser, PostShoppingList, ShoppingListData } from "../api/post";
 import toast from "react-hot-toast";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
@@ -19,6 +19,7 @@ interface PostContextType {
   toggleSavePost: (postId: string, saved: boolean) => void;
   updateCommentCount: (postId: string, count: number) => void;
   postCommentCounts: Record<string, number>;
+  fetchSavePostToShoppingList: () => Promise<void>;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -163,10 +164,28 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("postCommentCounts:", postCommentCounts);
   };
 
+  const fetchSavePostToShoppingList = useCallback(async () => {
+    if (!auth?.token) return;
 
+    try {
+      const response = await postFetcher.getShoppingList(auth.token) as unknown as ShoppingListData;
+      console.log(response.posts.map((responsePost: PostShoppingList) => responsePost.postId));
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          response.posts.map((responsePost: PostShoppingList) => responsePost.postId).includes(post._id)
+            ? { ...post, isInShoppingList: true }
+            : post
+        )
+      );
+
+    } catch (err) {
+      console.error("Failed to fetch post of user's shopping list:", err);
+      error("Failed to fetch post of user's shopping list: " + (err as Error).message);
+    }
+  }, [auth?.token]);
 
   return (
-    <PostContext.Provider value={{ postCommentCounts, updateCommentCount, setIsLoading, fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
+    <PostContext.Provider value={{ fetchSavePostToShoppingList, postCommentCounts, updateCommentCount, setIsLoading, fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
       {children}
     </PostContext.Provider>
   );
