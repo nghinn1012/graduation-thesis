@@ -31,6 +31,12 @@ export const postEndpoints = {
   updateMadeRecipe: "/posts/:madeRecipeId/made",
   getMadeRecipeById: "/posts/:madeRecipeId/made",
   deleteMadeRecipe: "/posts/:madeRecipeId/made",
+
+  //shoppingList
+  addIngredientToShoppingList: "/posts/shoppingList/add",
+  getShoppingList: "/posts/shoppingList",
+  checkIsPostInShoppingList: "/posts/shoppingList/:postId",
+  removePostFromShoppingList: "/posts/shoppingList/:postId",
 } as const;
 
 export interface PostResponseError
@@ -94,6 +100,7 @@ export interface PostInfo {
   updatedAt: string;
   liked: boolean;
   saved: boolean;
+  isInShoppingList: boolean;
 }
 
 export interface PostInfoUpdate {
@@ -126,6 +133,18 @@ export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author
 }
 
 export interface Ingredient {
+  name: string;
+  quantity: string;
+}
+
+export interface IngredientOfList {
+  _id: string;
+  name: string;
+  quantity: string;
+  checked: boolean;
+}
+
+export interface ingredientOfListSchema {
   name: string;
   quantity: string;
 }
@@ -204,6 +223,20 @@ export interface updateComment {
   userMention?: string | null;
   parentCommentId?: string;
 }
+export interface PostShoppingList {
+  postId: string;
+  title: string;
+  imageUrl: string;
+  servings: string;
+  ingredients: IngredientOfList[];
+}
+
+export interface ShoppingListData {
+  userId: string;
+  posts: PostShoppingList[];
+  standaloneIngredients: IngredientOfList[];
+}
+
 export interface PostFetcher {
   // posts
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
@@ -231,6 +264,12 @@ export interface PostFetcher {
   updateComment: (commentId: string, data: updateComment, token: string) => Promise<PostResponse<Comment>>;
   deleteComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
   likeOrUnlikeComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
+
+  //shoppingList
+  addIngredientToShoppingList: (token: string, postId?: string, servings?: number, ingredients?: Ingredient[]) => Promise<PostResponse<ShoppingListData>>
+  getShoppingList: (token: string) => Promise<PostResponse<ShoppingListData>>
+  checkPostInShoppingList: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>
+  removePostFromShoppingList: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>
 }
 
 export const postFetcher: PostFetcher = {
@@ -245,14 +284,13 @@ export const postFetcher: PostFetcher = {
   },
   getAllPosts: async (token: string, page: number = 1, limit: number = 20): Promise<PostResponse<PostInfo[]>> => {
     try {
-      // Gửi yêu cầu đến API với các tham số phân trang
       return postInstance.get(postEndpoints.getAllPosts, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
         params: {
-          page,  // Tham số phân trang: trang hiện tại
-          limit, // Tham số phân trang: số lượng bài viết mỗi trang
+          page,
+          limit,
         },
       });
     } catch (error) {
@@ -423,6 +461,42 @@ export const postFetcher: PostFetcher = {
   },
   likeOrUnlikeComment: async (commentId: string, token: string): Promise<PostResponse<Comment>> => {
     return postInstance.post(postEndpoints.likeOrUnlikeComment.replace(":commentId", commentId), {},
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  addIngredientToShoppingList: async (token: string, postId?: string, servings?: number, ingredients?: Ingredient[]): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.post(postEndpoints.addIngredientToShoppingList, { postId, servings, ingredients },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getShoppingList: async (token: string): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.get(postEndpoints.getShoppingList,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  checkPostInShoppingList: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.get(postEndpoints.checkIsPostInShoppingList.replace(":postId", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removePostFromShoppingList: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.patch(postEndpoints.removePostFromShoppingList.replace(":postId", postId), {},
       {
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -9,13 +9,15 @@ import {
 import {
   AiOutlineHeart,
   AiFillHeart,
-  AiOutlineOrderedList,
   AiOutlineShareAlt,
+  AiOutlineCheckCircle,
+  AiOutlinePlus,
 } from "react-icons/ai";
+import { FaClipboardList } from "react-icons/fa";
 import { IoCameraOutline } from "react-icons/io5";
 import { BsFillPencilFill } from "react-icons/bs";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import CreatePostModal from "../../components/posts/CreatePostModal";
 import { usePostContext } from "../../context/PostContext";
 import { useSocket } from "../../hooks/useSocketContext";
@@ -44,6 +46,9 @@ const PostDetails: React.FunctionComponent = () => {
   const { socket } = useSocket();
   const [isLiked, setIsLiked] = useState(post.liked);
   const [isSaved, setIsSaved] = useState(post.saved);
+  const [isSavedToShoppingList, setIsSavedToShoppingList] = useState<boolean>(
+    post.isInShoppingList
+  );
   const { success, error } = useToastContext();
   const { toggleLikePost, toggleSavePost } = usePostContext();
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -69,10 +74,17 @@ const PostDetails: React.FunctionComponent = () => {
           postId,
           auth.token
         );
+        const isSavedPostToShoppingList =
+          await postFetcher.checkPostInShoppingList(postId, auth.token);
         setIsLiked(isLikedPost as unknown as boolean);
         setIsSaved(isSavedPost as unknown as boolean);
+        setIsSavedToShoppingList(
+          isSavedPostToShoppingList as unknown as boolean
+        );
         currentPost.liked = isLiked as unknown as boolean;
         currentPost.saved = isSaved as unknown as boolean;
+        currentPost.isInShoppingList =
+          isSavedPostToShoppingList as unknown as boolean;
 
         setPost(currentPost as unknown as PostInfo);
         setServings(currentPost.servings || 1);
@@ -314,6 +326,16 @@ const PostDetails: React.FunctionComponent = () => {
     handleCloseModal();
   };
 
+  const addOrRemoveToShoppingList = async () => {
+    if (!auth?.token) return;
+    const response = isSavedToShoppingList ? await postFetcher.removePostFromShoppingList(post._id, auth.token) : await postFetcher.addIngredientToShoppingList(auth.token, post._id, servings);
+    if (response) {
+      setIsSavedToShoppingList(!isSavedToShoppingList);
+    } else {
+      error("Failed to add/remove post to shopping list");
+    }
+  };
+
   return (
     <>
       {isLoading ? (
@@ -397,8 +419,17 @@ const PostDetails: React.FunctionComponent = () => {
                   </button>
 
                   <button className="flex items-center space-x-1">
-                    <AiOutlineOrderedList className="w-6 h-6" />
-                    <span>List</span>
+                    {isSavedToShoppingList ? (
+                      <>
+                        <FaClipboardList className="w-6 h-6 text-green-500" />{" "}
+                        <span>List</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaClipboardList className="w-6 h-6 text-gray-500" />{" "}
+                        <span>List</span>
+                      </>
+                    )}
                   </button>
 
                   <button className="flex items-center space-x-1">
@@ -501,8 +532,23 @@ const PostDetails: React.FunctionComponent = () => {
                   </ul>
 
                   <div className="flex flex-col md:flex-row gap-2 md:gap-10 mt-4 justify-center">
-                    <button className="btn btn-outline btn-md w-full md:w-auto">
-                      Add to List
+                    <button
+                      className={`btn btn-md w-full md:w-auto ${
+                        isSavedToShoppingList ? "btn-success text-white" : "btn-outline"
+                      }`}
+                      onClick={addOrRemoveToShoppingList}
+                    >
+                      {isSavedToShoppingList ? (
+                        <>
+                          <AiOutlineCheckCircle className="w-6 h-6 mr-2" />{" "}
+                          Added to List
+                        </>
+                      ) : (
+                        <>
+                          <AiOutlinePlus className="w-6 h-6 mr-2" />{" "}
+                          Add to List
+                        </>
+                      )}
                     </button>
                     <button className="btn btn-md btn-success w-full md:w-auto">
                       Get Ingredients
