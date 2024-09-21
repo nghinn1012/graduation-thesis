@@ -11,6 +11,8 @@ import { BiShoppingBag } from "react-icons/bi";
 import { AiOutlineUser } from "react-icons/ai";
 import { PiShoppingCartLight } from "react-icons/pi";
 import { HiOutlineUser } from "react-icons/hi";
+import { FaRegCalendarAlt } from "react-icons/fa";
+import { LuCalendarDays } from "react-icons/lu";
 const Sidebar = () => {
 	const [data, setData] = useState<any>(null);
 	const auth = useAuthContext();
@@ -70,6 +72,16 @@ const Sidebar = () => {
 						>
 							<PiShoppingCartLight className="w-6 h-6"/>
 							<span className='text-lg hidden md:block mt-1'>Shopping List</span>
+						</Link>
+					</li>
+
+					<li className='flex justify-center md:justify-start'>
+						<Link
+							to='users/mealPlanner'
+							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
+						>
+							<LuCalendarDays className="w-6 h-6"/>
+							<span className='text-lg hidden md:block mt-1'>Meal Planner</span>
 						</Link>
 					</li>
 				</ul>

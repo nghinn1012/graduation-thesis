@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'XFont';
+  src: url('/fonts/Twitter_Chirp_Regular-Twitter_Chirp_Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'XFont', sans-serif;
+}
+
 .active-tab {
   background-color: black !important;
   color: white !important;
@@ -13,4 +24,19 @@
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(20px);
   z-index: 40;
+}
+
+@media (max-width: 375px) {
+  body {
+    font-size: 0.6rem;
+  }
+
+  .active-tab {
+    font-size: 0.6rem;
+  }
+
+  .tab {
+    font-size: 0.6rem;
+  }
+
 }
