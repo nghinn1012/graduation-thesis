@@ -9,6 +9,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import CreateIngredientModal from "../../components/shoppingList/CreateIngredientModal";
 import { BsCheckCircle } from "react-icons/bs";
 import { FaCheckCircle } from "react-icons/fa";
+import ShoppingListSkeleton from "../../components/skeleton/ShoppingListSkeleton";
 const ShoppingList: React.FC = () => {
   const [list, setList] = useState<ShoppingListData>({} as ShoppingListData);
   const [editingIngredientId, setEditingIngredientId] = useState<string | null>(
@@ -27,18 +28,20 @@ const ShoppingList: React.FC = () => {
     []
   );
   const [allStandaloneSelected, setAllStandaloneSelected] = useState(false);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       const token = auth.auth?.token;
       if (!token) {
         return;
       }
-
+      setLoading(true);
       try {
         const response = await postFetcher.getShoppingList(token);
         if (response) {
           setList(response as unknown as ShoppingListData);
         }
+        setLoading(false);
       } catch (err) {
         console.error("Fetch error:", err);
       }
@@ -55,7 +58,9 @@ const ShoppingList: React.FC = () => {
     if (!list.standaloneIngredients) {
       return;
     }
-    const allSelected = list.standaloneIngredients.every(item => selectedIngredientIds.includes(item._id));
+    const allSelected = list.standaloneIngredients.every((item) =>
+      selectedIngredientIds.includes(item._id)
+    );
     setAllStandaloneSelected(allSelected);
   }, [list.standaloneIngredients, auth.token, selectedIngredientIds]);
 
@@ -347,40 +352,203 @@ const ShoppingList: React.FC = () => {
         Delete Selected
       </button>
       {/* Render Posts */}
-      {list.posts?.map(
-        (post) =>
-          post.ingredients.length > 0 && (
-            <div key={post.postId} className="card bg-base-100 shadow-md my-4">
-              <div className="card-body">
-                <div className="flex items-center">
-                  {selectedPostIds.includes(post.postId) ? (
+      {loading ? (
+        <>
+          <ShoppingListSkeleton />
+          <ShoppingListSkeleton />
+        </>
+      ) : (
+        <>
+          {list.posts?.map(
+            (post) =>
+              post.ingredients.length > 0 && (
+                <div
+                  key={post.postId}
+                  className="card bg-base-100 shadow-md my-4"
+                >
+                  <div className="card-body">
                     <div className="flex items-center">
-                      <BsCheckCircle
-                        className={`text-green-700 w-16 h-16 object-cover rounded mr-4`}
-                        onClick={() => togglePostSelection(post.postId)}
-                      />
+                      {selectedPostIds.includes(post.postId) ? (
+                        <div className="flex items-center">
+                          <BsCheckCircle
+                            className={`text-green-700 w-16 h-16 object-cover rounded mr-4`}
+                            onClick={() => togglePostSelection(post.postId)}
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={post.imageUrl}
+                          alt={`Image for ${post.postId}`}
+                          className={`w-16 h-16 object-cover rounded mr-4`}
+                          onClick={() => togglePostSelection(post.postId)}
+                        />
+                      )}
+
+                      {/* Title and Servings */}
+                      <div className="flex-1">
+                        <h2 className="card-title">{post.title}</h2>
+                        <p className="text-sm">Servings: {post.servings}</p>
+                      </div>
+
+                      {/* Toggle expand/collapse */}
+                      <button
+                        className="p-2"
+                        onClick={() => toggleExpand(post.postId)}
+                      >
+                        {expandedPosts[post.postId] ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2"
+                            stroke="currentColor"
+                            className="w-6 h-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 15l7-7 7 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2"
+                            stroke="currentColor"
+                            className="w-6 h-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        )}
+                      </button>
                     </div>
-                  ) : (
-                    <img
-                      src={post.imageUrl}
-                      alt={`Image for ${post.postId}`}
-                      className={`w-16 h-16 object-cover rounded mr-4`}
-                      onClick={() => togglePostSelection(post.postId)}
-                    />
-                  )}
 
-                  {/* Title and Servings */}
-                  <div className="flex-1">
-                    <h2 className="card-title">{post.title}</h2>
-                    <p className="text-sm">Servings: {post.servings}</p>
+                    {/* Ingredients, only show if expanded */}
+                    {expandedPosts[post.postId] && (
+                      <div className="mt-4">
+                        {post.ingredients.map((ingredient) => (
+                          <div
+                            key={ingredient._id}
+                            className="card bg-base-100 shadow-md my-2 p-4 relative"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex-1">
+                                {editingIngredientId === ingredient._id ? (
+                                  <div>
+                                    <input
+                                      type="text"
+                                      name="name"
+                                      value={editedIngredient?.name || ""}
+                                      onChange={handleInputChange}
+                                      className="input input-bordered w-full mb-2"
+                                    />
+                                    <input
+                                      type="text"
+                                      name="quantity"
+                                      value={editedIngredient?.quantity || ""}
+                                      onChange={handleInputChange}
+                                      className="input input-bordered w-full mb-2"
+                                    />
+                                    <button
+                                      onClick={() =>
+                                        saveChanges(ingredient._id, post.postId)
+                                      }
+                                      className="btn btn-success mr-2"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={cancelEditing}
+                                      className="btn btn-error"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-row gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedIngredientIds.includes(
+                                        ingredient._id
+                                      )}
+                                      onChange={() =>
+                                        toggleIngredientSelection(
+                                          ingredient._id
+                                        )
+                                      }
+                                      className="checkbox checkbox-success border-2"
+                                    />
+                                    <span className="font-bold">
+                                      {ingredient.name}
+                                    </span>
+                                    <span className="ml-4">
+                                      {parseQuantity(ingredient.quantity)
+                                        .value * Number(post.servings)}{" "}
+                                      {parseQuantity(ingredient.quantity).unit}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              {!editingIngredientId ||
+                              editingIngredientId !== ingredient._id ? (
+                                <button
+                                  onClick={() => toggleDropdown(ingredient._id)}
+                                  disabled={isModalOpen}
+                                >
+                                  <FiMoreVertical />
+                                </button>
+                              ) : null}
+                            </div>
+
+                            {dropdownOpen === ingredient._id && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                                <button
+                                  onClick={() =>
+                                    startEditing(
+                                      ingredient._id,
+                                      ingredient.name,
+                                      ingredient.quantity
+                                    )
+                                  }
+                                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDelete(ingredient._id, post.postId)
+                                  }
+                                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                </div>
+              )
+          )}
 
-                  {/* Toggle expand/collapse */}
+          <div className="card bg-base-100 shadow-md my-4">
+            <div className="card-body">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <h2 className="card-title">Standalone Ingredients</h2>
                   <button
                     className="p-2"
-                    onClick={() => toggleExpand(post.postId)}
+                    onClick={() => toggleExpand("standalone")}
                   >
-                    {expandedPosts[post.postId] ? (
+                    {expandedPosts["standalone"] ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -413,271 +581,122 @@ const ShoppingList: React.FC = () => {
                     )}
                   </button>
                 </div>
+                <FaCheckCircle
+                  onClick={toggleStandaloneSelection}
+                  className={`h-6 w-6 ${
+                    allStandaloneSelected ? "text-green-500" : "text-gray-500"
+                  }`}
+                />
+              </div>
 
-                {/* Ingredients, only show if expanded */}
-                {expandedPosts[post.postId] && (
-                  <div className="mt-4">
-                    {post.ingredients.map((ingredient) => (
-                      <div
-                        key={ingredient._id}
-                        className="card bg-base-100 shadow-md my-2 p-4 relative"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            {editingIngredientId === ingredient._id ? (
-                              <div>
-                                <input
-                                  type="text"
-                                  name="name"
-                                  value={editedIngredient?.name || ""}
-                                  onChange={handleInputChange}
-                                  className="input input-bordered w-full mb-2"
-                                />
-                                <input
-                                  type="text"
-                                  name="quantity"
-                                  value={editedIngredient?.quantity || ""}
-                                  onChange={handleInputChange}
-                                  className="input input-bordered w-full mb-2"
-                                />
-                                <button
-                                  onClick={() =>
-                                    saveChanges(ingredient._id, post.postId)
-                                  }
-                                  className="btn btn-success mr-2"
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  onClick={cancelEditing}
-                                  className="btn btn-error"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-row gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedIngredientIds.includes(
-                                    ingredient._id
-                                  )}
-                                  onChange={() =>
-                                    toggleIngredientSelection(ingredient._id)
-                                  }
-                                  className="checkbox checkbox-success border-2"
-                                />
-                                <span className="font-bold">
-                                  {ingredient.name}
-                                </span>
-                                <span className="ml-4">
-                                  {parseQuantity(ingredient.quantity).value *
-                                    Number(post.servings)}{" "}
-                                  {parseQuantity(ingredient.quantity).unit}
-                                </span>
-                              </div>
-                            )}
+              {expandedPosts["standalone"] &&
+                list.standaloneIngredients?.map((ingredient) => (
+                  <div
+                    key={ingredient._id}
+                    className="card bg-base-100 shadow-md my-2 p-4 relative"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        {editingIngredientId === ingredient._id ? (
+                          <div>
+                            <input
+                              type="text"
+                              name="name"
+                              value={editedIngredient?.name || ""}
+                              onChange={handleInputChange}
+                              className="input input-bordered w-full mb-2"
+                            />
+                            <input
+                              type="text"
+                              name="quantity"
+                              value={editedIngredient?.quantity || ""}
+                              onChange={handleInputChange}
+                              className="input input-bordered w-full mb-2"
+                            />
+                            <button
+                              onClick={() => saveChanges(ingredient._id)}
+                              className="btn btn-success mr-2"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="btn btn-error"
+                            >
+                              Cancel
+                            </button>
                           </div>
-                          {!editingIngredientId ||
-                          editingIngredientId !== ingredient._id ? (
-                            <button
-                              onClick={() => toggleDropdown(ingredient._id)}
-                              disabled={isModalOpen}
-                            >
-                              <FiMoreVertical />
-                            </button>
-                          ) : null}
-                        </div>
-
-                        {dropdownOpen === ingredient._id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                            <button
-                              onClick={() =>
-                                startEditing(
-                                  ingredient._id,
-                                  ingredient.name,
-                                  ingredient.quantity
-                                )
+                        ) : (
+                          <div className="flex flex-row gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedIngredientIds.includes(
+                                ingredient._id
+                              )}
+                              onChange={() =>
+                                toggleIngredientSelection(ingredient._id)
                               }
-                              className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDelete(ingredient._id, post.postId)
-                              }
-                              className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
-                            >
-                              Delete
-                            </button>
+                              className="checkbox checkbox-success border-2"
+                            />
+                            <span className="font-bold">{ingredient.name}</span>
+                            <span className="ml-4">{ingredient.quantity}</span>
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-      )}
-
-      <div className="card bg-base-100 shadow-md my-4">
-        <div className="card-body">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <h2 className="card-title">Standalone Ingredients</h2>
-              <button
-                className="p-2"
-                onClick={() => toggleExpand("standalone")}
-              >
-                {expandedPosts["standalone"] ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 15l7-7 7 7"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div>
-            <FaCheckCircle
-              onClick={toggleStandaloneSelection}
-              className={`h-6 w-6 ${
-                allStandaloneSelected ? "text-green-500" : "text-gray-500"
-              }`}
-            />
-          </div>
-
-          {expandedPosts["standalone"] &&
-            list.standaloneIngredients?.map((ingredient) => (
-              <div
-                key={ingredient._id}
-                className="card bg-base-100 shadow-md my-2 p-4 relative"
-              >
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    {editingIngredientId === ingredient._id ? (
-                      <div>
-                        <input
-                          type="text"
-                          name="name"
-                          value={editedIngredient?.name || ""}
-                          onChange={handleInputChange}
-                          className="input input-bordered w-full mb-2"
-                        />
-                        <input
-                          type="text"
-                          name="quantity"
-                          value={editedIngredient?.quantity || ""}
-                          onChange={handleInputChange}
-                          className="input input-bordered w-full mb-2"
-                        />
+                      {!editingIngredientId ||
+                      editingIngredientId !== ingredient._id ? (
                         <button
-                          onClick={() => saveChanges(ingredient._id)}
-                          className="btn btn-success mr-2"
+                          onClick={() => toggleDropdown(ingredient._id)}
+                          disabled={isModalOpen}
                         >
-                          Save
+                          <FiMoreVertical />
                         </button>
+                      ) : null}
+                    </div>
+
+                    {dropdownOpen === ingredient._id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                         <button
-                          onClick={cancelEditing}
-                          className="btn btn-error"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedIngredientIds.includes(
-                            ingredient._id
-                          )}
-                          onChange={() =>
-                            toggleIngredientSelection(ingredient._id)
+                          onClick={() =>
+                            startEditing(
+                              ingredient._id,
+                              ingredient.name,
+                              ingredient.quantity
+                            )
                           }
-                          className="checkbox checkbox-success border-2"
-                        />
-                        <span className="font-bold">{ingredient.name}</span>
-                        <span className="ml-4">{ingredient.quantity}</span>
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(ingredient._id)}
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
+                        >
+                          Delete
+                        </button>
                       </div>
                     )}
                   </div>
-                  {!editingIngredientId ||
-                  editingIngredientId !== ingredient._id ? (
-                    <button
-                      onClick={() => toggleDropdown(ingredient._id)}
-                      disabled={isModalOpen}
-                    >
-                      <FiMoreVertical />
-                    </button>
-                  ) : null}
-                </div>
+                ))}
+            </div>
+          </div>
 
-                {dropdownOpen === ingredient._id && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    <button
-                      onClick={() =>
-                        startEditing(
-                          ingredient._id,
-                          ingredient.name,
-                          ingredient.quantity
-                        )
-                      }
-                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(ingredient._id)}
-                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-        </div>
-      </div>
+          <div className="flex flex-col justify-between items-center">
+            <button
+              className="btn btn-primary mt-4"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Add to List
+            </button>
 
-      <div className="flex flex-col justify-between items-center">
-        <button
-          className="btn btn-primary mt-4"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Add to List
-        </button>
-
-        <CreateIngredientModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleAddIngredient}
-        />
-      </div>
+            <CreateIngredientModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onSave={handleAddIngredient}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };

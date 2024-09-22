@@ -5,6 +5,11 @@ import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 
 export const postEndpoints = {
+  //mealPlanner
+  addMeal: "/posts/mealPlanner/create",
+  getMealPlanner: "/posts/mealPlanner/getAll",
+  checkPostInUnscheduledMeal: "/posts/mealPlanner/checkPost/:postId",
+  removeMeal: "/posts/mealPlanner/remove",
   //comment
   getCommentByPostId: "/posts/:postId/comment",
   createComment: "/posts/:postId/comment",
@@ -247,6 +252,32 @@ export interface updateIngredientInShoppingList {
   checked: boolean;
 }
 
+export interface Meal {
+  timeToTake?: string;
+  title: string;
+  imageUrl: string;
+  is_planned: boolean;
+  plannedDate?: Date;
+  postId: string;
+}
+
+export interface createMealData {
+  postId: string;
+  is_planned: boolean;
+  plannedDate?: Date;
+}
+
+export interface MealPlanner {
+  userId: string;
+  meals: Meal[];
+  createdAt: Date;
+}
+
+export interface DeleteMeal {
+  mealId?: string;
+  postId?: string;
+}
+
 export interface PostFetcher {
   // posts
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
@@ -283,6 +314,12 @@ export interface PostFetcher {
   updateIngredientInShoppingList: (token: string, ingredient: updateIngredientInShoppingList, postId?: string) => Promise<PostResponse<ShoppingListData>>
   removeIngredientFromShoppingList: (token: string, ingredientId: string, postId?: string) => Promise<PostResponse<ShoppingListData>>
   removeIngredientsFromShoppingList: (token: string, ingredientIds: string[], postIds?: string[]) => Promise<PostResponse<ShoppingListData>>
+
+  //mealPlanner
+  addMeal: (createMealData: createMealData, token: string) => Promise<PostResponse<Meal>>;
+  getMealPlanner: (token: string) => Promise<PostResponse<MealPlanner>>;
+  checkPostInUnscheduledMeal: (postId: string, token: string) => Promise<PostResponse<boolean>>;
+  removeMeal: (deleteMeal: DeleteMeal,token: string) => Promise<PostResponse<Meal>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -552,5 +589,40 @@ export const postFetcher: PostFetcher = {
         },
       }
     );
+  },
+  addMeal: async (createMealData: createMealData, token: string): Promise<PostResponse<Meal>> => {
+    return postInstance.post(postEndpoints.addMeal, createMealData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getMealPlanner: async (token: string): Promise<PostResponse<MealPlanner>> => {
+    return postInstance.get(postEndpoints.getMealPlanner,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  checkPostInUnscheduledMeal: async (postId: string, token: string): Promise<PostResponse<boolean>> => {
+    return postInstance.get(postEndpoints.checkPostInUnscheduledMeal.replace(":postId", postId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removeMeal: async (deleteMeal: DeleteMeal, token: string): Promise<PostResponse<Meal>> => {
+    return postInstance.delete(postEndpoints.removeMeal, {
+      data: deleteMeal,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
   },
 }

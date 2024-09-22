@@ -13,7 +13,11 @@ import {
   AiOutlineCheckCircle,
   AiOutlinePlus,
 } from "react-icons/ai";
-import { FaClipboardList } from "react-icons/fa";
+import {
+  FaClipboardList,
+  FaRegCalendarCheck,
+  FaRegCalendarPlus,
+} from "react-icons/fa";
 import { IoCameraOutline } from "react-icons/io5";
 import { BsFillPencilFill } from "react-icons/bs";
 import { useAuthContext } from "../../hooks/useAuthContext";
@@ -54,7 +58,7 @@ const PostDetails: React.FunctionComponent = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [servings, setServings] = useState<number>(post.servings);
-
+  const [isInSchedule, setIsInSchedule] = useState<boolean>(false);
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -134,6 +138,27 @@ const PostDetails: React.FunctionComponent = () => {
       };
     }
   }, [socket, post._id, auth?.token]);
+
+  useEffect(() => {
+    const isPostScheduled = async () => {
+      if (!auth?.token) return;
+      try {
+        const response = await postFetcher.checkPostInUnscheduledMeal(
+          post._id,
+          auth.token
+        );
+        setIsInSchedule(response as unknown as boolean);
+      } catch (error) {
+        console.error("Failed to check if the post is scheduled", error);
+      }
+    };
+
+    isPostScheduled();
+  }, [auth?.token, post._id]);
+
+  useEffect(() => {
+    console.log(isInSchedule);
+  }, [isInSchedule]);
 
   const handleEditClick = () => {
     setIsModalOpen(true);
@@ -328,9 +353,35 @@ const PostDetails: React.FunctionComponent = () => {
 
   const addOrRemoveToShoppingList = async () => {
     if (!auth?.token) return;
-    const response = isSavedToShoppingList ? await postFetcher.removePostFromShoppingList(post._id, auth.token) : await postFetcher.addIngredientToShoppingList(auth.token, post._id, servings);
+    const response = isSavedToShoppingList
+      ? await postFetcher.removePostFromShoppingList(post._id, auth.token)
+      : await postFetcher.addIngredientToShoppingList(
+          auth.token,
+          post._id,
+          servings
+        );
     if (response) {
       setIsSavedToShoppingList(!isSavedToShoppingList);
+    } else {
+      error("Failed to add/remove post to shopping list");
+    }
+  };
+
+  const addOrRemoveToPlan = async () => {
+    if (!auth?.token) return;
+    const response = isInSchedule
+      ? await postFetcher.removeMeal({
+          postId: post._id,
+      }, auth.token)
+      : await postFetcher.addMeal(
+          {
+            postId: post._id,
+            is_planned: false,
+          },
+          auth?.token
+        );
+    if (response) {
+      setIsInSchedule(!isInSchedule);
     } else {
       error("Failed to add/remove post to shopping list");
     }
@@ -432,9 +483,21 @@ const PostDetails: React.FunctionComponent = () => {
                     )}
                   </button>
 
-                  <button className="flex items-center space-x-1">
-                    <AiOutlineShareAlt className="w-6 h-6" />
-                    <span>Share</span>
+                  <button
+                    className="flex items-center space-x-1"
+                    onClick={addOrRemoveToPlan}
+                  >
+                    {isInSchedule ? (
+                      <>
+                        <FaRegCalendarCheck className="w-6 h-6 text-green-500" />{" "}
+                        <span>Plan</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaRegCalendarPlus className="w-6 h-6 text-gray-500" />{" "}
+                        <span>Plan</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -534,7 +597,9 @@ const PostDetails: React.FunctionComponent = () => {
                   <div className="flex flex-col md:flex-row gap-2 md:gap-10 mt-4 justify-center">
                     <button
                       className={`btn btn-md w-full md:w-auto ${
-                        isSavedToShoppingList ? "btn-success text-white" : "btn-outline"
+                        isSavedToShoppingList
+                          ? "btn-success text-white"
+                          : "btn-outline"
                       }`}
                       onClick={addOrRemoveToShoppingList}
                     >
@@ -545,8 +610,7 @@ const PostDetails: React.FunctionComponent = () => {
                         </>
                       ) : (
                         <>
-                          <AiOutlinePlus className="w-6 h-6 mr-2" />{" "}
-                          Add to List
+                          <AiOutlinePlus className="w-6 h-6 mr-2" /> Add to List
                         </>
                       )}
                     </button>

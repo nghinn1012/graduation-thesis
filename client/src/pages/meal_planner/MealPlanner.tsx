@@ -1,12 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TodayTab from "../../components/mealPlanner/Today";
 import ThisWeekTab from "../../components/mealPlanner/ThisWeekTab";
 import UnscheduledTab from "../../components/mealPlanner/UnscheduledTab";
+import { Meal, postFetcher } from "../../api/post";
+import type { MealPlanner } from "../../api/post";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 type Tab = "today" | "thisWeek" | "unscheduled";
 
 const MealPlanner: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>("thisWeek");
+  const [mealPlanner, setMealPlanner] = useState<MealPlanner>({} as MealPlanner);
+  const [unscheduledMeals, setUnscheduledMeals] = useState<Meal[]>([]);
+  const { auth } = useAuthContext();
+  useEffect(() => {
+    if (!auth?.token) return;
+    const fetchMealPlanner = async () => {
+      const mealPlanner = await postFetcher.getMealPlanner(auth.token);
+      setMealPlanner(mealPlanner as unknown as MealPlanner);
+    }
+    fetchMealPlanner();
+  }, [auth?.token]);
+
+  useEffect(() => {
+    if (!auth?.token) return;
+    const unscheduledMeals = mealPlanner.meals?.filter((meal) => !meal.is_planned);
+    setUnscheduledMeals(unscheduledMeals);
+  }, [auth?.token, mealPlanner]);
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -15,7 +35,7 @@ const MealPlanner: React.FC = () => {
       case "thisWeek":
         return <ThisWeekTab />;
       case "unscheduled":
-        return <UnscheduledTab />;
+        return <UnscheduledTab unscheduledMeals={unscheduledMeals}/>;
       default:
         return null;
     }
