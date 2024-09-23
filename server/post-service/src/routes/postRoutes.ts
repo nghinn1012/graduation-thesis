@@ -5,7 +5,7 @@ import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPos
 import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeByIdController, getMadeRecipeOfPostController, updateMadeRecipeController } from "../controllers/madeRecipe.controllers";
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
 import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
-import { addMealController, checkPostInUnscheduledMealController, getMealPlannerController, removeMealController } from "../controllers/mealPlanner.controllers";
+import { addMealController, checkPostInUnscheduledMealController, getMealPlannerController, removeMealController, scheduleMealController } from "../controllers/mealPlanner.controllers";
 
 const postRouter = express.Router();
 // mealPlanner
@@ -13,6 +13,7 @@ postRouter.post("/mealPlanner/create", tokenValidate, addMealController);
 postRouter.get("/mealPlanner/checkPost/:postId", tokenValidate, checkPostInUnscheduledMealController);
 postRouter.get("/mealPlanner/getAll", tokenValidate, getMealPlannerController);
 postRouter.delete("/mealPlanner/remove", tokenValidate, removeMealController);
+postRouter.patch("/mealPlanner/scheduleMeal", tokenValidate, scheduleMealController);
 // shoppinglist
 postRouter.patch("/shoppingList/removeIngredients", tokenValidate, removeIngredientsFromShoppingListController);
 postRouter.post("/shoppingList/add", tokenValidate, addIngredientToShoppingListController);

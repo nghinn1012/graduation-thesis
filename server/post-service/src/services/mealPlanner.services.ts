@@ -39,7 +39,7 @@ export const checkPostInUnscheduledMealService = async (userId: string, postId: 
   try {
     const mealPlanners = await MealPlanner.find({ userId });
     const unscheduledMeal = mealPlanners.filter((mealPlanner) => {
-      return mealPlanner.meals.some((meal) => meal.postId.toString() === postId && !meal.is_planned);
+      return mealPlanner.meals.some((meal) => meal.postId.toString() === postId);
     });
     if (unscheduledMeal.length === 0) {
       return false;
@@ -66,7 +66,7 @@ export const removeMealService = async (userId: string, mealId?: string, postId?
       throw new Error("Meal planner not found");
     }
     if (postId) {
-      const mealIndex = mealPlanner.meals.findIndex((meal) => meal.postId.toString() === postId && !meal.is_planned && !meal.plannedDate);
+      const mealIndex = mealPlanner.meals.findIndex((meal) => meal.postId.toString() === postId);
       if (mealIndex === -1) {
         throw new Error("Post not found");
       }
@@ -86,3 +86,34 @@ export const removeMealService = async (userId: string, mealId?: string, postId?
     throw error;
   }
 }
+
+export const scheduleMealService = async (
+  userId: string,
+  mealId: string,
+  dates: string[]
+) => {
+  try {
+    const mealPlanner = await MealPlanner.findOne({ userId });
+
+    if (!mealPlanner) {
+      throw new Error(`Meal planner for user ID ${userId} not found`);
+    }
+
+    const mealIndex = mealPlanner.meals.findIndex(
+      (meal) => meal._id.toString() === mealId && !meal.is_planned
+    );
+
+    if (mealIndex === -1) {
+      throw new Error(`Meal with ID ${mealId} not found in the meal planner`);
+    }
+
+    mealPlanner.meals[mealIndex].is_planned = true;
+    mealPlanner.meals[mealIndex].plannedDate.push(...dates.map((date) => new Date(date)));
+
+    await mealPlanner.save();
+
+    return mealPlanner;
+  } catch (error) {
+    throw new Error(`Failed to schedule meal: ${(error as Error).message}`);
+  }
+};

@@ -152,13 +152,8 @@ const PostDetails: React.FunctionComponent = () => {
         console.error("Failed to check if the post is scheduled", error);
       }
     };
-
     isPostScheduled();
   }, [auth?.token, post._id]);
-
-  useEffect(() => {
-    console.log(isInSchedule);
-  }, [isInSchedule]);
 
   const handleEditClick = () => {
     setIsModalOpen(true);

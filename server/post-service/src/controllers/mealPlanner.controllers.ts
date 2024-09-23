@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { addMealService, checkPostInUnscheduledMealService, getMealPlannerService, removeMealService } from "../services/mealPlanner.services";
+import { addMealService, checkPostInUnscheduledMealService, getMealPlannerService, removeMealService, scheduleMealService } from "../services/mealPlanner.services";
 import { Response } from "express";
 
 export const addMealController = async (req: AuthRequest, res: Response) => {
@@ -81,6 +81,29 @@ export const removeMealController = async (req: AuthRequest, res: Response) => {
       );
     }
     const mealPlanner = await removeMealService(userId, mealId, postId);
+    res.status(200).json(mealPlanner);
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal server error",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const scheduleMealController = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.authContent?.data.userId;
+    const mealId = req.body.mealId;
+    const plannedDate = req.body.plannedDate;
+    if (!userId) {
+      return res.status(401).json(
+        {
+          message: "Unauthorized",
+          error: "User not found",
+        }
+      );
+    }
+    const mealPlanner = await scheduleMealService(userId, mealId, plannedDate);
     res.status(200).json(mealPlanner);
   } catch (error) {
     res.status(500).json({

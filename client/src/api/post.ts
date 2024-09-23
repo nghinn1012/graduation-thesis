@@ -10,6 +10,7 @@ export const postEndpoints = {
   getMealPlanner: "/posts/mealPlanner/getAll",
   checkPostInUnscheduledMeal: "/posts/mealPlanner/checkPost/:postId",
   removeMeal: "/posts/mealPlanner/remove",
+  scheduleMeal: "/posts/mealPlanner/scheduleMeal",
   //comment
   getCommentByPostId: "/posts/:postId/comment",
   createComment: "/posts/:postId/comment",
@@ -253,11 +254,12 @@ export interface updateIngredientInShoppingList {
 }
 
 export interface Meal {
+  _id: string;
   timeToTake?: string;
   title: string;
   imageUrl: string;
   is_planned: boolean;
-  plannedDate?: Date;
+  plannedDate?: string[];
   postId: string;
 }
 
@@ -319,7 +321,8 @@ export interface PostFetcher {
   addMeal: (createMealData: createMealData, token: string) => Promise<PostResponse<Meal>>;
   getMealPlanner: (token: string) => Promise<PostResponse<MealPlanner>>;
   checkPostInUnscheduledMeal: (postId: string, token: string) => Promise<PostResponse<boolean>>;
-  removeMeal: (deleteMeal: DeleteMeal,token: string) => Promise<PostResponse<Meal>>;
+  removeMeal: (deleteMeal: DeleteMeal, token: string) => Promise<PostResponse<Meal>>;
+  scheduleMeal: (token: string, mealId: string, dates: string[]) => Promise<PostResponse<Meal>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -624,5 +627,17 @@ export const postFetcher: PostFetcher = {
         'Authorization': `Bearer ${token}`,
       },
     });
+  },
+  scheduleMeal: async (token: string, mealId: string, dates: string[]): Promise<PostResponse<Meal>> => {
+    return postInstance.patch(postEndpoints.scheduleMeal, {
+      mealId,
+      plannedDate: dates,
+    },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
   },
 }

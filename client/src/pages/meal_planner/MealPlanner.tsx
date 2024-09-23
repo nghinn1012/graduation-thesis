@@ -10,32 +10,45 @@ type Tab = "today" | "thisWeek" | "unscheduled";
 
 const MealPlanner: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>("thisWeek");
-  const [mealPlanner, setMealPlanner] = useState<MealPlanner>({} as MealPlanner);
+  const [mealPlanner, setMealPlanner] = useState<MealPlanner>(
+    {} as MealPlanner
+  );
   const [unscheduledMeals, setUnscheduledMeals] = useState<Meal[]>([]);
+  const [scheduledMeals, setScheduledMeals] = useState<Meal[]>([]);
   const { auth } = useAuthContext();
-  useEffect(() => {
+  const fetchMealPlanner = async () => {
     if (!auth?.token) return;
-    const fetchMealPlanner = async () => {
-      const mealPlanner = await postFetcher.getMealPlanner(auth.token);
-      setMealPlanner(mealPlanner as unknown as MealPlanner);
-    }
+    const mealPlanner = await postFetcher.getMealPlanner(auth.token);
+    setMealPlanner(mealPlanner as unknown as MealPlanner);
+  };
+  useEffect(() => {
     fetchMealPlanner();
   }, [auth?.token]);
 
   useEffect(() => {
     if (!auth?.token) return;
-    const unscheduledMeals = mealPlanner.meals?.filter((meal) => !meal.is_planned);
+    const unscheduledMeals = mealPlanner.meals?.filter(
+      (meal) => !meal.is_planned
+    );
+    const scheduledMeals = mealPlanner.meals?.filter((meal) => meal.is_planned);
+    setScheduledMeals(scheduledMeals);
     setUnscheduledMeals(unscheduledMeals);
   }, [auth?.token, mealPlanner]);
 
   const renderActiveTab = () => {
     switch (activeTab) {
       case "today":
-        return <TodayTab />;
+        return <TodayTab scheduledMeals={scheduledMeals}/>;
       case "thisWeek":
-        return <ThisWeekTab />;
+        return <ThisWeekTab scheduledMeals={scheduledMeals}/>;
       case "unscheduled":
-        return <UnscheduledTab unscheduledMeals={unscheduledMeals}/>;
+        return (
+          <UnscheduledTab
+            unscheduledMeals={unscheduledMeals}
+            fetchScheduledMeals={fetchMealPlanner}
+            setUnscheduledMeals={setUnscheduledMeals}
+          />
+        );
       default:
         return null;
     }

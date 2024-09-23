@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ingredientOfListSchema,
   postFetcher,
@@ -29,6 +29,7 @@ const ShoppingList: React.FC = () => {
   );
   const [allStandaloneSelected, setAllStandaloneSelected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   useEffect(() => {
     const fetchData = async () => {
       const token = auth.auth?.token;
@@ -337,6 +338,21 @@ const ShoppingList: React.FC = () => {
     setAllStandaloneSelected(!allStandaloneSelected);
   };
 
+  const handleClickOutside = (event: MouseEvent) => {
+    const isDropdown = Object.values(dropdownRefs.current).some((ref) =>
+      ref?.contains(event.target as Node)
+    );
+    if (!isDropdown) {
+      setDropdownOpen(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <div className="p-4">
       <h1 className="text-center text-2xl font-bold">GROCERY LIST.</h1>
@@ -364,6 +380,7 @@ const ShoppingList: React.FC = () => {
               post.ingredients.length > 0 && (
                 <div
                   key={post.postId}
+                  ref={(el) => (dropdownRefs.current[post.postId] = el)}
                   className="card bg-base-100 shadow-md my-4"
                 >
                   <div className="card-body">
@@ -429,12 +446,12 @@ const ShoppingList: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Ingredients, only show if expanded */}
                     {expandedPosts[post.postId] && (
                       <div className="mt-4">
                         {post.ingredients.map((ingredient) => (
                           <div
                             key={ingredient._id}
+                            ref={(el) => (dropdownRefs.current[ingredient._id] = el)}
                             className="card bg-base-100 shadow-md my-2 p-4 relative"
                           >
                             <div className="flex justify-between items-center">
@@ -507,7 +524,7 @@ const ShoppingList: React.FC = () => {
                             </div>
 
                             {dropdownOpen === ingredient._id && (
-                              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                              <div className="absolute right-0 mt-5 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                                 <button
                                   onClick={() =>
                                     startEditing(
@@ -593,6 +610,7 @@ const ShoppingList: React.FC = () => {
                 list.standaloneIngredients?.map((ingredient) => (
                   <div
                     key={ingredient._id}
+                    ref={(el) => (dropdownRefs.current[ingredient._id] = el)}
                     className="card bg-base-100 shadow-md my-2 p-4 relative"
                   >
                     <div className="flex justify-between items-center">
@@ -655,7 +673,7 @@ const ShoppingList: React.FC = () => {
                     </div>
 
                     {dropdownOpen === ingredient._id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="absolute right-0 mt-5 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                         <button
                           onClick={() =>
                             startEditing(

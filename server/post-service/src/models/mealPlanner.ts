@@ -18,7 +18,7 @@ const MealSchema = new Schema({
     default: false,
   },
   plannedDate: {
-    type: Date,
+    type: [Date],
   },
   postId: {
     type: mongoose.Schema.Types.ObjectId,
