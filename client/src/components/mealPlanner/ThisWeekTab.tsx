@@ -52,6 +52,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   const [date, setDate] = useState(new Date());
   const { auth } = useAuthContext();
   const { success, error } = useToastContext();
+  const [mealTimeInfo, setMealTimeInfo] = useState("");
   const getMealsForDate = (date: Date) => {
     if (!scheduledMeals) return [];
 
@@ -132,6 +133,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         setIsServingsModalOpen(true);
         break;
       case "edit":
+        console.log(scheduledMeals[mealIndex]);
         setSelectedMeal(scheduledMeals[mealIndex]);
         setIsModalScheduleOpen(true);
         break;
@@ -140,33 +142,31 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
           console.error("Failed to repeat meal, no date available");
           return;
         }
+        console.log(formattedDate);
 
-        const currentDate = format(formattedDate, "yyyy-MM-dd");
-
+        const currentDate = formattedDate;
         const nextWeekDate = addDays(new Date(currentDate), 7);
 
-        const formattedNextWeekDate = format(nextWeekDate, "yyyy-MM-dd");
-
         const updatedPlannedDatesForRepeat = [
-          ...(scheduledMeals[mealIndex]?.plannedDate || []),
-          formattedNextWeekDate,
+          ...(scheduledMeals[mealIndex]?.plannedDate || ([] as Date[])),
+          nextWeekDate,
         ];
+        console.log(updatedPlannedDatesForRepeat);
 
         await postFetcher.scheduleMeal(
           auth.token,
           scheduledMeals[mealIndex]._id,
-          updatedPlannedDatesForRepeat
+          updatedPlannedDatesForRepeat.map((date) => date.toString())
         );
 
         await fetchScheduledMeals();
 
         console.log(
-          `Repeated meal index ${mealIndex} to next week on ${formattedNextWeekDate}`
+          `Repeated meal index ${mealIndex} to next week on ${nextWeekDate}`
         );
         break;
 
       case "time":
-        console.log("Set Meal Time for meal index:", mealIndex);
         if (!formattedDate) {
           console.error("Failed to set meal time, no date available");
           return;
@@ -236,10 +236,68 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
 
   const handleSubmitSetTime = async (time: string) => {
     if (!auth?.token || !selectedMeal) return;
-    console.log("Set Meal Time for meal index:", selectedMeal);
-    console.log(time);
+
+    const plannedDate = new Date(time);
+    const plannedDateString = format(plannedDate, "yyyy-MM-dd");
+
+    const existingMeal = scheduledMeals.find((meal) =>
+      meal?.plannedDate?.some((planned) => {
+        const plannedMealDate = new Date(planned);
+        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString;
+      })
+    );
+
+    if (existingMeal) {
+      const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
+        const plannedMealDate = new Date(planned);
+        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
+          ? time
+          : planned;
+      });
+
+      if (!updatedPlannedDates) {
+        console.error("Failed to update meal time");
+        return;
+      }
+      const response = await postFetcher.scheduleMeal(
+        auth.token,
+        existingMeal._id,
+        updatedPlannedDates
+      );
+
+      if (response) {
+        success("Meal time updated successfully");
+      }
+    } else {
+      const response = await postFetcher.scheduleMeal(
+        auth.token,
+        selectedMeal._id,
+        [...(selectedMeal.plannedDate || []), time]
+      );
+
+      if (response) {
+        success("Meal time set successfully");
+      }
+    }
+
+    await fetchScheduledMeals();
     setIsModalTimeOpen(false);
-  }
+  };
+
+  const getMealTimeInfo = (mealIndex: number, scheduledMeals: Meal[], formattedDate: string) => {
+    if (!scheduledMeals[mealIndex]?.plannedDate) {
+      return "";
+    }
+    const mealSingleIndex = scheduledMeals[mealIndex].plannedDate.find(
+      (plannedDate) => format(new Date(plannedDate), "yyyy-MM-dd") === formattedDate
+    );
+
+    if (mealSingleIndex) {
+      const plannedDateTime = new Date(mealSingleIndex);
+      return format(plannedDateTime, "HH:mm");
+    }
+    return "";
+  };
 
   return (
     <div>
@@ -307,7 +365,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                             <div className="flex items-center mt-2">
                               <div className="badge badge-success text-white gap-2 p-3">
                                 <FaRegClock className="w-4 h-4" />
-                                <span>{meal.timeToTake}</span>
+                                <p>{getMealTimeInfo(mealIndex, scheduledMeals, formattedDate) ? `${getMealTimeInfo(mealIndex, scheduledMeals, formattedDate)} - ${meal.timeToTake} mins` : `${meal.timeToTake} mins` }</p>
                               </div>
                             </div>
                           </div>
@@ -375,6 +433,21 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                     </div>
                   </div>
                 ))}
+                {selectedMeal && isModalTimeOpen && (
+                  <SetTime
+                    meal={selectedMeal}
+                    date={date}
+                    time={getMealTimeInfo(
+                      scheduledMeals.findIndex(
+                        (meal) => meal.postId === selectedMeal.postId
+                        ),
+                      scheduledMeals,
+                      formattedDate,
+                    )}
+                    onClose={() => setIsModalTimeOpen(false)}
+                    onSubmit={handleSubmitSetTime}
+                  />
+                )}
                 {selectedMeal && isModalScheduleOpen && (
                   <ScheduleRecipeModal
                     recipe={selectedMeal}
@@ -391,14 +464,6 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                     onConfirm={handleServingsConfirm}
                   />
                 )}
-                {selectedMeal && isModalTimeOpen && (
-                  <SetTime meal={selectedMeal}
-                  date={date}
-                  onClose={() => setIsModalTimeOpen(false)}
-                  onSubmit={handleSubmitSetTime}
-                  />
-                )
-                  }
               </div>
             )}
             {expandedDays[formattedDate] && mealsForDay.length === 0 && (

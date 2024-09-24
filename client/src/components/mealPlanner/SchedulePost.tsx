@@ -46,10 +46,18 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
     setCurrentWeekStart(addWeeks(currentWeekStart, 1));
   };
 
+  const areSameDate = (date1: Date, date2: Date): boolean => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
   const toggleDate = (date: Date) => {
     setPickedDates((prevDates) =>
-      prevDates.some((d) => d.getTime() === date.getTime())
-        ? prevDates.filter((d) => d.getTime() !== date.getTime())
+      prevDates.some((d) => areSameDate(d, date))
+        ? prevDates.filter((d) => !areSameDate(d, date))
         : [...prevDates, date]
     );
   };
@@ -67,7 +75,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
     );
     console.log(response);
 
-    onScheduleComplete();
+    await onScheduleComplete();
     onClose();
     setPickedDates([]);
   };
@@ -141,7 +149,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
                     className="btn btn-circle"
                     onClick={() => toggleDate(date)}
                   >
-                    {pickedDates.some((d) => d.getTime() === date.getTime()) ? (
+                    {pickedDates.some((d) => areSameDate(d, date)) ? (
                       <FiMinus className="text-red-500 h-5 w-5" />
                     ) : (
                       <FiPlus className="text-green-500 h-5 w-5" />

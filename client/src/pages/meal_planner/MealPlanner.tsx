@@ -5,6 +5,7 @@ import UnscheduledTab from "../../components/mealPlanner/UnscheduledTab";
 import { Meal, postFetcher } from "../../api/post";
 import type { MealPlanner } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import MealPlannerSkeleton from "../../components/skeleton/MealPlannerSkeleton";
 
 type Tab = "today" | "thisWeek" | "unscheduled";
 
@@ -15,13 +16,23 @@ const MealPlanner: React.FC = () => {
   );
   const [unscheduledMeals, setUnscheduledMeals] = useState<Meal[]>([]);
   const [scheduledMeals, setScheduledMeals] = useState<Meal[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const { auth } = useAuthContext();
+
   const fetchMealPlanner = async () => {
     if (!auth?.token) return;
-    const mealPlanner = await postFetcher.getMealPlanner(auth.token);
-    if (!mealPlanner) return;
-    setMealPlanner(mealPlanner as unknown as MealPlanner);
+    setLoading(true);
+    try {
+      const mealPlanner = await postFetcher.getMealPlanner(auth.token);
+      if (!mealPlanner) return;
+      setMealPlanner(mealPlanner as unknown as MealPlanner);
+    } catch (error) {
+      console.error("Failed to fetch meal planner:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
   useEffect(() => {
     fetchMealPlanner();
   }, [auth?.token]);
@@ -39,7 +50,12 @@ const MealPlanner: React.FC = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "today":
-        return <TodayTab scheduledMeals={scheduledMeals} />;
+        return (
+          <TodayTab
+            scheduledMeals={scheduledMeals}
+            fetchScheduledMeals={fetchMealPlanner}
+          />
+        );
       case "thisWeek":
         return (
           <ThisWeekTab
@@ -62,43 +78,45 @@ const MealPlanner: React.FC = () => {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-center">Meal Planner</h1>
-      </div>
-
-      {/* Tabs */}
-      <div role="tablist" className="tabs tabs-boxed my-4 flex-nowrap flex">
-        <a
-          className={`tab ${
-            activeTab === "today" ? "tab-active" : ""
-          } flex-1 text-center whitespace-nowrap`}
-          role="tab"
-          onClick={() => setActiveTab("today")}
-        >
-          Today
-        </a>
-        <a
-          className={`tab ${
-            activeTab === "thisWeek" ? "tab-active" : ""
-          } flex-1 text-center whitespace-nowrap`}
-          role="tab"
-          onClick={() => setActiveTab("thisWeek")}
-        >
-          This Week
-        </a>
-        <a
-          className={`tab ${
-            activeTab === "unscheduled" ? "tab-active" : ""
-          } flex-1 text-center whitespace-nowrap`}
-          role="tab"
-          onClick={() => setActiveTab("unscheduled")}
-        >
-          Unscheduled
-        </a>
-      </div>
-
-      {renderActiveTab()}
+      {loading ? (
+        <MealPlannerSkeleton />
+      ) : (
+        <>
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-center">Meal Planner</h1>
+          </div>
+          <div role="tablist" className="tabs tabs-boxed my-4 flex-nowrap flex">
+            <a
+              className={`tab ${
+                activeTab === "today" ? "tab-active" : ""
+              } flex-1 text-center whitespace-nowrap`}
+              role="tab"
+              onClick={() => setActiveTab("today")}
+            >
+              Today
+            </a>
+            <a
+              className={`tab ${
+                activeTab === "thisWeek" ? "tab-active" : ""
+              } flex-1 text-center whitespace-nowrap`}
+              role="tab"
+              onClick={() => setActiveTab("thisWeek")}
+            >
+              This Week
+            </a>
+            <a
+              className={`tab ${
+                activeTab === "unscheduled" ? "tab-active" : ""
+              } flex-1 text-center whitespace-nowrap`}
+              role="tab"
+              onClick={() => setActiveTab("unscheduled")}
+            >
+              Unscheduled
+            </a>
+          </div>
+          {renderActiveTab()}
+        </>
+      )}
     </div>
   );
 };
