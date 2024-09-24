@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import { format, addDays, subDays } from "date-fns";
 import { Meal } from "../../api/post";
-import {
-  FaAngleLeft,
-  FaAngleRight,
-  FaAngleDown,
-  FaAngleUp,
-} from "react-icons/fa";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FaRegClock } from "react-icons/fa";
 
 interface TodayTabProps {
   scheduledMeals: Meal[];
@@ -16,7 +12,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const getMealsForDate = (date: Date) => {
-    return scheduledMeals.filter((meal) =>
+    return scheduledMeals?.filter((meal) =>
       meal?.plannedDate?.some((plannedDate: string) => {
         const plannedDateObj = new Date(plannedDate);
         const plannedDateFormatted = format(plannedDateObj, "yyyy-MM-dd");
@@ -39,19 +35,25 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals }) => {
   return (
     <div>
       {/* Date Navigation */}
-      <div className="flex justify-between items-center mb-4">
-        <button onClick={handlePrevDay} className="btn btn-circle btn-sm">
-          <FaAngleLeft />
+      <div className="flex p-4 rounded-lg shadow-md justify-between items-center mb-4">
+        <button
+          onClick={handlePrevDay}
+          className="btn btn-circle btn-sm bg-white text-gray-600"
+        >
+          <FiChevronLeft />
         </button>
         <h2 className="text-lg font-semibold">
           {format(selectedDate, "EEEE, MMMM d")}
         </h2>
-        <button onClick={handleNextDay} className="btn btn-circle btn-sm">
-          <FaAngleRight />
+        <button
+          onClick={handleNextDay}
+          className="btn btn-circle btn-sm bg-white text-gray-600"
+        >
+          <FiChevronRight />
         </button>
       </div>
 
-      {mealsForSelectedDate.length > 0 && (
+      {mealsForSelectedDate?.length > 0 && (
         <div className="space-y-4 mt-2">
           {mealsForSelectedDate.map((meal, mealIndex) => (
             <div key={mealIndex} className="card shadow-lg">
@@ -64,7 +66,12 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals }) => {
                   />
                   <div className="ml-4">
                     <h3 className="font-bold">{meal.title}</h3>
-                    <p className="text-sm">{meal.timeToTake}</p>
+                    <div className="flex items-center mt-2">
+                      <div className="badge badge-success text-white gap-2 p-3">
+                        <FaRegClock className="w-4 h-4" />
+                        <span>{meal.timeToTake}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -72,7 +79,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals }) => {
           ))}
         </div>
       )}
-      {mealsForSelectedDate.length === 0 && (
+      {!mealsForSelectedDate || mealsForSelectedDate.length === 0 && (
         <div className="text-gray-500 italic mt-2">
           No meals planned for this date
         </div>

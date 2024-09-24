@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiChevronLeft, FiChevronRight, FiMinus, FiPlus } from "react-icons/fi";
 import { addWeeks, subWeeks, startOfWeek, endOfWeek, addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
@@ -14,6 +14,7 @@ interface ScheduleRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onScheduleComplete: () => void;
+  plannedDates?: string[];
 }
 
 const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
@@ -21,6 +22,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
   isOpen,
   onClose,
   onScheduleComplete,
+  plannedDates = [],
 }) => {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -29,6 +31,13 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
 
   const currentWeekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
   const { auth } = useAuthContext();
+
+  useEffect(() => {
+    if (plannedDates && plannedDates.length > 0) {
+      setPickedDates(plannedDates.map((dateStr) => new Date(dateStr)));
+    }
+  }, [plannedDates]);
+
   const handlePrevWeek = () => {
     setCurrentWeekStart(subWeeks(currentWeekStart, 1));
   };
@@ -43,7 +52,6 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
         ? prevDates.filter((d) => d.getTime() !== date.getTime())
         : [...prevDates, date]
     );
-    console.log(pickedDates);
   };
 
   const daysOfWeek = Array.from({ length: 7 }).map((_, index) =>
@@ -60,7 +68,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
     console.log(response);
 
     onScheduleComplete();
-
+    onClose();
     setPickedDates([]);
   };
 

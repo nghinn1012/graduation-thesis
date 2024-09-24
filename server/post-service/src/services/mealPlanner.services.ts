@@ -100,7 +100,7 @@ export const scheduleMealService = async (
     }
 
     const mealIndex = mealPlanner.meals.findIndex(
-      (meal) => meal._id.toString() === mealId && !meal.is_planned
+      (meal) => meal._id.toString() === mealId
     );
 
     if (mealIndex === -1) {
@@ -108,7 +108,15 @@ export const scheduleMealService = async (
     }
 
     mealPlanner.meals[mealIndex].is_planned = true;
-    mealPlanner.meals[mealIndex].plannedDate.push(...dates.map((date) => new Date(date)));
+    while (mealPlanner.meals[mealIndex].plannedDate.length > 0) {
+      mealPlanner.meals[mealIndex].plannedDate.pop();
+    }
+    if (dates.length === 0) {
+      mealPlanner.meals[mealIndex].is_planned = false;
+      await mealPlanner.save();
+      return mealPlanner;
+    }
+    mealPlanner.meals[mealIndex].plannedDate.push(...dates);
 
     await mealPlanner.save();
 

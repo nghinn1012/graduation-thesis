@@ -631,7 +631,7 @@ export const postFetcher: PostFetcher = {
   scheduleMeal: async (token: string, mealId: string, dates: string[]): Promise<PostResponse<Meal>> => {
     return postInstance.patch(postEndpoints.scheduleMeal, {
       mealId,
-      plannedDate: dates,
+      plannedDate:dates,
     },
       {
         headers: {

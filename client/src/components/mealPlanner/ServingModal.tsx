@@ -19,7 +19,7 @@ const ServingsModal: React.FC<ServingsModalProps> = ({ isOpen, onClose, onConfir
   });
 
   const formik = useFormik({
-    initialValues: { servings: '1' }, // Set default to '1'
+    initialValues: { servings: '1' }, 
     validationSchema,
     onSubmit: (values) => {
       onConfirm(Number(values.servings));
@@ -49,14 +49,14 @@ const ServingsModal: React.FC<ServingsModalProps> = ({ isOpen, onClose, onConfir
             min="1"
             onChange={formik.handleChange}
             onFocus={handleFocus}
-            className={`border rounded p-2 mb-4 ${formik.errors.servings ? 'border-red-500' : ''}`}
+            className={`border rounded p-2 mb-4 w-full ${formik.errors.servings ? 'border-red-500' : ''}`}
             ref={inputRef}
           />
           {formik.errors.servings && (
             <div className="text-red-500 mb-2">{formik.errors.servings}</div>
           )}
           <div className="flex justify-between">
-            <button type="button" onClick={onClose} className="btn btn-secondary mr-4">Cancel</button>
+            <button type="button" onClick={onClose} className="btn btn-secondary mr-2">Cancel</button>
             <button type="submit" className="btn btn-primary">Add to Shopping List</button>
           </div>
         </form>

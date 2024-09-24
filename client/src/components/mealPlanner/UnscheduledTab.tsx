@@ -5,6 +5,7 @@ import ScheduleRecipeModal from "./SchedulePost";
 import ServingsModal from "./ServingModal";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useToastContext } from "../../hooks/useToastContext";
+import { FaRegClock } from "react-icons/fa";
 
 interface UnscheduledTabProps {
   unscheduledMeals: Meal[];
@@ -41,7 +42,10 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
       setIsModalScheduleOpen(true);
     }
     if (action === "Remove") {
-      const response = await postFetcher.removeMeal({ mealId: meal._id }, auth.token);
+      const response = await postFetcher.removeMeal(
+        { mealId: meal._id },
+        auth.token
+      );
       if (response) {
         setUnscheduledMeals((prev) => prev.filter((m) => m._id !== meal._id));
         success("Removed meal");
@@ -58,13 +62,17 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
   const handleServingsConfirm = async (servings: number) => {
     if (!auth?.token || !selectedMeal) return;
 
-    const response = await postFetcher.addIngredientToShoppingList(auth.token, selectedMeal.postId, servings);
+    const response = await postFetcher.addIngredientToShoppingList(
+      auth.token,
+      selectedMeal.postId,
+      servings
+    );
     if (response) {
       success("Added to shopping list");
     } else {
       error("Failed to add to shopping list");
     }
-    setIsServingsModalOpen(false); 
+    setIsServingsModalOpen(false);
   };
 
   const handleClickOutside = (event: MouseEvent) => {
@@ -88,7 +96,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
   return (
     <div>
       <h2 className="text-lg font-semibold">Unscheduled Meals</h2>
-      {unscheduledMeals.length > 0 ? (
+      {unscheduledMeals?.length > 0 ? (
         <div className="space-y-4 mt-2">
           {unscheduledMeals.map((meal, mealIndex) => (
             <div key={mealIndex} className="card shadow-lg">
@@ -101,7 +109,12 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                   />
                   <div className="ml-4">
                     <h3 className="font-bold">{meal.title}</h3>
-                    <p className="text-sm">{meal.timeToTake}</p>
+                    <div className="flex items-center mt-2">
+                      <div className="badge badge-success text-white gap-2 p-3">
+                        <FaRegClock className="w-4 h-4" />
+                        <span>{meal.timeToTake}</span>
+                      </div>
+                    </div>
                   </div>
                   <div className="ml-auto">
                     <div
@@ -128,7 +141,9 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                               Remove
                             </li>
                             <li
-                              onClick={() => handleAction("Add to Shopping List", meal)}
+                              onClick={() =>
+                                handleAction("Add to Shopping List", meal)
+                              }
                               className="cursor-pointer hover:bg-gray-200 p-1 rounded"
                             >
                               Add to Shopping List
@@ -149,13 +164,14 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                   onScheduleComplete={fetchScheduledMeals}
                 />
               )}
-              {selectedMeal && isServingsModalOpen && ( // Render the servings modal
-                <ServingsModal
-                  isOpen={isServingsModalOpen}
-                  onClose={() => setIsServingsModalOpen(false)}
-                  onConfirm={handleServingsConfirm}
-                />
-              )}
+              {selectedMeal &&
+                isServingsModalOpen && ( // Render the servings modal
+                  <ServingsModal
+                    isOpen={isServingsModalOpen}
+                    onClose={() => setIsServingsModalOpen(false)}
+                    onConfirm={handleServingsConfirm}
+                  />
+                )}
             </div>
           ))}
         </div>

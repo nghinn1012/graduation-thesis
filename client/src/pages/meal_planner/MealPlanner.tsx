@@ -19,6 +19,7 @@ const MealPlanner: React.FC = () => {
   const fetchMealPlanner = async () => {
     if (!auth?.token) return;
     const mealPlanner = await postFetcher.getMealPlanner(auth.token);
+    if (!mealPlanner) return;
     setMealPlanner(mealPlanner as unknown as MealPlanner);
   };
   useEffect(() => {
@@ -38,9 +39,14 @@ const MealPlanner: React.FC = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "today":
-        return <TodayTab scheduledMeals={scheduledMeals}/>;
+        return <TodayTab scheduledMeals={scheduledMeals} />;
       case "thisWeek":
-        return <ThisWeekTab scheduledMeals={scheduledMeals}/>;
+        return (
+          <ThisWeekTab
+            scheduledMeals={scheduledMeals}
+            fetchScheduledMeals={fetchMealPlanner}
+          />
+        );
       case "unscheduled":
         return (
           <UnscheduledTab
