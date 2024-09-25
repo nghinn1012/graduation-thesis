@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { IoIosCamera } from "react-icons/io";
 import {
   IoAddCircleOutline,
@@ -107,6 +107,25 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   removeInstruction,
 }) => {
   const [errors, setErrors] = useState<Errors>({});
+  const [hours, setHours] = useState<string>("0");
+  const [minutes, setMinutes] = useState<string>("0");
+
+  useEffect(() => {
+    if (timeToTake) {
+      const timeParts = timeToTake.split(" ");
+      const hours = timeParts[0].slice(0, -1);
+      const minutes = timeParts[1].slice(0, -1);
+      setHours(hours);
+      setMinutes(minutes);
+    }
+  }, []);
+
+  useEffect(() => {
+    const formattedTime = `${hours}h ${minutes}m`;
+    handleTimeToTake({
+      target: { value: formattedTime },
+    } as unknown as ChangeEvent<HTMLInputElement>);
+  }, [hours, minutes, handleTimeToTake]);
 
   useEffect(() => {
     const validate = async () => {
@@ -164,22 +183,34 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
         <h2 className="text-2xl font-bold">RECIPE DETAILS</h2>
       </div>
       <div className="flex flex-row justify-between mb-4">
-        <div className="flex-1">
-          <label className="block text-sm font-semibold mb-1">
-            TIME TO TAKE
-          </label>
-          <input
-            type="text"
-            className="w-full input input-bordered"
-            placeholder="Time to take"
-            value={timeToTake || ""}
-            onChange={handleTimeToTake}
-            disabled={isSubmitting}
-          />
-          {errors.timeToTake && (
-            <p className="text-red-500">{errors.timeToTake}</p>
-          )}
+        <div className="flex flex-1 flex-row">
+          <div className="flex-1 mr-4">
+            <label className="block text-sm font-semibold mb-1">HOURS</label>
+            <input
+              type="number"
+              className="w-full input input-bordered"
+              placeholder="Hours"
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-semibold mb-1">MINUTES</label>
+            <input
+              type="number"
+              className="w-full input input-bordered"
+              placeholder="Minutes"
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
+
+        {errors.timeToTake && (
+          <p className="text-red-500">{errors.timeToTake}</p>
+        )}
         <div className="flex-1 ml-4">
           <label className="block text-sm font-semibold mb-1">SERVINGS</label>
           <input
@@ -297,7 +328,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             <button
               type="button"
               className="mx-auto z-50 rounded-full w-10 h-10 flex flex-col items-center justify-center text-center leading-none"
-              onClick={() => handleClickIcon(index)} // Truyền index vào hàm
+              onClick={() => handleClickIcon(index)}
               disabled={isSubmitting}
             >
               <IoIosCamera className="w-6 h-6 mx-auto" />
@@ -316,30 +347,6 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                 />
               </div>
             )}
-
-            {/* Move Up Button */}
-            {/* {index > 0 && (
-              <button
-                type="button"
-                className="btn btn-secondary mr-2"
-                // onClick={() => moveInstructionUp(index)}
-                disabled={isSubmitting}
-              >
-                Move Up
-              </button>
-            )} */}
-
-            {/* Move Down Button */}
-            {/* {index < instructions.length - 1 && (
-              <button
-                type="button"
-                className="btn btn-secondary mr-2"
-                // onClick={() => moveInstructionDown(index)}
-                disabled={isSubmitting}
-              >
-                Move Down
-              </button>
-            )} */}
           </div>
         ))}
         <button

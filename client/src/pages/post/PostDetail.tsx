@@ -382,6 +382,20 @@ const PostDetails: React.FunctionComponent = () => {
     }
   };
 
+  const handleShowTimeToTake = (timeToTake: string) => {
+    const [hours, minutes] = timeToTake.split(" ");
+    const modifiedHours = hours.slice(0, -1);
+    const modifiedMinutes = minutes.slice(0, -1);
+
+    if (parseInt(modifiedHours) === 0) {
+      return `${modifiedMinutes} minutes`;
+    }
+    if (parseInt(modifiedMinutes) === 0) {
+      return `${modifiedHours} hours`;
+    }
+    return `${modifiedHours} hours ${modifiedMinutes} minutes`;
+  }
+
   return (
     <>
       {isLoading ? (
@@ -419,7 +433,7 @@ const PostDetails: React.FunctionComponent = () => {
             <div className="flex items-center justify-between text-gray-500">
               <span className="text-lg font-bold">{post.title}</span>
 
-              <span className="text-sm">⏰ {post.timeToTake}</span>
+              <span className="text-sm">⏰ {handleShowTimeToTake(post.timeToTake)}</span>
             </div>
 
             <div className="flex mt-2 gap-2">

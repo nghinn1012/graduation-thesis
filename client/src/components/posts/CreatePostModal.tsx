@@ -219,6 +219,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
 
   const handleTimeToTake = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTimeToTake(e.target.value);
+    console.log(timeToTake);
   };
 
   const handleServings = (e: React.ChangeEvent<HTMLInputElement>) => {
