@@ -10,7 +10,7 @@ import {
 } from "date-fns";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { FaAngleDown, FaAngleUp, FaRegClock } from "react-icons/fa";
-import { Meal, postFetcher } from "../../api/post";
+import { Meal, MealPlannedDate, postFetcher } from "../../api/post";
 import { IoIosMore } from "react-icons/io";
 import ServingsModal from "./ServingModal";
 import { useToastContext } from "../../hooks/useToastContext";
@@ -57,8 +57,8 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
     if (!scheduledMeals) return [];
 
     return scheduledMeals.filter((meal) =>
-      meal?.plannedDate?.some((plannedDate: string) => {
-        const plannedDateObj = new Date(plannedDate);
+      meal?.plannedDate?.some((plannedDate: MealPlannedDate) => {
+        const plannedDateObj = new Date(plannedDate.date);
 
         const plannedDateFormatted = `${plannedDateObj.getFullYear()}-${(
           plannedDateObj.getMonth() + 1
@@ -142,28 +142,26 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
           console.error("Failed to repeat meal, no date available");
           return;
         }
-        console.log(formattedDate);
 
         const currentDate = formattedDate;
         const nextWeekDate = addDays(new Date(currentDate), 7);
 
         const updatedPlannedDatesForRepeat = [
-          ...(scheduledMeals[mealIndex]?.plannedDate || ([] as Date[])),
-          nextWeekDate,
+          ...(scheduledMeals[mealIndex]?.plannedDate || ([] as MealPlannedDate[])),
+          {
+            date: nextWeekDate,
+            mealTime: false,
+          },
         ];
-        console.log(updatedPlannedDatesForRepeat);
 
         await postFetcher.scheduleMeal(
           auth.token,
           scheduledMeals[mealIndex]._id,
-          updatedPlannedDatesForRepeat.map((date) => date.toString())
+          updatedPlannedDatesForRepeat as MealPlannedDate[],
         );
 
         await fetchScheduledMeals();
 
-        console.log(
-          `Repeated meal index ${mealIndex} to next week on ${nextWeekDate}`
-        );
         break;
 
       case "time":
@@ -184,9 +182,8 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         const updatedPlannedDates = scheduledMeals[
           mealIndex
         ]?.plannedDate?.filter(
-          (date) => format(new Date(date), "yyyy-MM-dd") !== today?.toString()
+          (plannedDate) => format(new Date(plannedDate.date), "yyyy-MM-dd") !== today?.toString()
         );
-        console.log(updatedPlannedDates);
         if (updatedPlannedDates?.length === 0) {
           console.log(
             `Meal index ${mealIndex} has no more planned dates, consider removing it from schedule`
@@ -202,7 +199,6 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
           updatedPlannedDates
         );
         await fetchScheduledMeals();
-        console.log(`Removed meal index ${mealIndex} from today's date`);
         break;
       default:
         console.log("Unknown action");
@@ -242,16 +238,19 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
 
     const existingMeal = scheduledMeals.find((meal) =>
       meal?.plannedDate?.some((planned) => {
-        const plannedMealDate = new Date(planned);
+        const plannedMealDate = new Date(planned.date);
         return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString;
       })
     );
 
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
-        const plannedMealDate = new Date(planned);
+        const plannedMealDate = new Date(planned.date);
         return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
-          ? time
+          ? {
+            date: time,
+            mealTime: true,
+          }
           : planned;
       });
 
@@ -262,7 +261,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       const response = await postFetcher.scheduleMeal(
         auth.token,
         existingMeal._id,
-        updatedPlannedDates
+        updatedPlannedDates as MealPlannedDate[]
       );
 
       if (response) {
@@ -272,7 +271,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       const response = await postFetcher.scheduleMeal(
         auth.token,
         selectedMeal._id,
-        [...(selectedMeal.plannedDate || []), time]
+        [...selectedMeal.plannedDate || [], { date: time, mealTime: true }] as MealPlannedDate[]
       );
 
       if (response) {
@@ -289,11 +288,11 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       return "";
     }
     const mealSingleIndex = scheduledMeals[mealIndex].plannedDate.find(
-      (plannedDate) => format(new Date(plannedDate), "yyyy-MM-dd") === formattedDate
+      (plannedDate) => format(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
     );
 
-    if (mealSingleIndex) {
-      const plannedDateTime = new Date(mealSingleIndex);
+    if (mealSingleIndex && mealSingleIndex.mealTime) {
+      const plannedDateTime = new Date(mealSingleIndex.date);
       return format(plannedDateTime, "HH:mm");
     }
     return "";

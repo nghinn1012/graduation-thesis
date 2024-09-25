@@ -1,5 +1,13 @@
 import mongoose, { model, Schema } from "mongoose";
 
+const MealPlannedDate = new Schema({
+  date: {
+    type: String,
+  },
+  mealTime: {
+    type: Boolean,
+  },
+});
 const MealSchema = new Schema({
   title: {
     type: String,
@@ -18,7 +26,7 @@ const MealSchema = new Schema({
     default: false,
   },
   plannedDate: {
-    type: [String],
+    type: [MealPlannedDate],
   },
   postId: {
     type: mongoose.Schema.Types.ObjectId,

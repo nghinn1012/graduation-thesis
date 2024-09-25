@@ -253,20 +253,25 @@ export interface updateIngredientInShoppingList {
   checked: boolean;
 }
 
+export interface MealPlannedDate {
+  date: string;
+  mealTime?: boolean;
+}
+
 export interface Meal {
   _id: string;
   timeToTake?: string;
   title: string;
   imageUrl: string;
   is_planned: boolean;
-  plannedDate?: string[];
+  plannedDate?: MealPlannedDate[];
   postId: string;
 }
 
 export interface createMealData {
   postId: string;
   is_planned: boolean;
-  plannedDate?: Date;
+  plannedDate?: MealPlannedDate;
 }
 
 export interface MealPlanner {
@@ -322,7 +327,7 @@ export interface PostFetcher {
   getMealPlanner: (token: string) => Promise<PostResponse<MealPlanner>>;
   checkPostInUnscheduledMeal: (postId: string, token: string) => Promise<PostResponse<boolean>>;
   removeMeal: (deleteMeal: DeleteMeal, token: string) => Promise<PostResponse<Meal>>;
-  scheduleMeal: (token: string, mealId: string, dates: string[]) => Promise<PostResponse<Meal>>;
+  scheduleMeal: (token: string, mealId: string, dates: MealPlannedDate[]) => Promise<PostResponse<Meal>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -628,7 +633,7 @@ export const postFetcher: PostFetcher = {
       },
     });
   },
-  scheduleMeal: async (token: string, mealId: string, dates: string[]): Promise<PostResponse<Meal>> => {
+  scheduleMeal: async (token: string, mealId: string, dates: MealPlannedDate[]): Promise<PostResponse<Meal>> => {
     return postInstance.patch(postEndpoints.scheduleMeal, {
       mealId,
       plannedDate:dates,

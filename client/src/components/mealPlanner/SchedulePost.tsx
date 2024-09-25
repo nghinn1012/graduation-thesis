@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronLeft, FiChevronRight, FiMinus, FiPlus } from "react-icons/fi";
 import { addWeeks, subWeeks, startOfWeek, endOfWeek, addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
-import { postFetcher } from "../../api/post";
+import { MealPlannedDate, postFetcher } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
 
 interface ScheduleRecipeModalProps {
@@ -14,7 +14,7 @@ interface ScheduleRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onScheduleComplete: () => void;
-  plannedDates?: string[];
+  plannedDates?: MealPlannedDate[];
 }
 
 const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
@@ -27,14 +27,18 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
-  const [pickedDates, setPickedDates] = useState<Date[]>([]);
+  const [pickedDates, setPickedDates] = useState<MealPlannedDate[]>([]);
 
   const currentWeekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
   const { auth } = useAuthContext();
 
   useEffect(() => {
     if (plannedDates && plannedDates.length > 0) {
-      setPickedDates(plannedDates.map((dateStr) => new Date(dateStr)));
+      setPickedDates(plannedDates.map((dateStr) => ({
+        date: new Date(dateStr.date).toString(),
+        mealTime: dateStr.mealTime,
+      })
+      ));
     }
   }, [plannedDates]);
 
@@ -56,9 +60,12 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
 
   const toggleDate = (date: Date) => {
     setPickedDates((prevDates) =>
-      prevDates.some((d) => areSameDate(d, date))
-        ? prevDates.filter((d) => !areSameDate(d, date))
-        : [...prevDates, date]
+      prevDates.some((d) => areSameDate(new Date(d.date), date))
+        ? prevDates.filter((d) => !areSameDate(new Date(d.date), date))
+        : [...prevDates, {
+          date: date.toString(),
+          mealTime: false,
+        }]
     );
   };
 
@@ -68,10 +75,11 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
 
   const handleSubmitSchedule = async () => {
     if (!auth?.token) return;
+    console.log("hi");
     const response = await postFetcher.scheduleMeal(
       auth.token,
       recipe._id,
-      pickedDates.map((pickDate) => pickDate.toString())
+      pickedDates
     );
     console.log(response);
 
@@ -149,7 +157,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
                     className="btn btn-circle"
                     onClick={() => toggleDate(date)}
                   >
-                    {pickedDates.some((d) => areSameDate(d, date)) ? (
+                    {pickedDates.some((d) => areSameDate(new Date(d.date), date)) ? (
                       <FiMinus className="text-red-500 h-5 w-5" />
                     ) : (
                       <FiPlus className="text-green-500 h-5 w-5" />
