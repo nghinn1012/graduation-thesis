@@ -20,6 +20,7 @@ export const postEndpoints = {
 
   // posts
   createPost: "/posts/create",
+  searchPost: "/posts/search",
   getAllPosts: "/posts",
   updatePost: "/posts/:id",
   getPostById: "/posts/:id",
@@ -30,7 +31,6 @@ export const postEndpoints = {
   getPostSavedByUser: "/posts/savedList",
   isLikedPostByUser: "/posts/:id/isLiked",
   isSavedPostByUser: "/posts/:id/isSaved",
-  searchPost: "/posts/search",
 
   //recipe
   createMadeRecipe: "/posts/:id/made",
@@ -303,7 +303,7 @@ export interface PostFetcher {
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  searchPost: (query: string, token: string) => Promise<PostResponse<searchPostData>>;
+  searchPost: (query: string, limit: number, skip: number, token: string) => Promise<PostResponse<searchPostData>>;
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
@@ -441,14 +441,16 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  searchPost: async (query: string, token: string): Promise<PostResponse<searchPostData>> => {
+  searchPost: async (query: string, limit: number, skip: number, token: string): Promise<PostResponse<searchPostData>> => {
     return postInstance.get(postEndpoints.searchPost,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
         params: {
-          query,
+          query: query,
+          limit: 10,
+          skip: 0,
         }
       }
     );

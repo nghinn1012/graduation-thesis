@@ -3,6 +3,7 @@ import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from ".
 import { IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
 import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
+import { PostSearchBuilder } from "../data/interface/queryBuilder";
 
 export const createPostService = async (data: IPost) => {
   try {
@@ -384,46 +385,23 @@ export const deletePostService = async (postId: string, userId: string) => {
   }
 };
 
-export const searchPostService = async (
-  query: string,
-) => {
-  try {
-    const searchResults = await postModel.aggregate([
-      {
-        $match: {
-          $or: [
-            { title: { $regex: query, $options: 'i' } },
-            { about: { $regex: query, $options: 'i' } },
-            { "ingredients.name": { $regex: query, $options: 'i' } },
-            { "instructions.description": { $regex: query, $options: 'i' } },
-          ],
-        },
-      },
-      {
-        $addFields: {
-          titleMatch: {
-            $cond: {
-              if: { $regexMatch: { input: "$title", regex: query, options: 'i' } },
-              then: 1,
-              else: 0,
-            },
-          },
-        },
-      },
-      {
-        $sort: { titleMatch: -1 },
-      },
-    ]);
+export const searchPostService = async (query: string, pageSize: number, page: number) => {
+  const postSearchBuilder = new PostSearchBuilder()
+    .search(query)
+    .paginate(pageSize, page);
 
-    const authors = await rpcGetUsers<IAuthor[]>(searchResults.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
-    return {
-      posts: searchResults.map((post, index) => ({
-        ...post,
-        author: authors ? authors[index] : null,
-      })),
-    };
-  } catch (error) {
-    console.error("Error searching posts:", error);
-    throw new Error("Search failed");
-  }
+  const pipeline = postSearchBuilder.build();
+
+  const posts = await postModel.aggregate(pipeline);
+
+  const totalPosts = await postModel.countDocuments({
+    $or: [
+      { title: { $regex: query, $options: 'i' } },
+      { about: { $regex: query, $options: 'i' } },
+      { "ingredients.name": { $regex: query, $options: 'i' } },
+      { "instructions.description": { $regex: query, $options: 'i' } },
+    ]
+  });
+
+  return { posts, total: totalPosts, page, pageSize };
 };

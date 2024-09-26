@@ -1,30 +1,16 @@
+// SearchPage.tsx
 import React, { useState } from "react";
 import { FiSearch } from "react-icons/fi";
-import Posts from "../../components/posts/PostsList";
 import UserList from "../users/UserList";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { postFetcher, searchPostData } from "../../api/post";
-import { useAuthContext } from "../../hooks/useAuthContext";
+import FollowingTab from "../../components/search/FollowingTab";
+import { useSearchContext } from "../../context/SearchContext";
 
 const SearchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("following");
-  const [searchType, setSearchType] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<any>({});
-  const navigate = useNavigate();
-  const {auth} = useAuthContext();
-
+  const { searchQuery, setSearchQuery } = useSearchContext();
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if (!auth?.token) return;
     if (e.key === "Enter") {
-      if (!searchType) return;
-      try {
-        const response = await postFetcher.searchPost(searchType, auth.token) as unknown as searchPostData;
-        setSearchResults(response.posts);
-        navigate(`/users/search?searchTerm=${encodeURIComponent(searchType)}`);
-      } catch (error) {
-        console.error("Search error:", error);
-      }
+      setSearchQuery(e.currentTarget.value);
     }
   };
 
@@ -32,11 +18,11 @@ const SearchPage: React.FC = () => {
     switch (activeTab) {
       case "following":
       case "recent":
-        return <Posts postsSearch={searchResults} locationPath={location.pathname}/>;
+        return <FollowingTab />;
       case "users":
         return <UserList />;
       default:
-        return <p>Không có nội dung.</p>;
+        return <p>No content available.</p>;
     }
   };
 
@@ -48,9 +34,7 @@ const SearchPage: React.FC = () => {
           placeholder="Search posts, users, ingredients..."
           className="w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none
           focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out hover:bg-white"
-          value={searchType}
-          onChange={(e) => setSearchType(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={handleKeyDown} 
         />
         <span className="absolute left-3 top-1/2 transform -translate-y-1/2">
           <FiSearch className="w-5 h-5 text-gray-400" />

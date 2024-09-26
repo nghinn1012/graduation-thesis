@@ -10,7 +10,7 @@ interface PostContextType {
   isLoading: boolean;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   fetchPost: (postId: string) => Promise<PostInfo | void>;
-  fetchPosts: (searchTerm?: string) => void;
+  fetchPosts: () => void;
   hasMore: boolean;
   setHasMore?: React.Dispatch<React.SetStateAction<boolean>>;
   loadMorePosts: () => void;

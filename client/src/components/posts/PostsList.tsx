@@ -3,15 +3,8 @@ import PostSkeleton from "../skeleton/PostSkeleton";
 import Post from "./PostInfo";
 import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
-import { useAuthContext } from "../../hooks/useAuthContext";
-import { PostInfo } from "../../api/post";
 
-interface PostProps {
-  postsSearch?: PostInfo[];
-  locationPath?: string;
-}
-
-const Posts: React.FC<PostProps> = ({ postsSearch, locationPath }) => {
+const Posts: React.FC = () => {
   const {
     posts,
     isLoading,
@@ -28,17 +21,6 @@ const Posts: React.FC<PostProps> = ({ postsSearch, locationPath }) => {
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
   const updatedPost = location.state?.updatedPost;
-
-  useEffect(() => {
-    if (Array.isArray(postsSearch) && setPosts) {
-      setPosts((prevPosts) => {
-        return postsSearch;
-      });
-      console.log(posts);
-    }
-  }, [postsSearch, setPosts]);
-
-
 
   useEffect(() => {
     if (updatedPost && setPosts) {
@@ -117,7 +99,7 @@ const Posts: React.FC<PostProps> = ({ postsSearch, locationPath }) => {
               key={post._id}
               ref={index === posts.length - 1 ? lastPostRef : null}
             >
-              <Post post={post} locationPath={locationPath}/>
+              <Post post={post}/>
             </div>
           ))}
         </div>

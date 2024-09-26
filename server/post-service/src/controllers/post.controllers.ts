@@ -114,18 +114,50 @@ export const deletePostController = async (request: AuthRequest, response: Respo
 
 export const searchPostController = async (request: AuthRequest, response: Response) => {
   try {
-    const { query } = request.query;
-    const posts = await searchPostService(query as string);
-    if (!posts) {
+    const { query, page, pageSize } = request.query;
+
+    // Log the search query for debugging
+    console.log("query:", query);
+
+    // Validate the query
+    if (typeof query !== 'string' || query.trim() === '') {
       return response.status(400).json({
-        message: "Cannot search posts"
+        message: "Invalid search query. It must be a non-empty string."
       });
     }
-    return response.status(200).json(posts);
+
+    // Parse page and pageSize with default values
+    const parsedPageSize = pageSize ? parseInt(pageSize as string, 10) : 10; // Default pageSize
+    const parsedPage = page ? parseInt(page as string, 10) : 1; // Default page
+
+    // Call the service to search for posts
+    const { posts, total, page: currentPage, pageSize: currentPageSize } = await searchPostService(query as string, parsedPageSize, parsedPage);
+
+    // Check if posts were found
+    if (!posts || posts.length === 0) {
+      return response.status(200).json({
+        message: "No posts found matching the search criteria.",
+        posts: [],
+        totalPosts: total,
+        currentPage,
+        pageSize: currentPageSize
+      });
+    }
+
+    // Respond with the found posts and pagination details
+    return response.status(200).json({
+      message: "Posts retrieved successfully.",
+      posts,
+      totalPosts: total,
+      currentPage,
+      pageSize: currentPageSize,
+      totalPages: Math.ceil(total / currentPageSize), // Calculate total pages
+    });
   } catch (error) {
-    return response.status(400).json({
-      message: "Cannot search posts",
+    console.error("Error in searchPostController:", error);
+    return response.status(500).json({
+      message: "An error occurred while searching for posts.",
       error: (error as Error).message
     });
   }
-}
+};
