@@ -401,13 +401,11 @@ const ShoppingList: React.FC = () => {
                         />
                       )}
 
-                      {/* Title and Servings */}
                       <div className="flex-1">
                         <h2 className="card-title">{post.title}</h2>
                         <p className="text-sm">Servings: {post.servings}</p>
                       </div>
 
-                      {/* Toggle expand/collapse */}
                       <button
                         className="p-2"
                         onClick={() => toggleExpand(post.postId)}

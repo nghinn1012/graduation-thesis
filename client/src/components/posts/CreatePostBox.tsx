@@ -87,6 +87,11 @@ const CreatePostBox: React.FC = () => {
           timeToTake,
           servings: Number(servings),
           hashtags,
+          liked: false,
+          likeCount: 0,
+          savedCount: 0,
+          commentCount: 0,
+          isInShoppingList: false
         },
         JSON.parse(token).token
       );

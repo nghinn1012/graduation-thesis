@@ -1,5 +1,4 @@
-import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/home/HomePage";
+import { Routes, Route, useLocation } from "react-router-dom";
 import SignUpPage from "./pages/auth/signup/SignUpPage";
 import LoginPage from "./pages/auth/login/LoginPage";
 import VerifyPage from "./pages/auth/verify/VerifyPage";
@@ -10,9 +9,9 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GOOGLE_CLIENT_ID } from "./config/config";
 import Sidebar from "./components/common/Sidebar";
 import RightPanel from "./components/common/RightPanel";
-import React from "react";
 import AppMainCenter from "./context/MainContext";
 export function App() {
+  const location = useLocation();
   return (
     <AppContextProviders>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
@@ -24,7 +23,7 @@ export function App() {
                 <div className="flex max-w-7xl mx-auto">
                   <Sidebar />
                   <AppMainCenter/>
-                  <RightPanel />
+                  {location.pathname !== '/posts/explore' && <RightPanel />}
                 </div>
               </IsAuthenticated>
             }

@@ -4,7 +4,7 @@ import I18nContextProvider from "./I18nContext";
 import { PostProvider } from "./PostContext";
 import { SocketProvider } from "./SocketContext";
 import ToastContextProvider from "./ToastContext";
-
+import { UserProvider } from "./UserContext";
 interface IAppContextProvidersProps {
   children?: React.ReactNode;
 }
@@ -17,7 +17,9 @@ export default function AppContextProviders({
       <I18nContextProvider>
         <AuthContextProvider>
           <PostProvider>
-            <SocketProvider>{children}</SocketProvider>
+            <UserProvider>
+              <SocketProvider>{children}</SocketProvider>
+            </UserProvider>
           </PostProvider>
         </AuthContextProvider>
       </I18nContextProvider>

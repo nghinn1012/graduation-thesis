@@ -134,7 +134,7 @@ export interface InstructionInfo {
   image?: string;
 }
 
-export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount' | 'savedCount'> {
+export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions'> {
   instructions: {
     description: string;
     image?: string;
