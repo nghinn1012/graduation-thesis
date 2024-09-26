@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPostService, deletePostService, getAllPostsService, getPostService, updatePostService } from "../services/post.services";
+import { createPostService, deletePostService, getAllPostsService, getPostService, updatePostService, searchPostService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
@@ -107,6 +107,24 @@ export const deletePostController = async (request: AuthRequest, response: Respo
   } catch (error) {
     return response.status(400).json({
       message: "Cannot delete post",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const searchPostController = async (request: AuthRequest, response: Response) => {
+  try {
+    const { query, page, limit } = request.query;
+    const posts = await searchPostService(query as string, parseInt(page as string, 10), parseInt(limit as string, 10));
+    if (!posts) {
+      return response.status(400).json({
+        message: "Cannot search posts"
+      });
+    }
+    return response.status(200).json(posts);
+  } catch (error) {
+    return response.status(400).json({
+      message: "Cannot search posts",
       error: (error as Error).message
     });
   }

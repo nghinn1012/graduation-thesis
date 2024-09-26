@@ -155,7 +155,6 @@ export const getAllPostsService = async (page: number, limit: number) => {
 
 export const updatePostService = async (postId: string, data: IPost, userId: string) => {
   try {
-    // Find the existing post
     const post = await postModel.findById(postId);
     if (!post) {
       throw new InternalError({
@@ -166,7 +165,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       });
     }
 
-    // Check authorization
     if (post.author.toString() !== userId) {
       throw new InternalError({
         data: {
@@ -176,7 +174,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       });
     }
 
-    // Auto assign steps to instructions
     if (data.instructions) {
       data.instructions = autoAssignSteps(data.instructions);
     }
@@ -184,7 +181,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
     const postUpdateData: Partial<IPost> = { ...data };
     const oldImages = post.images;
 
-    // Prepare update data
     if (data.images) {
       postUpdateData.images = [];
     }
@@ -385,5 +381,46 @@ export const deletePostService = async (postId: string, userId: string) => {
         reason: (error as Error).message,
       },
     });
+  }
+};
+
+export const searchPostService = async (
+  query: string,
+  page: number,
+  limit: number
+) => {
+  try {
+    const offset = (page - 1) * limit;
+
+    const searchResults = await postModel.find({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { about: { $regex: query, $options: 'i' } },
+        { "ingredients.name": { $regex: query, $options: 'i' } },
+        { "instructions.description": { $regex: query, $options: 'i' } },
+      ],
+    })
+      .skip(offset)
+      .limit(limit)
+      .exec();
+
+    const totalResults = await postModel.countDocuments({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { about: { $regex: query, $options: 'i' } },
+        { "ingredients.name": { $regex: query, $options: 'i' } },
+        { "instructions.description": { $regex: query, $options: 'i' } },
+      ],
+    });
+
+    return {
+      results: searchResults as unknown as IPost[],
+      currentPage: page,
+      totalPages: Math.ceil(totalResults / limit),
+      totalResults,
+    };
+  } catch (error) {
+    console.error("Error searching posts:", error);
+    throw new Error("Search failed");
   }
 };

@@ -8,6 +8,7 @@ import { useToastContext } from "../../hooks/useToastContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import ScheduleRecipeModal from "./SchedulePost";
 import SetTime from "./SetTime";
+import { toZonedTime } from "date-fns-tz";
 
 interface TodayTabProps {
   scheduledMeals: Meal[];
@@ -128,21 +129,22 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
   const handleSubmitSetTime = async (time: string) => {
     if (!auth?.token || !selectedMeal) return;
 
-    const plannedDate = new Date(time);
+    const timeZone = "Asia/Ho_Chi_Minh";
+
+    const plannedDate = toZonedTime(new Date(time), timeZone);
     const plannedDateString = format(plannedDate, "yyyy-MM-dd");
 
-    const existingMeal = scheduledMeals.find((meal) =>
-      meal?.plannedDate?.some((planned) => {
-        const plannedMealDate = new Date(planned.date);
-        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString;
-      })
+    const existingMeal = scheduledMeals.find(
+      (meal) => meal.postId === selectedMeal.postId
     );
+
+    console.log(existingMeal);
 
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
-        const plannedMealDate = new Date(planned.date);
+        const plannedMealDate = toZonedTime(new Date(planned.date), timeZone);
         return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
-          ? { date: plannedDate, mealTime: true }
+          ? { ...planned, date: plannedDate as unknown as string, mealTime: true }
           : planned;
       });
 
@@ -150,6 +152,9 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         console.error("Failed to update meal time");
         return;
       }
+
+      console.log("true", updatedPlannedDates);
+
       const response = await postFetcher.scheduleMeal(
         auth.token,
         existingMeal._id,
@@ -160,10 +165,14 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         success("Meal time updated successfully");
       }
     } else {
+      console.log("false", plannedDateString);
       const response = await postFetcher.scheduleMeal(
         auth.token,
         selectedMeal._id,
-        [...(selectedMeal.plannedDate || []), { date: plannedDateString, mealTime: true }]
+        [
+          ...(selectedMeal.plannedDate || []),
+          { date: plannedDateString, mealTime: true },
+        ]
       );
 
       if (response) {
@@ -174,6 +183,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     await fetchScheduledMeals();
     setIsModalTimeOpen(false);
   };
+
 
   const getMealTimeInfo = (meal: Meal, formattedDate: string) => {
     if (!meal?.plannedDate) {

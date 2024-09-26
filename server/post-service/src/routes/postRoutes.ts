@@ -1,5 +1,5 @@
 import express from "express";
-import { createPostController, deletePostController, getAllPostsController, getPostController, updatePostController } from "../controllers/post.controllers";
+import { createPostController, deletePostController, getAllPostsController, getPostController, searchPostController, updatePostController } from "../controllers/post.controllers";
 import { tokenValidate, errorHandler } from "../middlewares/index";
 import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
 import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeByIdController, getMadeRecipeOfPostController, updateMadeRecipeController } from "../controllers/madeRecipe.controllers";
@@ -45,12 +45,12 @@ postRouter.patch("/:madeRecipeId/made", tokenValidate, updateMadeRecipeControlle
 postRouter.get("/:madeRecipeId/made", tokenValidate, getMadeRecipeByIdController);
 postRouter.delete("/:madeRecipeId/made", tokenValidate, deleteMadeRecipeController);
 
+postRouter.get("/search", tokenValidate, searchPostController);
 postRouter.post("/create", tokenValidate, createPostController);
 postRouter.get("/:id", tokenValidate, getPostController);
 postRouter.patch("/:id", tokenValidate, updatePostController);
 postRouter.get("/", tokenValidate, getAllPostsController);
 postRouter.delete("/:id", tokenValidate, deletePostController);
-
 
 postRouter.use(errorHandler);
 export default postRouter;
