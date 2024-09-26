@@ -33,8 +33,10 @@ import MadeSection from "../../components/posts/madeRecipe/MadeSection";
 import imageCompression from "browser-image-compression";
 import CommentSection from "../../components/posts/comment/CommentSection";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+
 const PostDetails: React.FunctionComponent = () => {
   const location = useLocation();
+  const [locationPath, setLocationPath] = useState<string | null>(location.state.locationPath);
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     location?.state.activeTab || "recipe"
   );
@@ -161,7 +163,7 @@ const PostDetails: React.FunctionComponent = () => {
   };
 
   const handleBackClick = () => {
-    navigate("/", { state: { updatedPost: post, postAuthor: postAuthor } });
+    navigate(`${locationPath || "/"}`, { state: { updatedPost: post, postAuthor: postAuthor } });
   };
 
   const handlePostSubmit = async (

@@ -114,8 +114,8 @@ export const deletePostController = async (request: AuthRequest, response: Respo
 
 export const searchPostController = async (request: AuthRequest, response: Response) => {
   try {
-    const { query, page, limit } = request.query;
-    const posts = await searchPostService(query as string, parseInt(page as string, 10), parseInt(limit as string, 10));
+    const { query } = request.query;
+    const posts = await searchPostService(query as string);
     if (!posts) {
       return response.status(400).json({
         message: "Cannot search posts"

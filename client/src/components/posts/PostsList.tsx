@@ -4,8 +4,14 @@ import Post from "./PostInfo";
 import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { PostInfo } from "../../api/post";
 
-const Posts: React.FC = () => {
+interface PostProps {
+  postsSearch?: PostInfo[];
+  locationPath?: string;
+}
+
+const Posts: React.FC<PostProps> = ({ postsSearch, locationPath }) => {
   const {
     posts,
     isLoading,
@@ -17,11 +23,22 @@ const Posts: React.FC = () => {
     fetchSavedPosts,
     setIsLoading,
   } = usePostContext();
+
   const observer = useRef<IntersectionObserver | null>(null);
   const location = useLocation();
   const postAuthor = location.state?.postAuthor;
   const updatedPost = location.state?.updatedPost;
-  const auth = useAuthContext();
+
+  useEffect(() => {
+    if (Array.isArray(postsSearch) && setPosts) {
+      setPosts((prevPosts) => {
+        return postsSearch;
+      });
+      console.log(posts);
+    }
+  }, [postsSearch, setPosts]);
+
+
 
   useEffect(() => {
     if (updatedPost && setPosts) {
@@ -75,12 +92,7 @@ const Posts: React.FC = () => {
         setIsLoading(true);
         try {
           await fetchPosts();
-
-          await Promise.all([
-            fetchLikedPosts(),
-            fetchSavedPosts(),
-          ]);
-
+          await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
         } catch (error) {
           console.error("Error loading data:", error);
         } finally {
@@ -91,10 +103,9 @@ const Posts: React.FC = () => {
     loadData();
   }, [fetchPosts, fetchLikedPosts, fetchSavedPosts, setIsLoading]);
 
-
   return (
     <>
-     {isLoading && posts.length === 0 && (
+      {isLoading && posts.length === 0 && (
         <div className="flex justify-center my-4">
           <PostSkeleton />
         </div>
@@ -106,7 +117,7 @@ const Posts: React.FC = () => {
               key={post._id}
               ref={index === posts.length - 1 ? lastPostRef : null}
             >
-              <Post post={post} />
+              <Post post={post} locationPath={locationPath}/>
             </div>
           ))}
         </div>

@@ -3,15 +3,28 @@ import { FiSearch } from "react-icons/fi";
 import Posts from "../../components/posts/PostsList";
 import UserList from "../users/UserList";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { postFetcher, searchPostData } from "../../api/post";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const SearchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("following");
   const [searchType, setSearchType] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<any>({});
   const navigate = useNavigate();
+  const {auth} = useAuthContext();
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (!auth?.token) return;
     if (e.key === "Enter") {
-      navigate(`/users/search?searchTerm=${encodeURIComponent(searchType)}`);
+      if (!searchType) return;
+      try {
+        const response = await postFetcher.searchPost(searchType, auth.token) as unknown as searchPostData;
+        setSearchResults(response.posts);
+        navigate(`/users/search?searchTerm=${encodeURIComponent(searchType)}`);
+      } catch (error) {
+        console.error("Search error:", error);
+      }
     }
   };
 
@@ -19,7 +32,7 @@ const SearchPage: React.FC = () => {
     switch (activeTab) {
       case "following":
       case "recent":
-        return <Posts />;
+        return <Posts postsSearch={searchResults} locationPath={location.pathname}/>;
       case "users":
         return <UserList />;
       default:

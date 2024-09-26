@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import React from "react";
 import { usePostContext } from "../../context/PostContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
@@ -51,9 +51,10 @@ interface PostProps {
     liked: boolean;
     saved: boolean;
   };
+  locationPath?: string;
 }
 
-const Post: React.FC<PostProps> = ({ post }) => {
+const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const postAuthor = post.author;
   const [isLiked, setIsLiked] = useState(post.liked);
   const [isSaved, setIsSaved] = useState(post.saved);
@@ -61,7 +62,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const formattedDate = "1h";
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
+  const { fetchPosts, posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
     usePostContext();
   const { success, error } = useToastContext();
   const [commentCount, setCommentCount] = useState<number>(
@@ -69,6 +70,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const location = useLocation();
   useEffect(() => {
     setCommentCount(postCommentCounts[post._id] || post.commentCount);
   }, [postCommentCounts, post._id, post.commentCount]);
@@ -164,7 +166,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   }, [post.author]);
 
   const handleImageClick = (id: string) => {
-    navigate(`/posts/${id}`, { state: { post, postAuthor } });
+    navigate(`/posts/${id}`, { state: { post, postAuthor, locationPath: locationPath } });
   };
 
   const handleCommentIconClick = (id: string) => {

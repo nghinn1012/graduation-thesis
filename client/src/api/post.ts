@@ -287,10 +287,7 @@ export interface DeleteMeal {
 }
 
 export interface searchPostData {
-  results: PostInfo[],
-  currentPage: number,
-  totalPages: number,
-  totalResults: number,
+  posts: PostInfo[],
 }
 
 export interface PostFetcher {
@@ -306,7 +303,7 @@ export interface PostFetcher {
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  searchPost: (query: string, page: number, limit: number, token: string) => Promise<PostResponse<searchPostData>>;
+  searchPost: (query: string, token: string) => Promise<PostResponse<searchPostData>>;
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
@@ -444,7 +441,7 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  searchPost: async (query: string, page: number, limit: number, token: string): Promise<PostResponse<searchPostData>> => {
+  searchPost: async (query: string, token: string): Promise<PostResponse<searchPostData>> => {
     return postInstance.get(postEndpoints.searchPost,
       {
         headers: {
@@ -452,8 +449,6 @@ export const postFetcher: PostFetcher = {
         },
         params: {
           query,
-          page,
-          limit,
         }
       }
     );

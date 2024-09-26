@@ -44,7 +44,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response: PostResponse<PostInfo[]> = await postFetcher.getAllPosts(auth.token, page, limit);
-
       setPosts((prevPosts) => {
         const existingPostIds = new Set(prevPosts.map(post => post._id));
         const newPosts = (response as unknown as PostInfo[]).filter(post => !existingPostIds.has(post._id));

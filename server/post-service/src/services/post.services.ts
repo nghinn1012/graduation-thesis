@@ -386,38 +386,41 @@ export const deletePostService = async (postId: string, userId: string) => {
 
 export const searchPostService = async (
   query: string,
-  page: number,
-  limit: number
 ) => {
   try {
-    const offset = (page - 1) * limit;
+    const searchResults = await postModel.aggregate([
+      {
+        $match: {
+          $or: [
+            { title: { $regex: query, $options: 'i' } },
+            { about: { $regex: query, $options: 'i' } },
+            { "ingredients.name": { $regex: query, $options: 'i' } },
+            { "instructions.description": { $regex: query, $options: 'i' } },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          titleMatch: {
+            $cond: {
+              if: { $regexMatch: { input: "$title", regex: query, options: 'i' } },
+              then: 1,
+              else: 0,
+            },
+          },
+        },
+      },
+      {
+        $sort: { titleMatch: -1 },
+      },
+    ]);
 
-    const searchResults = await postModel.find({
-      $or: [
-        { title: { $regex: query, $options: 'i' } },
-        { about: { $regex: query, $options: 'i' } },
-        { "ingredients.name": { $regex: query, $options: 'i' } },
-        { "instructions.description": { $regex: query, $options: 'i' } },
-      ],
-    })
-      .skip(offset)
-      .limit(limit)
-      .exec();
-
-    const totalResults = await postModel.countDocuments({
-      $or: [
-        { title: { $regex: query, $options: 'i' } },
-        { about: { $regex: query, $options: 'i' } },
-        { "ingredients.name": { $regex: query, $options: 'i' } },
-        { "instructions.description": { $regex: query, $options: 'i' } },
-      ],
-    });
-
+    const authors = await rpcGetUsers<IAuthor[]>(searchResults.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
     return {
-      results: searchResults as unknown as IPost[],
-      currentPage: page,
-      totalPages: Math.ceil(totalResults / limit),
-      totalResults,
+      posts: searchResults.map((post, index) => ({
+        ...post,
+        author: authors ? authors[index] : null,
+      })),
     };
   } catch (error) {
     console.error("Error searching posts:", error);
