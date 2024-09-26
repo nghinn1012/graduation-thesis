@@ -11,6 +11,7 @@ interface SearchContextType {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   totalPages: number;
+  hasMore: boolean; // New state for pagination
   searchPosts: (page: number) => Promise<void>;
 }
 
@@ -24,6 +25,7 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const [posts, setPosts] = useState<PostInfo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true); // State for checking more pages
   const { auth } = useAuthContext();
 
   const searchPosts = useCallback(async (page: number) => {
@@ -31,6 +33,7 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
       console.error("User is not authenticated");
       return;
     }
+
     setIsLoading(true);
     try {
       const fetchedPosts = await postFetcher.searchPost(
@@ -40,11 +43,20 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         auth.token
       ) as unknown as searchPostData;
 
+      // Check if there are more posts to load
+      setHasMore(page < fetchedPosts.totalPages);
+
       if (page === 1) {
         setPosts(fetchedPosts.posts);
       } else {
-        setPosts((prevPosts) => [...prevPosts, ...fetchedPosts.posts]);
+        setPosts((prevPosts) => {
+          const newPosts = fetchedPosts.posts.filter(
+            (newPost) => !prevPosts.some((prevPost) => prevPost._id === newPost._id)
+          );
+          return [...prevPosts, ...newPosts];
+        });
       }
+
       console.log("fetchedPosts:", fetchedPosts);
       setTotalPages(fetchedPosts.totalPages);
     } catch (error) {
@@ -54,7 +66,6 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [searchQuery, auth]);
 
-  
   return (
     <SearchContext.Provider
       value={{
@@ -66,6 +77,7 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         isLoading,
         setIsLoading,
         totalPages,
+        hasMore, // Expose hasMore
         searchPosts,
       }}
     >
