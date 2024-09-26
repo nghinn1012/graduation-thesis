@@ -20,6 +20,7 @@ export const postEndpoints = {
 
   // posts
   createPost: "/posts/create",
+  searchPost: "/posts/search",
   getAllPosts: "/posts",
   updatePost: "/posts/:id",
   getPostById: "/posts/:id",
@@ -134,7 +135,7 @@ export interface InstructionInfo {
   image?: string;
 }
 
-export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions' | 'liked' | 'likeCount' | 'savedCount'> {
+export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions'> {
   instructions: {
     description: string;
     image?: string;
@@ -253,20 +254,25 @@ export interface updateIngredientInShoppingList {
   checked: boolean;
 }
 
+export interface MealPlannedDate {
+  date: string;
+  mealTime?: boolean;
+}
+
 export interface Meal {
   _id: string;
   timeToTake?: string;
   title: string;
   imageUrl: string;
   is_planned: boolean;
-  plannedDate?: string[];
+  plannedDate?: MealPlannedDate[];
   postId: string;
 }
 
 export interface createMealData {
   postId: string;
   is_planned: boolean;
-  plannedDate?: Date;
+  plannedDate?: MealPlannedDate;
 }
 
 export interface MealPlanner {
@@ -278,6 +284,10 @@ export interface MealPlanner {
 export interface DeleteMeal {
   mealId?: string;
   postId?: string;
+}
+
+export interface searchPostData {
+  posts: PostInfo[],
 }
 
 export interface PostFetcher {
@@ -293,7 +303,7 @@ export interface PostFetcher {
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-
+  searchPost: (query: string, limit: number, skip: number, token: string) => Promise<PostResponse<searchPostData>>;
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
@@ -322,7 +332,7 @@ export interface PostFetcher {
   getMealPlanner: (token: string) => Promise<PostResponse<MealPlanner>>;
   checkPostInUnscheduledMeal: (postId: string, token: string) => Promise<PostResponse<boolean>>;
   removeMeal: (deleteMeal: DeleteMeal, token: string) => Promise<PostResponse<Meal>>;
-  scheduleMeal: (token: string, mealId: string, dates: string[]) => Promise<PostResponse<Meal>>;
+  scheduleMeal: (token: string, mealId: string, dates: MealPlannedDate[]) => Promise<PostResponse<Meal>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -427,6 +437,20 @@ export const postFetcher: PostFetcher = {
       {
         headers: {
           'Authorization': `Bearer ${token}`,
+        }
+      }
+    );
+  },
+  searchPost: async (query: string, limit: number, skip: number, token: string): Promise<PostResponse<searchPostData>> => {
+    return postInstance.get(postEndpoints.searchPost,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        params: {
+          query: query,
+          limit: 10,
+          skip: 0,
         }
       }
     );
@@ -628,7 +652,7 @@ export const postFetcher: PostFetcher = {
       },
     });
   },
-  scheduleMeal: async (token: string, mealId: string, dates: string[]): Promise<PostResponse<Meal>> => {
+  scheduleMeal: async (token: string, mealId: string, dates: MealPlannedDate[]): Promise<PostResponse<Meal>> => {
     return postInstance.patch(postEndpoints.scheduleMeal, {
       mealId,
       plannedDate:dates,

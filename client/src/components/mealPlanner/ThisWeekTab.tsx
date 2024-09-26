@@ -10,13 +10,14 @@ import {
 } from "date-fns";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { FaAngleDown, FaAngleUp, FaRegClock } from "react-icons/fa";
-import { Meal, postFetcher } from "../../api/post";
+import { Meal, MealPlannedDate, postFetcher } from "../../api/post";
 import { IoIosMore } from "react-icons/io";
 import ServingsModal from "./ServingModal";
 import { useToastContext } from "../../hooks/useToastContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import ScheduleRecipeModal from "./SchedulePost";
 import SetTime from "./SetTime";
+import { toZonedTime } from "date-fns-tz";
 
 interface ThisWeekTabProps {
   scheduledMeals: Meal[];
@@ -52,13 +53,12 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   const [date, setDate] = useState(new Date());
   const { auth } = useAuthContext();
   const { success, error } = useToastContext();
-  const [mealTimeInfo, setMealTimeInfo] = useState("");
   const getMealsForDate = (date: Date) => {
     if (!scheduledMeals) return [];
 
     return scheduledMeals.filter((meal) =>
-      meal?.plannedDate?.some((plannedDate: string) => {
-        const plannedDateObj = new Date(plannedDate);
+      meal?.plannedDate?.some((plannedDate: MealPlannedDate) => {
+        const plannedDateObj = new Date(plannedDate.date);
 
         const plannedDateFormatted = `${plannedDateObj.getFullYear()}-${(
           plannedDateObj.getMonth() + 1
@@ -142,28 +142,27 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
           console.error("Failed to repeat meal, no date available");
           return;
         }
-        console.log(formattedDate);
 
         const currentDate = formattedDate;
         const nextWeekDate = addDays(new Date(currentDate), 7);
 
         const updatedPlannedDatesForRepeat = [
-          ...(scheduledMeals[mealIndex]?.plannedDate || ([] as Date[])),
-          nextWeekDate,
+          ...(scheduledMeals[mealIndex]?.plannedDate ||
+            ([] as MealPlannedDate[])),
+          {
+            date: nextWeekDate,
+            mealTime: false,
+          },
         ];
-        console.log(updatedPlannedDatesForRepeat);
 
         await postFetcher.scheduleMeal(
           auth.token,
           scheduledMeals[mealIndex]._id,
-          updatedPlannedDatesForRepeat.map((date) => date.toString())
+          updatedPlannedDatesForRepeat as MealPlannedDate[]
         );
 
         await fetchScheduledMeals();
 
-        console.log(
-          `Repeated meal index ${mealIndex} to next week on ${nextWeekDate}`
-        );
         break;
 
       case "time":
@@ -184,9 +183,10 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         const updatedPlannedDates = scheduledMeals[
           mealIndex
         ]?.plannedDate?.filter(
-          (date) => format(new Date(date), "yyyy-MM-dd") !== today?.toString()
+          (plannedDate) =>
+            format(new Date(plannedDate.date), "yyyy-MM-dd") !==
+            today?.toString()
         );
-        console.log(updatedPlannedDates);
         if (updatedPlannedDates?.length === 0) {
           console.log(
             `Meal index ${mealIndex} has no more planned dates, consider removing it from schedule`
@@ -202,7 +202,6 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
           updatedPlannedDates
         );
         await fetchScheduledMeals();
-        console.log(`Removed meal index ${mealIndex} from today's date`);
         break;
       default:
         console.log("Unknown action");
@@ -237,21 +236,22 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   const handleSubmitSetTime = async (time: string) => {
     if (!auth?.token || !selectedMeal) return;
 
-    const plannedDate = new Date(time);
+    const timeZone = "Asia/Ho_Chi_Minh";
+
+    const plannedDate = toZonedTime(new Date(time), timeZone);
     const plannedDateString = format(plannedDate, "yyyy-MM-dd");
 
-    const existingMeal = scheduledMeals.find((meal) =>
-      meal?.plannedDate?.some((planned) => {
-        const plannedMealDate = new Date(planned);
-        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString;
-      })
+    const existingMeal = scheduledMeals.find(
+      (meal) => meal.postId === selectedMeal.postId
     );
+
+    console.log(existingMeal);
 
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
-        const plannedMealDate = new Date(planned);
+        const plannedMealDate = toZonedTime(new Date(planned.date), timeZone);
         return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
-          ? time
+          ? { ...planned, date: plannedDate as unknown as string, mealTime: true }
           : planned;
       });
 
@@ -259,20 +259,27 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         console.error("Failed to update meal time");
         return;
       }
+
+      console.log("true", updatedPlannedDates);
+
       const response = await postFetcher.scheduleMeal(
         auth.token,
         existingMeal._id,
-        updatedPlannedDates
+        updatedPlannedDates as MealPlannedDate[]
       );
 
       if (response) {
         success("Meal time updated successfully");
       }
     } else {
+      console.log("false", plannedDateString);
       const response = await postFetcher.scheduleMeal(
         auth.token,
         selectedMeal._id,
-        [...(selectedMeal.plannedDate || []), time]
+        [
+          ...(selectedMeal.plannedDate || []),
+          { date: plannedDateString, mealTime: true },
+        ]
       );
 
       if (response) {
@@ -284,19 +291,39 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
     setIsModalTimeOpen(false);
   };
 
-  const getMealTimeInfo = (mealIndex: number, scheduledMeals: Meal[], formattedDate: string) => {
-    if (!scheduledMeals[mealIndex]?.plannedDate) {
-      return "";
-    }
-    const mealSingleIndex = scheduledMeals[mealIndex].plannedDate.find(
-      (plannedDate) => format(new Date(plannedDate), "yyyy-MM-dd") === formattedDate
+  const getMealTimeInfo = (
+    meal: Meal,
+    scheduledMeals: Meal[],
+    formattedDate: string
+  ) => {
+    const mealIndex = scheduledMeals.find(
+      (scheduledMeal) => scheduledMeal.postId === meal.postId
     );
 
-    if (mealSingleIndex) {
-      const plannedDateTime = new Date(mealSingleIndex);
+    const singleMealIndex = mealIndex?.plannedDate?.find(
+      (plannedDate) =>
+        format(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
+    );
+
+    if (singleMealIndex && singleMealIndex.mealTime) {
+      const plannedDateTime = new Date(singleMealIndex.date);
       return format(plannedDateTime, "HH:mm");
     }
     return "";
+  };
+
+  const handleShowTimeToTake = (timeToTake: string) => {
+    const [hours, minutes] = timeToTake.split(" ");
+    const modifiedHours = hours?.slice(0, -1);
+    const modifiedMinutes = minutes?.slice(0, -1);
+
+    if (!modifiedHours || parseInt(modifiedHours) === 0) {
+      return `${modifiedMinutes} minutes`;
+    }
+    if (!modifiedMinutes || parseInt(modifiedMinutes) === 0) {
+      return `${modifiedHours} hours`;
+    }
+    return `${modifiedHours} hours ${modifiedMinutes} minutes`;
   };
 
   return (
@@ -324,6 +351,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
 
       {daysOfWeek.map((day) => {
         const mealsForDay = getMealsForDate(day);
+        console.log(mealsForDay);
         const dayName = format(day, "EEEE");
         const formattedDate = format(day, "yyyy-MM-dd");
 
@@ -365,7 +393,24 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                             <div className="flex items-center mt-2">
                               <div className="badge badge-success text-white gap-2 p-3">
                                 <FaRegClock className="w-4 h-4" />
-                                <p>{getMealTimeInfo(mealIndex, scheduledMeals, formattedDate) ? `${getMealTimeInfo(mealIndex, scheduledMeals, formattedDate)} - ${meal.timeToTake} mins` : `${meal.timeToTake} mins` }</p>
+                                <p>
+                                  {getMealTimeInfo(
+                                    meal,
+                                    scheduledMeals,
+                                    formattedDate
+                                  )
+                                    ? `${getMealTimeInfo(
+                                        meal,
+                                        scheduledMeals,
+                                        formattedDate
+                                      )}
+                                - ${handleShowTimeToTake(
+                                  meal.timeToTake || ""
+                                )}`
+                                    : `${handleShowTimeToTake(
+                                        meal.timeToTake || ""
+                                      )}`}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -438,11 +483,9 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                     meal={selectedMeal}
                     date={date}
                     time={getMealTimeInfo(
-                      scheduledMeals.findIndex(
-                        (meal) => meal.postId === selectedMeal.postId
-                        ),
+                      selectedMeal,
                       scheduledMeals,
-                      formattedDate,
+                      formattedDate
                     )}
                     onClose={() => setIsModalTimeOpen(false)}
                     onSubmit={handleSubmitSetTime}

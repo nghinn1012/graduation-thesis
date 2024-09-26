@@ -3,6 +3,7 @@ import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from ".
 import { IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
 import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
+import { PostSearchBuilder } from "../data/interface/queryBuilder";
 
 export const createPostService = async (data: IPost) => {
   try {
@@ -155,7 +156,6 @@ export const getAllPostsService = async (page: number, limit: number) => {
 
 export const updatePostService = async (postId: string, data: IPost, userId: string) => {
   try {
-    // Find the existing post
     const post = await postModel.findById(postId);
     if (!post) {
       throw new InternalError({
@@ -166,7 +166,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       });
     }
 
-    // Check authorization
     if (post.author.toString() !== userId) {
       throw new InternalError({
         data: {
@@ -176,7 +175,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       });
     }
 
-    // Auto assign steps to instructions
     if (data.instructions) {
       data.instructions = autoAssignSteps(data.instructions);
     }
@@ -184,7 +182,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
     const postUpdateData: Partial<IPost> = { ...data };
     const oldImages = post.images;
 
-    // Prepare update data
     if (data.images) {
       postUpdateData.images = [];
     }
@@ -386,4 +383,25 @@ export const deletePostService = async (postId: string, userId: string) => {
       },
     });
   }
+};
+
+export const searchPostService = async (query: string, pageSize: number, page: number) => {
+  const postSearchBuilder = new PostSearchBuilder()
+    .search(query)
+    .paginate(pageSize, page);
+
+  const pipeline = postSearchBuilder.build();
+
+  const posts = await postModel.aggregate(pipeline);
+
+  const totalPosts = await postModel.countDocuments({
+    $or: [
+      { title: { $regex: query, $options: 'i' } },
+      { about: { $regex: query, $options: 'i' } },
+      { "ingredients.name": { $regex: query, $options: 'i' } },
+      { "instructions.description": { $regex: query, $options: 'i' } },
+    ]
+  });
+
+  return { posts, total: totalPosts, page, pageSize };
 };

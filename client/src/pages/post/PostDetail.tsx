@@ -33,8 +33,10 @@ import MadeSection from "../../components/posts/madeRecipe/MadeSection";
 import imageCompression from "browser-image-compression";
 import CommentSection from "../../components/posts/comment/CommentSection";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+
 const PostDetails: React.FunctionComponent = () => {
   const location = useLocation();
+  const [locationPath, setLocationPath] = useState<string | null>(location.state.locationPath);
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     location?.state.activeTab || "recipe"
   );
@@ -161,7 +163,7 @@ const PostDetails: React.FunctionComponent = () => {
   };
 
   const handleBackClick = () => {
-    navigate("/", { state: { updatedPost: post, postAuthor: postAuthor } });
+    navigate(`${locationPath || "/"}`, { state: { updatedPost: post, postAuthor: postAuthor } });
   };
 
   const handlePostSubmit = async (
@@ -382,6 +384,20 @@ const PostDetails: React.FunctionComponent = () => {
     }
   };
 
+  const handleShowTimeToTake = (timeToTake: string) => {
+    const [hours, minutes] = timeToTake.split(" ");
+    const modifiedHours = hours.slice(0, -1);
+    const modifiedMinutes = minutes.slice(0, -1);
+
+    if (parseInt(modifiedHours) === 0) {
+      return `${modifiedMinutes} minutes`;
+    }
+    if (parseInt(modifiedMinutes) === 0) {
+      return `${modifiedHours} hours`;
+    }
+    return `${modifiedHours} hours ${modifiedMinutes} minutes`;
+  }
+
   return (
     <>
       {isLoading ? (
@@ -419,7 +435,7 @@ const PostDetails: React.FunctionComponent = () => {
             <div className="flex items-center justify-between text-gray-500">
               <span className="text-lg font-bold">{post.title}</span>
 
-              <span className="text-sm">⏰ {post.timeToTake}</span>
+              <span className="text-sm">⏰ {handleShowTimeToTake(post.timeToTake)}</span>
             </div>
 
             <div className="flex mt-2 gap-2">

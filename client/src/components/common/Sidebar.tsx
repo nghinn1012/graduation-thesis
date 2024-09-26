@@ -1,18 +1,15 @@
 import XSvg from "../svgs/X";
 
 import { GoHome } from "react-icons/go";
-import { IoNotificationsOutline } from "react-icons/io5";
+import { IoNotificationsOutline, IoSearchOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import { BiShoppingBag } from "react-icons/bi";
-import { AiOutlineUser } from "react-icons/ai";
 import { PiShoppingCartLight } from "react-icons/pi";
-import { HiOutlineUser } from "react-icons/hi";
-import { FaRegCalendarAlt } from "react-icons/fa";
 import { LuCalendarDays } from "react-icons/lu";
+import { MdOutlineExplore } from "react-icons/md";
 const Sidebar = () => {
 	const [data, setData] = useState<any>(null);
 	const auth = useAuthContext();
@@ -33,7 +30,7 @@ const Sidebar = () => {
 		<div className='md:flex-[2_2_0] w-18 max-w-60'>
 			<div className='sticky top-0 left-0 h-screen flex flex-col border-r border-gray-300 w-20 md:w-full'>
 				<Link to='/' className='flex justify-center md:justify-start'>
-					<XSvg className='px-2 w-12 h-12 rounded-full fill-white hover:bg-stone-900' />
+					<XSvg className='px-2 w-12 h-12 rounded-full fill-white' />
 				</Link>
 				<ul className='flex flex-col gap-4 mt-6'>
 					<li className='flex justify-center md:justify-start'>
@@ -43,6 +40,24 @@ const Sidebar = () => {
 						>
 							<GoHome className='w-8 h-8' />
 							<span className='text-lg hidden md:block mt-1'>Home</span>
+						</Link>
+					</li>
+					<li className='flex justify-center md:justify-start'>
+						<Link
+							to='/posts/explore'
+							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
+						>
+							<MdOutlineExplore className='w-8 h-8' />
+							<span className='text-lg hidden md:block mt-1'>Explore</span>
+						</Link>
+					</li>
+					<li className='flex justify-center md:justify-start'>
+						<Link
+							to='/users/search'
+							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
+						>
+							<IoSearchOutline className='w-8 h-8' />
+							<span className='text-lg hidden md:block mt-1'>Search</span>
 						</Link>
 					</li>
 					<li className='flex justify-center md:justify-start'>

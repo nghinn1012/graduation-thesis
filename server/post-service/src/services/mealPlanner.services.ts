@@ -1,4 +1,4 @@
-import { Meal } from "../data/interface/meal_planner_interface";
+import { Meal, MealPlannedDate } from "../data/interface/meal_planner_interface";
 import MealPlanner from "../models/mealPlanner";
 import postModel from "../models/postModel";
 
@@ -14,6 +14,7 @@ export const addMealService = async (meal: Meal, userId: string) => {
     }
     const createMealData = {
       ...meal,
+      plannedDate: meal.plannedDate,
       timeToTake: mealInfo.timeToTake,
       title: mealInfo.title,
       imageUrl: mealInfo.images[0],
@@ -90,7 +91,7 @@ export const removeMealService = async (userId: string, mealId?: string, postId?
 export const scheduleMealService = async (
   userId: string,
   mealId: string,
-  dates: string[]
+  dates: MealPlannedDate[]
 ) => {
   try {
     const mealPlanner = await MealPlanner.findOne({ userId });

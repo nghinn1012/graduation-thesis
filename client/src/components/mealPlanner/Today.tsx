@@ -3,11 +3,12 @@ import { format, addDays, subDays } from "date-fns";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { FaRegClock } from "react-icons/fa";
 import { IoIosMore } from "react-icons/io";
-import { Meal, postFetcher } from "../../api/post";
+import { Meal, MealPlannedDate, postFetcher } from "../../api/post";
 import { useToastContext } from "../../hooks/useToastContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import ScheduleRecipeModal from "./SchedulePost";
 import SetTime from "./SetTime";
+import { toZonedTime } from "date-fns-tz";
 
 interface TodayTabProps {
   scheduledMeals: Meal[];
@@ -26,8 +27,8 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
 
   const getMealsForDate = (date: Date) => {
     return scheduledMeals?.filter((meal) =>
-      meal?.plannedDate?.some((plannedDate: string) => {
-        const plannedDateObj = new Date(plannedDate);
+      meal?.plannedDate?.some((plannedDate: MealPlannedDate) => {
+        const plannedDateObj = new Date(plannedDate.date);
         const plannedDateFormatted = format(plannedDateObj, "yyyy-MM-dd");
         const selectedDateFormatted = format(date, "yyyy-MM-dd");
         return plannedDateFormatted === selectedDateFormatted;
@@ -99,7 +100,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         const updatedPlannedDates = scheduledMeals[
           mealIndex
         ]?.plannedDate?.filter(
-          (date) => format(new Date(date), "yyyy-MM-dd") !== today?.toString()
+          (plannedDate) => format(new Date(plannedDate.date), "yyyy-MM-dd") !== today?.toString()
         );
         if (updatedPlannedDates?.length === 0) {
           console.log(
@@ -128,21 +129,22 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
   const handleSubmitSetTime = async (time: string) => {
     if (!auth?.token || !selectedMeal) return;
 
-    const plannedDate = new Date(time);
+    const timeZone = "Asia/Ho_Chi_Minh";
+
+    const plannedDate = toZonedTime(new Date(time), timeZone);
     const plannedDateString = format(plannedDate, "yyyy-MM-dd");
 
-    const existingMeal = scheduledMeals.find((meal) =>
-      meal?.plannedDate?.some((planned) => {
-        const plannedMealDate = new Date(planned);
-        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString;
-      })
+    const existingMeal = scheduledMeals.find(
+      (meal) => meal.postId === selectedMeal.postId
     );
+
+    console.log(existingMeal);
 
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
-        const plannedMealDate = new Date(planned);
+        const plannedMealDate = toZonedTime(new Date(planned.date), timeZone);
         return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
-          ? time
+          ? { ...planned, date: plannedDate as unknown as string, mealTime: true }
           : planned;
       });
 
@@ -150,20 +152,27 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         console.error("Failed to update meal time");
         return;
       }
+
+      console.log("true", updatedPlannedDates);
+
       const response = await postFetcher.scheduleMeal(
         auth.token,
         existingMeal._id,
-        updatedPlannedDates
+        updatedPlannedDates as MealPlannedDate[]
       );
 
       if (response) {
         success("Meal time updated successfully");
       }
     } else {
+      console.log("false", plannedDateString);
       const response = await postFetcher.scheduleMeal(
         auth.token,
         selectedMeal._id,
-        [...(selectedMeal.plannedDate || []), time]
+        [
+          ...(selectedMeal.plannedDate || []),
+          { date: plannedDateString, mealTime: true },
+        ]
       );
 
       if (response) {
@@ -175,16 +184,17 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     setIsModalTimeOpen(false);
   };
 
+
   const getMealTimeInfo = (meal: Meal, formattedDate: string) => {
     if (!meal?.plannedDate) {
       return "";
     }
     const mealSingleIndex = meal.plannedDate.find(
-      (plannedDate) => format(new Date(plannedDate), "yyyy-MM-dd") === formattedDate
+      (plannedDate) => format(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
     );
 
-    if (mealSingleIndex) {
-      const plannedDateTime = new Date(mealSingleIndex);
+    if (mealSingleIndex && mealSingleIndex.mealTime) {
+      const plannedDateTime = new Date(mealSingleIndex.date);
       return format(plannedDateTime, "HH:mm");
     }
     return "";

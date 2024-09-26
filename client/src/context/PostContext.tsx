@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { postFetcher, PostInfo, PostResponse, PostLikesByUser, PostShoppingList, ShoppingListData } from "../api/post";
+import { postFetcher, PostInfo, PostResponse, PostLikesByUser, PostShoppingList, ShoppingListData, searchPostData } from "../api/post";
 import toast from "react-hot-toast";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
@@ -12,6 +12,7 @@ interface PostContextType {
   fetchPost: (postId: string) => Promise<PostInfo | void>;
   fetchPosts: () => void;
   hasMore: boolean;
+  setHasMore?: React.Dispatch<React.SetStateAction<boolean>>;
   loadMorePosts: () => void;
   fetchSavedPosts: () => Promise<void>;
   fetchLikedPosts: () => Promise<void>;
@@ -20,6 +21,9 @@ interface PostContextType {
   updateCommentCount: (postId: string, count: number) => void;
   postCommentCounts: Record<string, number>;
   fetchSavePostToShoppingList: () => Promise<void>;
+  page: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  limit: number;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -40,7 +44,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response: PostResponse<PostInfo[]> = await postFetcher.getAllPosts(auth.token, page, limit);
-
       setPosts((prevPosts) => {
         const existingPostIds = new Set(prevPosts.map(post => post._id));
         const newPosts = (response as unknown as PostInfo[]).filter(post => !existingPostIds.has(post._id));
@@ -186,7 +189,12 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   return (
-    <PostContext.Provider value={{ fetchSavePostToShoppingList, postCommentCounts, updateCommentCount, setIsLoading, fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts, fetchPosts, loadMorePosts, hasMore, posts, isLoading, fetchPost, fetchLikedPosts }}>
+    <PostContext.Provider value={{ fetchSavePostToShoppingList,
+     postCommentCounts, updateCommentCount, setIsLoading,
+     fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts,
+     fetchPosts, loadMorePosts, hasMore, posts, isLoading,
+     fetchPost, fetchLikedPosts,
+     page, setPage, limit, setHasMore }}>
       {children}
     </PostContext.Provider>
   );
