@@ -1,5 +1,4 @@
-// SearchContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { postFetcher, PostInfo, searchPostData } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 
@@ -10,6 +9,8 @@ interface SearchContextType {
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   posts: PostInfo[];
   isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  totalPages: number;
   searchPosts: (page: number) => Promise<void>;
 }
 
@@ -19,37 +20,41 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [posts, setPosts] = useState<PostInfo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [totalPages, setTotalPages] = useState<number>(0);
   const { auth } = useAuthContext();
 
-  const searchPosts = async (page: number) => {
+  const searchPosts = useCallback(async (page: number) => {
+    if (!auth?.token) {
+      console.error("User is not authenticated");
+      return;
+    }
     setIsLoading(true);
     try {
-      if (!searchQuery) {
-        setPosts([]);
-        setIsLoading(false);
-        return;
-      }
-      if (!auth?.token) {
-        console.error("User is not authenticated");
-        return;
-      }
-      const fetchedPosts = (await postFetcher.searchPost(
+      const fetchedPosts = await postFetcher.searchPost(
         searchQuery,
+        page - 1,
         10,
-        page * 10,
-        auth?.token
-      )) as unknown as searchPostData;
-      setPosts((prevPosts) => [...prevPosts, ...fetchedPosts.posts]);
+        auth.token
+      ) as unknown as searchPostData;
+
+      if (page === 1) {
+        setPosts(fetchedPosts.posts);
+      } else {
+        setPosts((prevPosts) => [...prevPosts, ...fetchedPosts.posts]);
+      }
+      console.log("fetchedPosts:", fetchedPosts);
+      setTotalPages(fetchedPosts.totalPages);
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, auth]);
 
+  
   return (
     <SearchContext.Provider
       value={{
@@ -59,6 +64,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         setCurrentPage,
         posts,
         isLoading,
+        setIsLoading,
+        totalPages,
         searchPosts,
       }}
     >

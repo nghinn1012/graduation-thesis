@@ -1,5 +1,4 @@
-// SearchPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import UserList from "../users/UserList";
 import FollowingTab from "../../components/search/FollowingTab";
@@ -7,12 +6,24 @@ import { useSearchContext } from "../../context/SearchContext";
 
 const SearchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("following");
-  const { searchQuery, setSearchQuery } = useSearchContext();
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const { searchQuery, setSearchQuery, setCurrentPage, searchPosts } = useSearchContext();
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
+  const handleSearch = () => {
+    setSearchQuery(localSearchQuery);
+    setCurrentPage(1);
+    searchPosts(1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      setSearchQuery(e.currentTarget.value);
+      handleSearch();
     }
   };
+
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -34,8 +45,16 @@ const SearchPage: React.FC = () => {
           placeholder="Search posts, users, ingredients..."
           className="w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none
           focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out hover:bg-white"
-          onKeyDown={handleKeyDown} 
+          value={localSearchQuery}
+          onChange={(e) => setLocalSearchQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
+        <button
+          onClick={handleSearch}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Search
+        </button>
         <span className="absolute left-3 top-1/2 transform -translate-y-1/2">
           <FiSearch className="w-5 h-5 text-gray-400" />
         </span>

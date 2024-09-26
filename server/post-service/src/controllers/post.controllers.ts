@@ -116,11 +116,9 @@ export const searchPostController = async (request: AuthRequest, response: Respo
   try {
     const { query, page, pageSize } = request.query;
 
-    // Log the search query for debugging
     console.log("query:", query);
 
-    // Validate the query
-    if (typeof query !== 'string' || query.trim() === '') {
+    if (typeof query !== 'string') {
       return response.status(400).json({
         message: "Invalid search query. It must be a non-empty string."
       });

@@ -287,7 +287,12 @@ export interface DeleteMeal {
 }
 
 export interface searchPostData {
+  messsage: string;
   posts: PostInfo[],
+  totalPosts: number,
+  currentPage: number,
+  pageSize: number,
+  totalPages: number,
 }
 
 export interface PostFetcher {
@@ -303,7 +308,7 @@ export interface PostFetcher {
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  searchPost: (query: string, limit: number, skip: number, token: string) => Promise<PostResponse<searchPostData>>;
+  searchPost: (query: string, page: number, pageSize: number, token: string) => Promise<PostResponse<searchPostData>>;
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
@@ -441,16 +446,16 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  searchPost: async (query: string, limit: number, skip: number, token: string): Promise<PostResponse<searchPostData>> => {
+  searchPost: async (query: string, page: number, pageSize: number, token: string): Promise<PostResponse<searchPostData>> => {
     return postInstance.get(postEndpoints.searchPost,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
         params: {
-          query: query,
-          limit: 10,
-          skip: 0,
+          query,
+          page,
+          pageSize,
         }
       }
     );
@@ -655,7 +660,7 @@ export const postFetcher: PostFetcher = {
   scheduleMeal: async (token: string, mealId: string, dates: MealPlannedDate[]): Promise<PostResponse<Meal>> => {
     return postInstance.patch(postEndpoints.scheduleMeal, {
       mealId,
-      plannedDate:dates,
+      plannedDate: dates,
     },
       {
         headers: {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import PostSkeleton from "../skeleton/PostSkeleton";
 import { useSearchContext } from "../../context/SearchContext";
 import Post from "../posts/PostInfo";
@@ -12,47 +12,47 @@ const FollowingTab: React.FC = () => {
     searchPosts,
     currentPage,
     setCurrentPage,
+    totalPages
   } = useSearchContext();
+
   const observer = useRef<IntersectionObserver | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const prevPostsLengthRef = useRef(0);
+
+  useEffect(() => {
+    const fetchInitialPosts = async () => {
+      setSearchQuery("");
+      setCurrentPage(1);
+      await searchPosts(1);
+    };
+    fetchInitialPosts();
+  }, []);
 
   const lastPostRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (isLoading) return;
       if (observer.current) observer.current.disconnect();
+
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
+        if (entries[0].isIntersecting && currentPage < totalPages) {
           setCurrentPage((prevPage) => prevPage + 1);
         }
       });
+
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore]
+    [isLoading, currentPage, totalPages, setCurrentPage]
   );
 
   useEffect(() => {
-    setCurrentPage(0);
-    setHasMore(true);
-    prevPostsLengthRef.current = 0;
-  }, [searchQuery, setCurrentPage]);
-
-  useEffect(() => {
-    if (currentPage === 0 || hasMore) {
+    if (currentPage <= totalPages) {
       searchPosts(currentPage);
     }
-  }, [currentPage, searchPosts, hasMore]);
+  }, [currentPage, searchQuery, searchPosts, totalPages]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (posts.length === prevPostsLengthRef.current) {
-        setHasMore(false);
-        setSearchQuery("");
-      } else {
-        prevPostsLengthRef.current = posts.length;
-      }
-    }
-  }, [isLoading, posts]);
+  const hasMore = currentPage < totalPages;
+
+  if (posts.length === 0 && !isLoading) {
+    return <div className="text-center my-4">No posts found.</div>;
+  }
 
   return (
     <>
