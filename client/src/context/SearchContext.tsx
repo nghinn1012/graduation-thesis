@@ -31,6 +31,8 @@ interface SearchContextType {
   toggleSavePostSearch: (postId: string, isSaved: boolean) => void;
   fetchPosts: () => Promise<void>;
   loadMorePosts: () => void;
+  cookingTimeRange: (number | string)[];
+  setCookingTimeRange: React.Dispatch<React.SetStateAction<(number | string)[]>>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const [hasMore, setHasMore] = useState<boolean>(true);
   const { auth } = useAuthContext();
   const { error } = useToastContext();
+  const [cookingTimeRange, setCookingTimeRange] = useState<(number | string)[]>([0, 1440]);
 
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
@@ -64,10 +67,9 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         const newPosts = response.posts.filter(
           (post) => !existingPostIds.has(post._id)
         );
-        return [...newPosts, ...prevPosts];
+        return [...prevPosts, ...newPosts];
       });
       await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
-
       if ((response as unknown as PostInfo[]).length < limit || response.totalPages === currentPage) {
         setHasMore(false);
       }
@@ -204,6 +206,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         toggleSavePostSearch,
         fetchPosts,
         loadMorePosts,
+        cookingTimeRange,
+        setCookingTimeRange,
       }}
     >
       {children}
