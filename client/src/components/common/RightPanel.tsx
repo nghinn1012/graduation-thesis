@@ -66,6 +66,11 @@ const RightPanel = () => {
         </div>
       )}
 
+      {location.pathname === "/users/search" && (
+      <div className="rounded-md border border-gray-300 p-6 mt-12">
+      <h2 className="text-lg font-bold mb-4">Search filters</h2>
+    </div>)}
+
       <div className="mt-8 p-4 rounded-md border border-gray-300">
         <p className="font-bold my-4">Who to follow</p>
         <div className="flex flex-col gap-6">

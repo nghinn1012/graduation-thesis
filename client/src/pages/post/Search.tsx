@@ -3,32 +3,30 @@ import { FiSearch } from "react-icons/fi";
 import UserList from "../users/UserList";
 import FollowingTab from "../../components/search/FollowingTab";
 import { useSearchContext } from "../../context/SearchContext";
+import { useNavigate } from "react-router-dom";
 
 const SearchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("following");
-  const { searchQuery, setSearchQuery, setCurrentPage, searchPosts } = useSearchContext();
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  const { searchQuery, setSearchQuery, setCurrentPage, fetchPosts } = useSearchContext();
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const handleSearch = () => {
     setSearchQuery(localSearchQuery);
+    console.log("Searching for:", searchQuery);
     setCurrentPage(1);
-    searchPosts(1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch();
+      navigate("/users/search?query=" + localSearchQuery);
     }
   };
-
-  useEffect(() => {
-    setLocalSearchQuery(searchQuery);
-  }, [searchQuery]);
 
   const renderContent = () => {
     switch (activeTab) {
       case "following":
-      case "recent":
         return <FollowingTab />;
       case "users":
         return <UserList />;
@@ -43,7 +41,7 @@ const SearchPage: React.FC = () => {
         <input
           type="text"
           placeholder="Search posts, users, ingredients..."
-          className="w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none
+          className="text-sm w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none
           focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out hover:bg-white"
           value={localSearchQuery}
           onChange={(e) => setLocalSearchQuery(e.target.value)}
@@ -51,7 +49,7 @@ const SearchPage: React.FC = () => {
         />
         <button
           onClick={handleSearch}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-4 py-2 rounded-md"
+          className="absolute right-0.5 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-4 py-2 rounded-md"
         >
           Search
         </button>
@@ -67,13 +65,6 @@ const SearchPage: React.FC = () => {
           onClick={() => setActiveTab("following")}
         >
           Following
-        </a>
-        <a
-          className={`tab ${activeTab === "recent" ? "tab-active" : ""}`}
-          role="tab"
-          onClick={() => setActiveTab("recent")}
-        >
-          Recent
         </a>
         <a
           className={`tab ${activeTab === "users" ? "tab-active" : ""}`}

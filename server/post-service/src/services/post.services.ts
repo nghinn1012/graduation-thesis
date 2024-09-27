@@ -407,6 +407,6 @@ export const searchPostService = async (query: string, pageSize: number, page: n
   posts.forEach((post, index) => {
     post.author = authors ? authors[index] : null;
   });
-  
+
   return { posts, total: totalPosts, page, pageSize };
 };

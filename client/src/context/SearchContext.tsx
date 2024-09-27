@@ -1,6 +1,19 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import { postFetcher, PostInfo, searchPostData } from "../api/post";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useEffect,
+} from "react";
+import {
+  postFetcher,
+  PostInfo,
+  PostResponse,
+  searchPostData,
+} from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useToastContext } from "../hooks/useToastContext";
 
 interface SearchContextType {
   searchQuery: string;
@@ -11,8 +24,13 @@ interface SearchContextType {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   totalPages: number;
-  hasMore: boolean; // New state for pagination
-  searchPosts: (page: number) => Promise<void>;
+  hasMore: boolean;
+  fetchLikedPosts: () => Promise<void>;
+  fetchSavedPosts: () => Promise<void>;
+  toggleLikePostSearch: (postId: string, isLiked: boolean) => void;
+  toggleSavePostSearch: (postId: string, isSaved: boolean) => void;
+  fetchPosts: () => Promise<void>;
+  loadMorePosts: () => void;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -22,49 +40,151 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [limit] = useState<number>(10);
   const [posts, setPosts] = useState<PostInfo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [hasMore, setHasMore] = useState<boolean>(true); // State for checking more pages
+  const [hasMore, setHasMore] = useState<boolean>(true);
   const { auth } = useAuthContext();
+  const { error } = useToastContext();
 
-  const searchPosts = useCallback(async (page: number) => {
-    if (!auth?.token) {
-      console.error("User is not authenticated");
-      return;
-    }
+  const fetchPosts = useCallback(async () => {
+    if (!auth?.token || isLoading) return;
 
     setIsLoading(true);
     try {
-      const fetchedPosts = await postFetcher.searchPost(
+      const response = (await postFetcher.searchPost(
         searchQuery,
-        page - 1,
+        currentPage,
         10,
         auth.token
-      ) as unknown as searchPostData;
+      )) as unknown as searchPostData;
+      setPosts((prevPosts) => {
+        const existingPostIds = new Set(prevPosts.map((post) => post._id));
+        const newPosts = response.posts.filter(
+          (post) => !existingPostIds.has(post._id)
+        );
+        return [...newPosts, ...prevPosts];
+      });
+      await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
 
-      // Check if there are more posts to load
-      setHasMore(page < fetchedPosts.totalPages);
-
-      if (page === 1) {
-        setPosts(fetchedPosts.posts);
-      } else {
-        setPosts((prevPosts) => {
-          const newPosts = fetchedPosts.posts.filter(
-            (newPost) => !prevPosts.some((prevPost) => prevPost._id === newPost._id)
-          );
-          return [...prevPosts, ...newPosts];
-        });
+      if ((response as unknown as PostInfo[]).length < limit || response.totalPages === currentPage) {
+        setHasMore(false);
       }
-
-      console.log("fetchedPosts:", fetchedPosts);
-      setTotalPages(fetchedPosts.totalPages);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
+    } catch (err) {
+      console.error("Failed to load posts:", err);
+      error("Failed to load posts: " + (err as Error).message);
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, auth]);
+  }, [auth?.token, searchQuery, currentPage, limit]);
+
+  useEffect(() => {
+    setPosts([]);
+    setHasMore(true);
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const loadMorePosts = useCallback(() => {
+    if (hasMore && !isLoading) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  }, [hasMore, isLoading]);
+
+  useEffect(() => {
+    if (auth?.token) {
+      setIsLoading(true);
+      const fetchPostsData = async () => {
+        await fetchPosts();
+        setIsLoading(false);
+      };
+      fetchPostsData();
+    }
+  }, [auth, fetchPosts, currentPage]);
+
+  useEffect(() => {
+    if (auth?.token) {
+      setIsLoading(true);
+      fetchPosts();
+      setIsLoading(false);
+    }
+  }, [auth, fetchPosts, currentPage]);
+
+  const fetchLikedPosts = useCallback(async () => {
+    if (!auth?.token) return;
+
+    try {
+      const likedPosts = await postFetcher.postLikesByUser(auth.token);
+      if (Array.isArray(likedPosts)) {
+        setPosts((prevPosts) => {
+          return prevPosts.map((post) => ({
+            ...post,
+            liked: likedPosts.includes(post._id.toString()),
+          }));
+        });
+      } else {
+        console.error("Fetched liked posts is not an array");
+        error("Failed to process liked posts data.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch liked posts:", err);
+      error("Failed to fetch liked posts: " + (err as Error).message);
+    }
+  }, [auth?.token]);
+
+  const fetchSavedPosts = useCallback(async () => {
+    if (!auth?.token) return;
+
+    try {
+      const savedPosts = await postFetcher.postSavedByUser(auth.token);
+      if (Array.isArray(savedPosts)) {
+        setPosts((prevPosts) =>
+          prevPosts.map((post) => ({
+            ...post,
+            saved: savedPosts.includes(post._id.toString()),
+          }))
+        );
+      } else {
+        console.error("Fetched saved posts is not an array");
+        error("Failed to process saved posts data.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch saved posts:", err);
+      error("Failed to fetch saved posts: " + (err as Error).message);
+    }
+  }, [auth?.token]);
+
+  const toggleLikePostSearch = (postId: string, isLiked: boolean) => {
+    if (setPosts) {
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
+          p._id === postId
+            ? {
+                ...p,
+                liked: isLiked,
+                likeCount: isLiked ? p.likeCount + 1 : p.likeCount - 1,
+              }
+            : p
+        )
+      );
+    }
+  };
+
+  const toggleSavePostSearch = (postId: string, isSaved: boolean) => {
+    if (setPosts) {
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
+          p._id === postId
+            ? {
+                ...p,
+                saved: isSaved,
+                savedCount: isSaved ? p.savedCount + 1 : p.savedCount - 1,
+              }
+            : p
+        )
+      );
+    }
+  };
 
   return (
     <SearchContext.Provider
@@ -77,8 +197,13 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         isLoading,
         setIsLoading,
         totalPages,
-        hasMore, // Expose hasMore
-        searchPosts,
+        hasMore,
+        fetchLikedPosts,
+        fetchSavedPosts,
+        toggleLikePostSearch,
+        toggleSavePostSearch,
+        fetchPosts,
+        loadMorePosts,
       }}
     >
       {children}
