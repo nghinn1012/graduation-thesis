@@ -40,7 +40,7 @@ const validationSchema = Yup.object({
 });
 
 interface RecipeDetailsTabProps {
-  timeToTake: string;
+  timeToTake: number | string;
   servings: number | string;
   inputFields: { name: string; quantity: string }[];
   setInputFields: React.Dispatch<
@@ -230,16 +230,14 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
 
   useEffect(() => {
     if (timeToTake) {
-      const timeParts = timeToTake.split(" ");
-      const hours = timeParts[0].slice(0, -1);
-      const minutes = timeParts[1].slice(0, -1);
-      setHours(hours);
-      setMinutes(minutes);
+      const time = Math.floor(Number(timeToTake) / 60);
+      setHours(time.toString());
+      setMinutes((Number(timeToTake) % 60).toString());
     }
   }, []);
 
   useEffect(() => {
-    const formattedTime = `${hours}h ${minutes}m`;
+    const formattedTime = Number(hours) * 60 + Number(minutes);
     handleTimeToTake({
       target: { value: formattedTime },
     } as unknown as ChangeEvent<HTMLInputElement>);

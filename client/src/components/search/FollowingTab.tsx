@@ -11,8 +11,6 @@ const FollowingTab: React.FC = () => {
     searchQuery
   } = useSearchContext();
   const observerRef = useRef<HTMLDivElement | null>(null);
-  const { cookingTimeRange, setCookingTimeRange } = useSearchContext();
-  const [filteredPosts, setFilteredPosts] = useState(posts);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,49 +32,11 @@ const FollowingTab: React.FC = () => {
     };
   }, [loadMorePosts, isLoading, hasMore]);
 
-  const parseTime = (time: string) => {
-    const timeParts = time.match(/(\d+)(h|m)/g);
-    let totalMinutes = 0;
-
-    if (timeParts) {
-      timeParts.forEach(part => {
-        const value = parseInt(part.slice(0, -1));
-        const unit = part.slice(-1);
-
-        if (unit === 'h') {
-          totalMinutes += value * 60;
-        } else if (unit === 'm') {
-          totalMinutes += value;
-        }
-      });
-    }
-
-    return totalMinutes;
-  };
-
-  useEffect(() => {
-    if (cookingTimeRange[0] === "" || cookingTimeRange[1] === "") return;
-    const filtered = posts.filter((post) => {
-      const timeToTake = parseTime(post.timeToTake);
-      return (
-        timeToTake >= Number(cookingTimeRange[0]) && timeToTake <= Number(cookingTimeRange[1])
-      );
-    });
-
-    setFilteredPosts(filtered);
-  }, [cookingTimeRange, posts]);
-
-  useEffect(() => {
-    setCookingTimeRange([0, 1440]);
-    setFilteredPosts(posts);
-  }
-  , [searchQuery]);
-
   return (
     <div>
       {/* Posts */}
       <div>
-        {filteredPosts.map((post) => (
+        {posts.map((post) => (
           <Post key={post._id} post={post} />
         ))}
         {isLoading && <p>Loading...</p>}

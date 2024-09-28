@@ -27,33 +27,18 @@ const SetTime: React.FC<SetTimeProps> = ({ meal, date, onSubmit, onClose, time }
     setEndTime(format(calculatedEndTime, "HH:mm"));
   };
 
-  const changeTimeToTakeToMinutes = (timeToTake: string) => {
-    if (!timeToTake) return 0;
-
-    let hours = 0, minutes = 0;
-    const hoursMatch = timeToTake.match(/(\d+)h/);
-    const minutesMatch = timeToTake.match(/(\d+)m/);
-    if (hoursMatch) {
-      hours = parseInt(hoursMatch[1], 10) * 60;
-    }
-    if (minutesMatch) {
-      minutes = parseInt(minutesMatch[1], 10);
-    }
-    return hours + minutes;
-  }
-
   const calculateEndTime = (startTime: string): Date => {
     const [hours, minutes] = startTime.split(":").map(Number);
     const startDate = new Date(date);
     startDate.setHours(hours, minutes);
-    return new Date(startDate.getTime() + Number(changeTimeToTakeToMinutes(meal.timeToTake || "")) * 60000);
+    return new Date(startDate.getTime() + Number(meal.timeToTake || "") * 60000);
   };
 
   const calculateStartTime = (endTime: string): Date => {
     const [hours, minutes] = endTime.split(":").map(Number);
     const endDate = new Date(date);
     endDate.setHours(hours, minutes);
-    return new Date(endDate.getTime() - Number(changeTimeToTakeToMinutes(meal.timeToTake || "")) * 60000);
+    return new Date(endDate.getTime() - Number(meal.timeToTake || "") * 60000);
   };
 
   const handleEndTimeChange = (newEndTime: string) => {

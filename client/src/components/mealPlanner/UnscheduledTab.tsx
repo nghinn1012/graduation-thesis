@@ -21,7 +21,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
   const [showDropdown, setShowDropdown] = useState<boolean[]>([]);
   const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isModalScheduleOpen, setIsModalScheduleOpen] = useState(false);
-  const [isServingsModalOpen, setIsServingsModalOpen] = useState(false); 
+  const [isServingsModalOpen, setIsServingsModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const { auth } = useAuthContext();
   const { success, error } = useToastContext();
@@ -75,6 +75,18 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
     setIsServingsModalOpen(false);
   };
 
+  const handleShowTimeToTake = (timeToTake: string) => {
+    if (!timeToTake) return "No time to take";
+    if (Number(timeToTake) > 60) {
+      const hours = Math.floor(Number(timeToTake) / 60);
+      const minutes = Number(timeToTake) % 60;
+      if (minutes === 0) return `${hours} hours`;
+      return `${hours} hours ${minutes} minutes`;
+    }
+    return `${timeToTake} minutes`;
+  };
+
+
   const handleClickOutside = (event: MouseEvent) => {
     if (
       dropdownRefs.current.some(
@@ -112,7 +124,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                     <div className="flex items-center mt-2">
                       <div className="badge badge-success text-white gap-2 p-3">
                         <FaRegClock className="w-4 h-4" />
-                        <span>{meal.timeToTake}</span>
+                        <span>{handleShowTimeToTake(meal.timeToTake || "")}</span>
                       </div>
                     </div>
                   </div>

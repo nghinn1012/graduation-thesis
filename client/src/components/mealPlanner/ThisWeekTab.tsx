@@ -313,17 +313,14 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   };
 
   const handleShowTimeToTake = (timeToTake: string) => {
-    const [hours, minutes] = timeToTake.split(" ");
-    const modifiedHours = hours?.slice(0, -1);
-    const modifiedMinutes = minutes?.slice(0, -1);
-
-    if (!modifiedHours || parseInt(modifiedHours) === 0) {
-      return `${modifiedMinutes} minutes`;
+    if (!timeToTake) return "No time to take";
+    if (Number(timeToTake) > 60) {
+      const hours = Math.floor(Number(timeToTake) / 60);
+      const minutes = Number(timeToTake) % 60;
+      if (minutes === 0) return `${hours} hours`;
+      return `${hours} hours ${minutes} minutes`;
     }
-    if (!modifiedMinutes || parseInt(modifiedMinutes) === 0) {
-      return `${modifiedHours} hours`;
-    }
-    return `${modifiedHours} hours ${modifiedMinutes} minutes`;
+    return `${timeToTake} minutes`;
   };
 
   return (

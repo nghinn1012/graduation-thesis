@@ -28,11 +28,11 @@ const CreatePostBox: React.FC = () => {
 
       try {
         const newPostId = message;
-        const newPost = await fetchPost(newPostId) as PostInfo; // Giữ nguyên kiểm tra để đảm bảo newPost là PostInfo
+        const newPost = await fetchPost(newPostId) as PostInfo;
 
         if (newPost && setPosts) {
           newPost.author = auth.account as unknown as PostInfo["author"];
-          setPosts((prevPosts) => [newPost, ...prevPosts]); // Cập nhật danh sách bài đăng
+          setPosts((prevPosts) => [newPost, ...prevPosts]);
         }
       } catch (err) {
         console.error("Failed to fetch new post:", err);
@@ -62,7 +62,7 @@ const CreatePostBox: React.FC = () => {
     about: string,
     images: string[],
     hashtags: string[],
-    timeToTake: string,
+    timeToTake: number,
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[],
@@ -133,7 +133,7 @@ const CreatePostBox: React.FC = () => {
           className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
           placeholder="What is happening?!"
           onClick={() => {
-            setEditPost(null); 
+            setEditPost(null);
             setIsModalOpen(true);
           }}
         />

@@ -3,6 +3,7 @@ import MadeRecipeModel from "../models/madeRepiceModel";
 import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
 import { IAuthor, rpcGetUsers } from "./rpc.services";
 import { io } from '../../index';
+import postModel from "../models/postModel";
 export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
   try {
     const madeRecipe = await MadeRecipeModel.create({
@@ -26,7 +27,14 @@ export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
     };
 
     handleImageUpload();
-
+    const ratingOfPost = await MadeRecipeModel.find({ postId: madeRecipe.postId }).select("rating");
+    let totalRating = 0;
+    ratingOfPost.forEach((rating) => {
+      totalRating += rating.rating;
+    });
+    console.log("ratingOfPost", totalRating);
+    const rating = totalRating / ratingOfPost.length;
+    await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating });
     return madeRecipe;
   } catch (error) {
     console.error("Error in createMadeRecipeService:", error);
@@ -77,6 +85,13 @@ export const updateMadeRecipeService = async (madeRecipeId: string, madeRecipeDa
     };
 
     handleImageUpload();
+    const ratingOfPost = await MadeRecipeModel.find({ postId: madeRecipe.postId }).select("rating");
+    let totalRating = 0;
+    ratingOfPost.forEach((rating) => {
+      totalRating += rating.rating;
+    });
+    const rating = totalRating / ratingOfPost.length;
+    await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating });
 
     return madeRecipe;
   } catch (error) {
@@ -111,6 +126,14 @@ export const deleteMadeRecipeService = async (madeRecipeId: string) => {
         console.error(`Error deleting image:`, error);
       }
     });
+
+    const ratingOfPost = await MadeRecipeModel.find({ postId: madeRecipe.postId }).select("rating");
+    let totalRating = 0;
+    ratingOfPost.forEach((rating) => {
+      totalRating += rating.rating;
+    });
+    const rating = totalRating / ratingOfPost.length;
+    await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating });
 
     return madeRecipe;
   } catch (error) {

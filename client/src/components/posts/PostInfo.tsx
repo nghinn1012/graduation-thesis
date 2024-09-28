@@ -40,7 +40,7 @@ interface PostProps {
     };
     images: string[];
     hashtags: string[];
-    timeToTake: string;
+    timeToTake: number;
     servings: number;
     ingredients: Ingredient[];
     instructions: Instruction[];

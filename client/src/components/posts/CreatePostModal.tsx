@@ -46,7 +46,7 @@ interface PostModalProps {
     about: string,
     images: string[],
     hashtags: string[],
-    timeToTake: string,
+    timeToTake: number,
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: {
@@ -90,7 +90,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     { description: string; image?: string }[]
   >([{ description: "", image: "" }]);
 
-  const [timeToTake, setTimeToTake] = useState<string>("");
+  const [timeToTake, setTimeToTake] = useState<string | number>("");
   const [servings, setServings] = useState<number | string>("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtag, setNewHashtag] = useState<string>("");
@@ -364,7 +364,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           about,
           images,
           hashtags,
-          timeToTake,
+          Number(timeToTake),
           servings,
           ingredients,
           instructions,

@@ -23,7 +23,7 @@ const postSchema = new Schema({
     required: true
   },
   timeToTake: {
-    type: String,
+    type: Number,
     required: true
   },
   servings: {
@@ -84,7 +84,7 @@ const postSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  quality: {
+  averageRating: {
     type: Number,
     default: 0,
   },

@@ -9,7 +9,6 @@ import React, {
 import {
   postFetcher,
   PostInfo,
-  PostResponse,
   searchPostData,
 } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
@@ -21,6 +20,7 @@ interface SearchContextType {
   currentPage: number;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   posts: PostInfo[];
+  setPosts: React.Dispatch<React.SetStateAction<PostInfo[]>>;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   totalPages: number;
@@ -33,6 +33,10 @@ interface SearchContextType {
   loadMorePosts: () => void;
   cookingTimeRange: (number | string)[];
   setCookingTimeRange: React.Dispatch<React.SetStateAction<(number | string)[]>>;
+  minQuality: number;
+  setMinQuality: React.Dispatch<React.SetStateAction<number>>;
+  haveMade: boolean;
+  setHaveMade: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -50,14 +54,19 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const { auth } = useAuthContext();
   const { error } = useToastContext();
   const [cookingTimeRange, setCookingTimeRange] = useState<(number | string)[]>([0, 1440]);
-
+  const [minQuality, setMinQuality] = useState<number>(0);
+  const [haveMade, setHaveMade] = useState<boolean>(false);
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
-
+    console.log(minQuality);
     setIsLoading(true);
     try {
       const response = (await postFetcher.searchPost(
         searchQuery,
+        cookingTimeRange[1] as string,
+        cookingTimeRange[0] as string,
+        minQuality as unknown as string,
+        haveMade ? "true" : "",
         currentPage,
         10,
         auth.token
@@ -75,17 +84,18 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
       }
     } catch (err) {
       console.error("Failed to load posts:", err);
-      error("Failed to load posts: " + (err as Error).message);
+      error("Failed to load posts: " + (err as Error));
     } finally {
       setIsLoading(false);
     }
-  }, [auth?.token, searchQuery, currentPage, limit]);
+  }, [auth?.token, searchQuery, currentPage, limit,
+    cookingTimeRange, minQuality, haveMade]);
 
   useEffect(() => {
     setPosts([]);
     setHasMore(true);
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, cookingTimeRange, auth?.token]);
 
   const loadMorePosts = useCallback(() => {
     if (hasMore && !isLoading) {
@@ -208,6 +218,11 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         loadMorePosts,
         cookingTimeRange,
         setCookingTimeRange,
+        minQuality,
+        setPosts,
+        setMinQuality,
+        haveMade,
+        setHaveMade,
       }}
     >
       {children}

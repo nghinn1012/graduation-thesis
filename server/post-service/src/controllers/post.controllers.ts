@@ -114,7 +114,12 @@ export const deletePostController = async (request: AuthRequest, response: Respo
 
 export const searchPostController = async (request: AuthRequest, response: Response) => {
   try {
-    const { query, page, pageSize } = request.query;
+    const {
+      query,
+      page, pageSize,
+      minTime, maxTime,
+      minQuality, haveMade,
+      } = request.query;
 
     console.log("query:", query);
 
@@ -123,15 +128,27 @@ export const searchPostController = async (request: AuthRequest, response: Respo
         message: "Invalid search query. It must be a non-empty string."
       });
     }
+    if (typeof minTime !== 'string' || minTime === undefined) {
+      return response.status(400).json({
+        message: "Invalid minTime. It must be a string."
+      });
+    }
+    if (typeof maxTime !== 'string' || maxTime === undefined) {
+      return response.status(400).json({
+        message: "Invalid maxTime. It must be a string."
+      });
+    }
+    if (typeof minQuality !== 'string' || minQuality === undefined) {
+      return response.status(400).json({
+        message: "Invalid minQuality. It must be a string."
+      });
+    }
+    const parsedPageSize = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const parsedPage = page ? parseInt(page as string, 10) : 1;
 
-    // Parse page and pageSize with default values
-    const parsedPageSize = pageSize ? parseInt(pageSize as string, 10) : 10; // Default pageSize
-    const parsedPage = page ? parseInt(page as string, 10) : 1; // Default page
+    const { posts, total, page: currentPage, pageSize: currentPageSize } =
+      await searchPostService(query as string, minTime, maxTime, Number(minQuality), Boolean(haveMade), parsedPageSize, parsedPage);
 
-    // Call the service to search for posts
-    const { posts, total, page: currentPage, pageSize: currentPageSize } = await searchPostService(query as string, parsedPageSize, parsedPage);
-
-    // Check if posts were found
     if (!posts || posts.length === 0) {
       return response.status(200).json({
         message: "No posts found matching the search criteria.",
@@ -142,14 +159,13 @@ export const searchPostController = async (request: AuthRequest, response: Respo
       });
     }
 
-    // Respond with the found posts and pagination details
     return response.status(200).json({
       message: "Posts retrieved successfully.",
       posts,
       totalPosts: total,
       currentPage,
       pageSize: currentPageSize,
-      totalPages: Math.ceil(total / currentPageSize), // Calculate total pages
+      totalPages: Math.ceil(total / currentPageSize),
     });
   } catch (error) {
     console.error("Error in searchPostController:", error);

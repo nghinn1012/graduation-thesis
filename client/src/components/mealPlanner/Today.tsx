@@ -200,6 +200,18 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     return "";
   };
 
+  const handleShowTimeToTake = (timeToTake: string) => {
+    if (!timeToTake) return "No time to take";
+    if (Number(timeToTake) > 60) {
+      const hours = Math.floor(Number(timeToTake) / 60);
+      const minutes = Number(timeToTake) % 60;
+      if (minutes === 0) return `${hours} hours`;
+      return `${hours} hours ${minutes} minutes`;
+    }
+    return `${timeToTake} minutes`;
+  };
+
+
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -247,8 +259,9 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
                           <FaRegClock className="w-4 h-4" />
                           <span>
                             {getMealTimeInfo(meal, format(selectedDate, "yyyy-MM-dd"))
-                              ? `${getMealTimeInfo(meal, format(selectedDate, "yyyy-MM-dd"))} - ${meal.timeToTake} mins`
-                              : `${meal.timeToTake} mins`}
+                              ? `${getMealTimeInfo(meal, format(selectedDate, "yyyy-MM-dd"))}
+                              - ${handleShowTimeToTake(meal.timeToTake || "")}`
+                              : `${handleShowTimeToTake(meal.timeToTake || "")}`}
                           </span>
                         </div>
                       </div>

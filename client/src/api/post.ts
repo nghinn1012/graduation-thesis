@@ -99,7 +99,7 @@ export interface PostInfo {
   };
   images: string[];
   hashtags: string[];
-  timeToTake: string;
+  timeToTake: number;
   servings: number;
   ingredients: Ingredient[];
   instructions: InstructionInfo[];
@@ -121,13 +121,13 @@ export interface PostInfoUpdate {
   about?: string;
   images?: string[];
   hashtags?: string[];
-  timeToTake?: string;
+  timeToTake?: number;
   servings?: number;
   ingredients?: Ingredient[];
   instructions?: InstructionInfoUpdate[];
   difficulty?: string;
   course?: string[];
-  dietary?: string[]; 
+  dietary?: string[];
 }
 
 export interface InstructionInfoUpdate {
@@ -314,7 +314,8 @@ export interface PostFetcher {
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  searchPost: (query: string, page: number, pageSize: number, token: string) => Promise<PostResponse<searchPostData>>;
+  searchPost: (query: string, minTime: string, maxTime: string,
+    minQuality: string, haveMade: string, page: number, pageSize: number, token: string) => Promise<PostResponse<searchPostData>>;
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
@@ -452,7 +453,9 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  searchPost: async (query: string, page: number, pageSize: number, token: string): Promise<PostResponse<searchPostData>> => {
+  searchPost: async (query: string, maxTime: string, minTime: string,
+    minQuality: string, haveMade: string, page: number, pageSize:
+      number, token: string): Promise<PostResponse<searchPostData>> => {
     return postInstance.get(postEndpoints.searchPost,
       {
         headers: {
@@ -460,6 +463,10 @@ export const postFetcher: PostFetcher = {
         },
         params: {
           query,
+          minTime,
+          maxTime,
+          minQuality,
+          haveMade,
           page,
           pageSize,
         }

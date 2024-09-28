@@ -43,7 +43,16 @@ const RightPanel: React.FC = () => {
   const isLoading = false;
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
-  const { cookingTimeRange, setCookingTimeRange } = useSearchContext();
+  const {
+    cookingTimeRange,
+    setCookingTimeRange,
+    setMinQuality,
+    minQuality,
+    setCurrentPage,
+    setPosts,
+    haveMade,
+    setHaveMade,
+  } = useSearchContext();
   const [localCookingTimeRange, setLocalCookingTimeRange] = useState<
     (number | string)[]
   >([0, 1440]);
@@ -55,6 +64,7 @@ const RightPanel: React.FC = () => {
   });
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
+  const [haveMadeOn, setHaveMadeOn] = useState(false);
 
   const handleHashtagKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
@@ -97,7 +107,18 @@ const RightPanel: React.FC = () => {
   };
 
   const handleFilterSubmit = () => {
+    if (
+      localCookingTimeRange != cookingTimeRange ||
+      minQuality !== rating ||
+      haveMade !== haveMadeOn
+    ) {
+      setCurrentPage(1);
+      setPosts([]);
+    }
+    console.log(haveMadeOn);
     setCookingTimeRange(localCookingTimeRange);
+    setMinQuality(rating || 0);
+    setHaveMade(haveMadeOn);
   };
 
   const formatTime = (minutes: number) => {
@@ -317,7 +338,12 @@ const RightPanel: React.FC = () => {
                 <span className="block text-gray-600 font-medium">
                   Haved made this recipe
                 </span>
-                <input type="checkbox" className="toggle" defaultChecked />
+                <input
+                  type="checkbox"
+                  className="toggle"
+                  checked={haveMadeOn}
+                  onChange={() => setHaveMadeOn(!haveMadeOn)}
+                />
               </label>
             </div>
 

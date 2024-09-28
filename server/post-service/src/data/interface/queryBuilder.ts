@@ -5,6 +5,9 @@ export class PostSearchBuilder {
   private skip: number = 0;
   private pageSize: number = 10;
 
+  public getMatchCriteria(): Record<string, any> {
+    return this.matchCriteria;
+  }
   public search(query: string) {
     this.matchCriteria.$or = [
       { title: { $regex: query, $options: 'i' } },
@@ -34,21 +37,24 @@ export class PostSearchBuilder {
   }
 
   public filterCookingTime(minTime?: string, maxTime?: string) {
-    if (minTime || maxTime) {
-      const minMinutes = minTime ? this.parseCookingTime(minTime) : 0;
-      const maxMinutes = maxTime ? this.parseCookingTime(maxTime) : Number.MAX_VALUE;
-
-      this.matchCriteria.cookingTime = {
-        $gte: minMinutes,
-        $lte: maxMinutes,
+    console.log(minTime, maxTime);
+    if (minTime && maxTime) {
+      this.matchCriteria.timeToTake = {
+        $gte: Number(minTime),
+        $lte: Number(maxTime),
       };
+    } else if (minTime) {
+      this.matchCriteria.timeToTake = { $gte: Number(minTime) };
+    }
+    else if (maxTime) {
+      this.matchCriteria.timeToTake = { $lte: Number(maxTime) };
     }
 
     return this;
   }
 
   public filterQuality(minQuality: number) {
-    this.matchCriteria.quality = { $gte: minQuality };
+    this.matchCriteria.averageRating = { $gte: minQuality };
     return this;
   }
 
@@ -57,6 +63,16 @@ export class PostSearchBuilder {
       $gte: minPrice,
       $lte: maxPrice,
     };
+    return this;
+  }
+
+  public filterByHavedMade = (haveMade: boolean) => {
+    this.matchCriteria.averageRating = haveMade ? { $gt: 0 } : { $eq: 0 };
+    return this;
+  }
+
+  public filterByDifficulty(difficulty: string) {
+    this.matchCriteria.difficulty = difficulty;
     return this;
   }
 
@@ -81,17 +97,5 @@ export class PostSearchBuilder {
     pipeline.push({ $limit: this.pageSize });
 
     return pipeline;
-  }
-
-  private parseCookingTime(cookingTime: string): number {
-    const regex = /(?:(\d+)h)?\s*(?:(\d+)m)?/;
-    const matches = cookingTime.match(regex);
-    if (!matches) {
-      return 0;
-    }
-    const hours = matches[1] ? parseInt(matches[1]) : 0;
-    const minutes = matches[2] ? parseInt(matches[2]) : 0;
-
-    return hours * 60 + minutes;
   }
 }

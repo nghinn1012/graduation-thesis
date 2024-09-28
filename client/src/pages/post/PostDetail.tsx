@@ -38,7 +38,7 @@ import * as yup from "yup";
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
   about: yup.string().required("About is required"),
-  timeToTake: yup.string().required("Time to take is required"),
+  timeToTake: yup.number().required("Time to take is required"),
   servings: yup
     .number()
     .required("Servings are required")
@@ -216,7 +216,7 @@ const PostDetails: React.FunctionComponent = () => {
     about: string;
     images: string[];
     hashtags: string[];
-    timeToTake: string;
+    timeToTake: number;
     servings: string | number;
     ingredients: { name: string; quantity: string }[];
     instructions: { description: string; image?: string }[];
@@ -256,7 +256,7 @@ const PostDetails: React.FunctionComponent = () => {
     about: string,
     images: string[],
     hashtags: string[],
-    timeToTake: string,
+    timeToTake: number,
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[],
@@ -299,7 +299,7 @@ const PostDetails: React.FunctionComponent = () => {
           JSON.stringify(editPost.ingredients) !== JSON.stringify(ingredients)
         )
           changes.ingredients = ingredients;
-        if (editPost.timeToTake !== timeToTake) changes.timeToTake = timeToTake;
+        if (editPost.timeToTake !== Number(timeToTake)) changes.timeToTake = Number(timeToTake);
         if (Number(editPost.servings) !== Number(servings))
           changes.servings = Number(servings);
         if (JSON.stringify(editPost.hashtags) !== JSON.stringify(hashtags))
@@ -495,23 +495,13 @@ const PostDetails: React.FunctionComponent = () => {
     }
   };
 
-  const handleShowTimeToTake = (timeToTake: string) => {
-    const [hours, minutes] = timeToTake.split(" ");
-    if (!minutes) {
-      if (hours[hours.length - 1] === "h") {
-        return `${hours} hours`;
-      }
-      return `${hours.slice(0, -1)} minutes`;
-    }
-    const modifiedHours = hours.slice(0, -1);
-    const modifiedMinutes = minutes.slice(0, -1);
-
-    if (parseInt(modifiedHours) === 0) {
-      return `${modifiedMinutes} minutes`;
-    }
-    if (parseInt(modifiedMinutes) === 0) {
-      return `${modifiedHours} hours`;
-    }
+  const handleShowTimeToTake = (timeToTake: number) => {
+    if (!timeToTake) return "Unknown";
+    if (Number(timeToTake) < 60) return `${timeToTake} minutes`;
+    const hours = Math.floor(Number(timeToTake) / 60);
+    const minutes = Number(timeToTake) % 60;
+    const modifiedHours = hours > 0 ? `${hours}` : "";
+    const modifiedMinutes = minutes > 0 ? `${minutes}` : "";
     return `${modifiedHours} hours ${modifiedMinutes} minutes`;
   };
   return (
