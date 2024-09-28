@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import PostSkeleton from "../skeleton/PostSkeleton";
+import { useEffect, useRef, useState } from "react";
 import { useSearchContext } from "../../context/SearchContext";
 import Post from "../posts/PostInfo";
 
@@ -7,81 +6,85 @@ const FollowingTab: React.FC = () => {
   const {
     posts,
     isLoading,
-    setSearchQuery,
-    searchQuery,
-    searchPosts,
-    currentPage,
-    setCurrentPage,
+    loadMorePosts,
+    hasMore,
+    searchQuery
   } = useSearchContext();
-  const observer = useRef<IntersectionObserver | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const prevPostsLengthRef = useRef(0);
+  const observerRef = useRef<HTMLDivElement | null>(null);
+  const { cookingTimeRange, setCookingTimeRange } = useSearchContext();
+  const [filteredPosts, setFilteredPosts] = useState(posts);
 
-  const lastPostRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isLoading) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setCurrentPage((prevPage) => prevPage + 1);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isLoading) {
+          loadMorePosts();
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) observer.disconnect();
+    };
+  }, [loadMorePosts, isLoading, hasMore]);
+
+  const parseTime = (time: string) => {
+    const timeParts = time.match(/(\d+)(h|m)/g);
+    let totalMinutes = 0;
+
+    if (timeParts) {
+      timeParts.forEach(part => {
+        const value = parseInt(part.slice(0, -1));
+        const unit = part.slice(-1);
+
+        if (unit === 'h') {
+          totalMinutes += value * 60;
+        } else if (unit === 'm') {
+          totalMinutes += value;
         }
       });
-      if (node) observer.current.observe(node);
-    },
-    [isLoading, hasMore]
-  );
-
-  useEffect(() => {
-    setCurrentPage(0);
-    setHasMore(true);
-    prevPostsLengthRef.current = 0;
-  }, [searchQuery, setCurrentPage]);
-
-  useEffect(() => {
-    if (currentPage === 0 || hasMore) {
-      searchPosts(currentPage);
     }
-  }, [currentPage, searchPosts, hasMore]);
+
+    return totalMinutes;
+  };
 
   useEffect(() => {
-    if (!isLoading) {
-      if (posts.length === prevPostsLengthRef.current) {
-        setHasMore(false);
-        setSearchQuery("");
-      } else {
-        prevPostsLengthRef.current = posts.length;
-      }
-    }
-  }, [isLoading, posts]);
+    if (cookingTimeRange[0] === "" || cookingTimeRange[1] === "") return;
+    const filtered = posts.filter((post) => {
+      const timeToTake = parseTime(post.timeToTake);
+      return (
+        timeToTake >= Number(cookingTimeRange[0]) && timeToTake <= Number(cookingTimeRange[1])
+      );
+    });
+
+    setFilteredPosts(filtered);
+  }, [cookingTimeRange, posts]);
+
+  useEffect(() => {
+    setCookingTimeRange([0, 1440]);
+    setFilteredPosts(posts);
+  }
+  , [searchQuery]);
 
   return (
-    <>
-      {isLoading && posts.length === 0 && (
-        <div className="flex justify-center my-4">
-          <PostSkeleton />
-        </div>
-      )}
-      {posts.length > 0 && (
-        <div>
-          {posts.map((post, index) => (
-            <div
-              key={post._id}
-              ref={index === posts.length - 1 ? lastPostRef : null}
-            >
-              <Post post={post} />
-            </div>
-          ))}
-        </div>
-      )}
-      {isLoading && posts.length > 0 && (
-        <div className="flex justify-center my-4">
-          <PostSkeleton />
-        </div>
-      )}
-      {!isLoading && !hasMore && posts.length > 0 && (
-        <div className="text-center my-4">No more posts to load.</div>
-      )}
-    </>
+    <div>
+      {/* Posts */}
+      <div>
+        {filteredPosts.map((post) => (
+          <Post key={post._id} post={post} />
+        ))}
+        {isLoading && <p>Loading...</p>}
+      </div>
+
+      {/* Observer element */}
+      <div ref={observerRef} style={{ height: 20 }}></div>
+    </div>
   );
 };
 

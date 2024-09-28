@@ -403,5 +403,10 @@ export const searchPostService = async (query: string, pageSize: number, page: n
     ]
   });
 
+  const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+  posts.forEach((post, index) => {
+    post.author = authors ? authors[index] : null;
+  });
+
   return { posts, total: totalPosts, page, pageSize };
 };

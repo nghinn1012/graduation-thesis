@@ -3,7 +3,7 @@ export class PostSearchBuilder {
   private fieldsToAdd: any = {};
   private sortOrder: any = {};
   private skip: number = 0;
-  private pageSize: number = 10; // Default page size
+  private pageSize: number = 10;
 
   public search(query: string) {
     this.matchCriteria.$or = [
@@ -26,6 +26,40 @@ export class PostSearchBuilder {
     return this;
   }
 
+  public filterByHashtags(hashtags: string[]) {
+    if (hashtags && hashtags.length > 0) {
+      this.matchCriteria.hashtags = { $in: hashtags };
+    }
+    return this;
+  }
+
+  public filterCookingTime(minTime?: string, maxTime?: string) {
+    if (minTime || maxTime) {
+      const minMinutes = minTime ? this.parseCookingTime(minTime) : 0;
+      const maxMinutes = maxTime ? this.parseCookingTime(maxTime) : Number.MAX_VALUE;
+
+      this.matchCriteria.cookingTime = {
+        $gte: minMinutes,
+        $lte: maxMinutes,
+      };
+    }
+
+    return this;
+  }
+
+  public filterQuality(minQuality: number) {
+    this.matchCriteria.quality = { $gte: minQuality };
+    return this;
+  }
+
+  public filterPrice(minPrice: number, maxPrice: number) {
+    this.matchCriteria.price = {
+      $gte: minPrice,
+      $lte: maxPrice,
+    };
+    return this;
+  }
+
   public paginate(pageSize: number = this.pageSize, page?: number) {
     if (!pageSize && !page) {
       return this;
@@ -43,10 +77,21 @@ export class PostSearchBuilder {
       { $sort: this.sortOrder },
     ];
 
-    // Add $skip and $limit based on pagination logic
     pipeline.push({ $skip: this.skip });
-    pipeline.push({ $limit: this.pageSize }); // Use pageSize for limiting the number of documents
+    pipeline.push({ $limit: this.pageSize });
 
     return pipeline;
+  }
+
+  private parseCookingTime(cookingTime: string): number {
+    const regex = /(?:(\d+)h)?\s*(?:(\d+)m)?/;
+    const matches = cookingTime.match(regex);
+    if (!matches) {
+      return 0;
+    }
+    const hours = matches[1] ? parseInt(matches[1]) : 0;
+    const minutes = matches[2] ? parseInt(matches[2]) : 0;
+
+    return hours * 60 + minutes;
   }
 }

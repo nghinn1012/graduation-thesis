@@ -66,6 +66,9 @@ const CreatePostBox: React.FC = () => {
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[],
+    difficulty: string,
+    course: string[],
+    dietary: string[],
     isEditing: boolean,
     postId?: string
   ) => {
@@ -87,6 +90,9 @@ const CreatePostBox: React.FC = () => {
           timeToTake,
           servings: Number(servings),
           hashtags,
+          difficulty,
+          course,
+          dietary,
           liked: false,
           likeCount: 0,
           savedCount: 0,
@@ -127,7 +133,7 @@ const CreatePostBox: React.FC = () => {
           className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
           placeholder="What is happening?!"
           onClick={() => {
-            setEditPost(null); // Reset edit state when creating a new post
+            setEditPost(null); 
             setIsModalOpen(true);
           }}
         />
