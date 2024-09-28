@@ -6,13 +6,18 @@ import imageCompression from "browser-image-compression";
 import * as yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
 import { useToastContext } from "../../hooks/useToastContext";
+import HashtagTab from "./HashTagTab";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
   about: yup.string().required("About is required"),
   timeToTake: yup.string().required("Time to take is required"),
-  servings: yup.number().required("Servings are required").min(1, "Servings must be at least 1"),
-  ingredients: yup.array()
+  servings: yup
+    .number()
+    .required("Servings are required")
+    .min(1, "Servings must be at least 1"),
+  ingredients: yup
+    .array()
     .of(
       yup.object({
         name: yup.string().required("Ingredient name is required"),
@@ -20,10 +25,13 @@ const validationSchema = yup.object({
       })
     )
     .min(1, "At least one ingredient is required"),
-  instructions: yup.array()
+  instructions: yup
+    .array()
     .of(
       yup.object({
-        description: yup.string().required("Instruction description is required"),
+        description: yup
+          .string()
+          .required("Instruction description is required"),
         image: yup.string().nullable(),
       })
     )
@@ -45,6 +53,9 @@ interface PostModalProps {
       description: string;
       image?: string;
     }[],
+    difficulty: string,
+    course: string[],
+    dietary: string[],
     isEditing: boolean,
     postId?: string
   ) => void;
@@ -67,8 +78,6 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [images, setImages] = useState<string[]>([]);
   const imgRef = useRef<HTMLInputElement>(null);
   const { success, error } = useToastContext();
-
-
   const [ingredients, setIngredients] = useState<
     { name: string; quantity: string }[]
   >([]);
@@ -85,11 +94,17 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [servings, setServings] = useState<number | string>("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [newHashtag, setNewHashtag] = useState<string>("");
+  const [difficulty, setDifficulty] = useState<string>("");
+  const [course, setCourse] = useState<string[]>([]);
+  const [dietary, setDietary] = useState<string[]>([]);
   const fileInputRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
-
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: string;
+  }>({});
+  const [isBasicTabValid, setIsBasicTabValid] = useState(false);
+  const [isRecipeTabValid, setIsRecipeTabValid] = useState(false);
   useEffect(() => {
     fileInputRef.current = fileInputRef.current.slice(0, instructions.length);
   }, [instructions]);
@@ -118,7 +133,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         const reader = new FileReader();
         reader.onloadend = () => {
           const updatedInstructions = instructions.map((instruction, i) =>
-              i === index
+            i === index
               ? { ...instruction, image: reader.result as string }
               : instruction
           );
@@ -223,7 +238,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   };
 
   const handleServings = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setServings(parseInt(e.target.value,10));
+    setServings(parseInt(e.target.value, 10));
   };
 
   const addHashtag = () => {
@@ -248,24 +263,53 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setInstructions(updatedInstructions);
   };
 
+  const toggleCourse = (label: string, event: any) => {
+    event.preventDefault();
+    setCourse((prevCourses) =>
+      prevCourses.includes(label)
+        ? prevCourses.filter((course) => course !== label)
+        : [...prevCourses, label]
+    );
+    console.log(course);
+  };
+
+  const selectDifficulty = (label: string, event: any) => {
+    event.preventDefault();
+    setDifficulty(label);
+    console.log(difficulty);
+  };
+
+  const toggleDietary = (label: string, event: any) => {
+    event.preventDefault();
+    setDietary((prevDietary) =>
+      prevDietary.includes(label)
+        ? prevDietary.filter((dietary) => dietary !== label)
+        : [...prevDietary, label]
+    );
+    console.log(dietary);
+  };
+
   const validateData = async () => {
     try {
-      await validationSchema.validate({
-        title,
-        about,
-        images,
-        hashtags,
-        timeToTake,
-        servings,
-        ingredients,
-        instructions,
-      }, { abortEarly: false });
+      await validationSchema.validate(
+        {
+          title,
+          about,
+          images,
+          hashtags,
+          timeToTake,
+          servings,
+          ingredients,
+          instructions,
+        },
+        { abortEarly: false }
+      );
       setValidationErrors({});
       return true;
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         const errors: { [key: string]: string } = {};
-        error.inner.forEach(err => {
+        error.inner.forEach((err) => {
           if (err.path) {
             errors[err.path] = err.message;
           }
@@ -278,7 +322,16 @@ const CreatePostModal: React.FC<PostModalProps> = ({
 
   useEffect(() => {
     validateData();
-  }, [title, about, images, hashtags, timeToTake, servings, ingredients, instructions]);
+  }, [
+    title,
+    about,
+    images,
+    hashtags,
+    timeToTake,
+    servings,
+    ingredients,
+    instructions,
+  ]);
 
   useEffect(() => {
     if (post) {
@@ -291,6 +344,11 @@ const CreatePostModal: React.FC<PostModalProps> = ({
       setIngredients(post.ingredients);
       setInputFields(post.ingredients);
       setInstructions(post.instructions);
+      setDifficulty(post.difficulty);
+      setCourse(post.course);
+      setDietary(post.dietary);
+      setIsBasicTabValid(true);
+      setIsRecipeTabValid(true);
     }
   }, [post]);
 
@@ -310,8 +368,11 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           servings,
           ingredients,
           instructions,
+          difficulty,
+          course,
+          dietary,
           isEditing,
-          post?.id,
+          post?.id
         );
         setTitle("");
         setAbout("");
@@ -322,14 +383,18 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         setTimeToTake("");
         setServings(0);
         setHashtags([]);
+        setDifficulty("");
+        setCourse([]);
+        setDietary([]);
         setNewHashtag("");
         setActiveTab(0);
       } catch (err) {
-        error("Error during submit: " + ((err as Error)?.message || "Unknown error"));
+        error(
+          "Error during submit: " + ((err as Error)?.message || "Unknown error")
+        );
       }
-    }
-    else {
-      error("Invalid data. Please check your input fields", validationErrors)
+    } else {
+      error("Invalid data. Please check your input fields", validationErrors);
     }
   };
   const handleClick = () => {
@@ -338,11 +403,19 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     }
   };
 
+  const handlePreviousTab = (event: any) => {
+    event.preventDefault();
+    setActiveTab(activeTab - 1);
+  };
+  const handleNextTab = (event: any) => {
+    event.preventDefault();
+    setActiveTab(activeTab + 1);
+  };
   if (!isOpen) return null;
 
   return (
     <div className="inset-0 flex items-start justify-center">
-      <Toaster/>
+      <Toaster />
       <div className="modal-overlay fixed inset-0 bg-black opacity-40"></div>
       <div className="responsive modal-content absolute top-0 bg-white p-6 rounded-lg w-full max-w-lg z-50 overflow-y-auto max-h-[800px]">
         <button
@@ -360,7 +433,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             }`}
             onClick={() => setActiveTab(0)}
           >
-            The basics
+            Basic
           </a>
           <a
             role="tab"
@@ -370,6 +443,15 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             onClick={() => setActiveTab(1)}
           >
             Recipe
+          </a>
+          <a
+            role="tab"
+            className={`tab tab-lifted ${
+              activeTab === 2 ? "tab-active active-tab" : ""
+            }`}
+            onClick={() => setActiveTab(2)}
+          >
+            Hashtags
           </a>
         </div>
         <form
@@ -398,6 +480,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               goToPrevious={goToPrevious}
               goToNext={goToNext}
               post={post}
+              setIsBasicTabValid={setIsBasicTabValid}
             />
           )}
           {activeTab === 1 && (
@@ -422,14 +505,51 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               handleClickIcon={handleClickIcon}
               removeImageInstruction={removeImageInstruction}
               removeInstruction={removeInstruction}
+              setIsRecipeTabValid={setIsRecipeTabValid}
             />
           )}
-          <button
-            type="submit"
-            className="btn bg-red-500 w-full text-white mt-6 font-semibold"
-          >
-            {post ? "EDIT POST" : "POST NOW"}
-          </button>
+          {activeTab === 2 && (
+            <HashtagTab
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+              course={course}
+              setCourse={setCourse}
+              dietary={dietary}
+              setDietary={setDietary}
+              toggleCourse={toggleCourse}
+              selectDifficulty={selectDifficulty}
+              toggleDietary={toggleDietary}
+            />
+          )}
+          <div className="flex justify-between mt-4">
+            <button
+              className={`btn py-2 px-4 ${
+                activeTab === 0 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={handlePreviousTab}
+              disabled={activeTab === 0}
+            >
+              Previous
+            </button>
+
+            <button
+              className="btn py-2 px-4"
+              onClick={handleNextTab}
+              disabled={activeTab === 2}
+            >
+              Next
+            </button>
+          </div>
+          {activeTab === 2 && (
+            <button
+              type="submit"
+              disabled={isSubmitting || !isBasicTabValid ||
+                !isRecipeTabValid || Object.keys(validationErrors).length !== 0}
+              className="btn bg-red-500 w-full text-white mt-6 font-semibold"
+            >
+              {post ? "EDIT POST" : "POST NOW"}
+            </button>
+          )}
         </form>
       </div>
     </div>

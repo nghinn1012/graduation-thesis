@@ -24,6 +24,7 @@ interface BasicInfoTabProps {
   goToPrevious: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   goToNext: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   post: PostInfo;
+  setIsBasicTabValid: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const validationSchema = Yup.object().shape({
@@ -35,7 +36,7 @@ const validationSchema = Yup.object().shape({
       "Hashtags must contain only letters and numbers",
       (value) => !value || /^[a-zA-Z0-9]*$/.test(value)
     )
-    .nullable(), // Allows newHashtag to be empty
+    .nullable(),
   images: Yup.array().min(1, "At least one image is required"),
 });
 
@@ -60,6 +61,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   goToPrevious,
   goToNext,
   post,
+  setIsBasicTabValid,
 }) => {
   const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
 
@@ -71,6 +73,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
           { abortEarly: false }
         );
         setErrors({});
+        setIsBasicTabValid(true);
       } catch (err) {
         const validationErrors: { [key: string]: string } = {};
         if (err instanceof Yup.ValidationError) {

@@ -33,10 +33,43 @@ import MadeSection from "../../components/posts/madeRecipe/MadeSection";
 import imageCompression from "browser-image-compression";
 import CommentSection from "../../components/posts/comment/CommentSection";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import * as yup from "yup";
+
+const validationSchema = yup.object({
+  title: yup.string().required("Title is required"),
+  about: yup.string().required("About is required"),
+  timeToTake: yup.string().required("Time to take is required"),
+  servings: yup
+    .number()
+    .required("Servings are required")
+    .min(1, "Servings must be at least 1"),
+  ingredients: yup
+    .array()
+    .of(
+      yup.object({
+        name: yup.string().required("Ingredient name is required"),
+        quantity: yup.string().required("Quantity is required"),
+      })
+    )
+    .min(1, "At least one ingredient is required"),
+  instructions: yup
+    .array()
+    .of(
+      yup.object({
+        description: yup
+          .string()
+          .required("Instruction description is required"),
+        image: yup.string().nullable(),
+      })
+    )
+    .min(1, "At least one instruction is required"),
+});
 
 const PostDetails: React.FunctionComponent = () => {
   const location = useLocation();
-  const [locationPath, setLocationPath] = useState<string | null>(location.state.locationPath);
+  const [locationPath, setLocationPath] = useState<string | null>(
+    location.state.locationPath
+  );
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
     location?.state.activeTab || "recipe"
   );
@@ -61,6 +94,7 @@ const PostDetails: React.FunctionComponent = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [servings, setServings] = useState<number>(post.servings);
   const [isInSchedule, setIsInSchedule] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -163,7 +197,58 @@ const PostDetails: React.FunctionComponent = () => {
   };
 
   const handleBackClick = () => {
-    navigate(`${locationPath || "/"}`, { state: { updatedPost: post, postAuthor: postAuthor } });
+    navigate(`${locationPath || "/"}`, {
+      state: { updatedPost: post, postAuthor: postAuthor },
+    });
+  };
+
+  const validateData = async ({
+    title,
+    about,
+    images,
+    hashtags,
+    timeToTake,
+    servings,
+    ingredients,
+    instructions,
+  }: {
+    title: string;
+    about: string;
+    images: string[];
+    hashtags: string[];
+    timeToTake: string;
+    servings: string | number;
+    ingredients: { name: string; quantity: string }[];
+    instructions: { description: string; image?: string }[];
+  }) => {
+    try {
+      await validationSchema.validate(
+        {
+          title,
+          about,
+          images,
+          hashtags,
+          timeToTake,
+          servings,
+          ingredients,
+          instructions,
+        },
+        { abortEarly: false }
+      );
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        const errors: { [key: string]: string } = {};
+        error.inner.forEach((err) => {
+          if (err.path) {
+            errors[err.path] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
   };
 
   const handlePostSubmit = async (
@@ -175,6 +260,9 @@ const PostDetails: React.FunctionComponent = () => {
     servings: number | string,
     ingredients: { name: string; quantity: string }[],
     instructions: { description: string; image?: string }[],
+    difficulty: string,
+    course: string[],
+    dietary: string[],
     isEditing: boolean
   ) => {
     const token = auth?.token;
@@ -182,6 +270,19 @@ const PostDetails: React.FunctionComponent = () => {
     if (!token) return;
 
     try {
+      const isValid = await validateData(
+        {
+            title,
+            about,
+            images,
+            hashtags,
+            timeToTake,
+            servings,
+            ingredients,
+            instructions,
+        }
+      );
+      if (!isValid) return;
       setIsSubmitting(true);
 
       if (isEditing && editPost) {
@@ -203,6 +304,13 @@ const PostDetails: React.FunctionComponent = () => {
           changes.servings = Number(servings);
         if (JSON.stringify(editPost.hashtags) !== JSON.stringify(hashtags))
           changes.hashtags = hashtags;
+        if (editPost.difficulty !== difficulty) changes.difficulty = difficulty;
+        if (JSON.stringify(editPost.course) !== JSON.stringify(course)) {
+          changes.course = course;
+      }
+        if (JSON.stringify(editPost.dietary) !== JSON.stringify(dietary)) {
+          changes.dietary = dietary;
+        }
 
         await postFetcher.updatePost(editPost._id, changes, token);
         success("Post updated successfully");
@@ -367,9 +475,12 @@ const PostDetails: React.FunctionComponent = () => {
   const addOrRemoveToPlan = async () => {
     if (!auth?.token) return;
     const response = isInSchedule
-      ? await postFetcher.removeMeal({
-          postId: post._id,
-      }, auth.token)
+      ? await postFetcher.removeMeal(
+          {
+            postId: post._id,
+          },
+          auth.token
+        )
       : await postFetcher.addMeal(
           {
             postId: post._id,
@@ -386,6 +497,12 @@ const PostDetails: React.FunctionComponent = () => {
 
   const handleShowTimeToTake = (timeToTake: string) => {
     const [hours, minutes] = timeToTake.split(" ");
+    if (!minutes) {
+      if (hours[hours.length - 1] === "h") {
+        return `${hours} hours`;
+      }
+      return `${hours.slice(0, -1)} minutes`;
+    }
     const modifiedHours = hours.slice(0, -1);
     const modifiedMinutes = minutes.slice(0, -1);
 
@@ -396,8 +513,7 @@ const PostDetails: React.FunctionComponent = () => {
       return `${modifiedHours} hours`;
     }
     return `${modifiedHours} hours ${modifiedMinutes} minutes`;
-  }
-
+  };
   return (
     <>
       {isLoading ? (
@@ -435,7 +551,9 @@ const PostDetails: React.FunctionComponent = () => {
             <div className="flex items-center justify-between text-gray-500">
               <span className="text-lg font-bold">{post.title}</span>
 
-              <span className="text-sm">⏰ {handleShowTimeToTake(post.timeToTake)}</span>
+              <span className="text-sm">
+                ⏰ {handleShowTimeToTake(post.timeToTake)}
+              </span>
             </div>
 
             <div className="flex mt-2 gap-2">

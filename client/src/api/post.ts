@@ -111,6 +111,9 @@ export interface PostInfo {
   liked: boolean;
   saved: boolean;
   isInShoppingList: boolean;
+  difficulty: string;
+  course: string[];
+  dietary: string[];
 }
 
 export interface PostInfoUpdate {
@@ -122,6 +125,9 @@ export interface PostInfoUpdate {
   servings?: number;
   ingredients?: Ingredient[];
   instructions?: InstructionInfoUpdate[];
+  difficulty?: string;
+  course?: string[];
+  dietary?: string[]; 
 }
 
 export interface InstructionInfoUpdate {

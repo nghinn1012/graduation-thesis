@@ -74,6 +74,7 @@ interface RecipeDetailsTabProps {
   handleClickIcon: (index: number) => void;
   removeImageInstruction: (index: number) => void;
   removeInstruction: (index: number) => void;
+  setIsRecipeTabValid: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface IngredientFieldError {
@@ -124,6 +125,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   handleClickIcon,
   removeImageInstruction,
   removeInstruction,
+  setIsRecipeTabValid,
 }) => {
   const [errors, setErrors] = useState<Errors>({});
   const [hours, setHours] = useState<string>("0");
@@ -251,6 +253,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           { abortEarly: false }
         );
         setErrors({});
+        setIsRecipeTabValid(true);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const validationErrors: Errors = {};

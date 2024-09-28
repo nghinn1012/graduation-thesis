@@ -52,6 +52,18 @@ const postSchema = new Schema({
       type: String,
     },
   }],
+  difficulty: {
+    type: String,
+    required: true
+  },
+  course: {
+    type: [String],
+    required: true
+  },
+  dietary: {
+    type: [String],
+    default: []
+  },
   likeCount: {
     type: Number,
     default: 0,
@@ -71,6 +83,10 @@ const postSchema = new Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
+  },
+  quality: {
+    type: Number,
+    default: 0,
   },
 });
 
