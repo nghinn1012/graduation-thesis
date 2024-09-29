@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import {
   followAndUnFollowUserController, getSuggestUserController, getUser, googleLoginController,
-  loginController, refreshTokenController, registerController, searchUserByNameController,
+  loginController, refreshTokenController, registerController,
+  searchAndFilterUserController,
   updateUserControler, verifyUser
 } from '../controllers/index.controllers';
 import { validateRegistration, checkLoginBodyAndParams, protectedRequest, authenticateUser } from '../middlewares/index.middlewares';
@@ -18,7 +19,7 @@ userRouter.post('/verifyUser', verifyUser);
 
 // User routes
 userRouter.get('/getUser/:id', protectedRequest, getUser)
-userRouter.get('/search', searchUserByNameController);
+userRouter.get('/search', protectedRequest, searchAndFilterUserController);
 userRouter.patch('/update/:id', authenticateUser, updateUserControler)
 userRouter.get('/', protectedRequest, getAllUsersController);
 

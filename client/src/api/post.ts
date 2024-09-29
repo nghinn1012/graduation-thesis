@@ -315,7 +315,8 @@ export interface PostFetcher {
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   searchPost: (query: string, minTime: string, maxTime: string,
-    minQuality: string, haveMade: string, page: number, pageSize: number, token: string) => Promise<PostResponse<searchPostData>>;
+    minQuality: string, haveMade: string, difficulty: string[], hashtags: string[],
+    page: number, pageSize: number, token: string) => Promise<PostResponse<searchPostData>>;
   //recipe
   createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
   getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
@@ -454,8 +455,9 @@ export const postFetcher: PostFetcher = {
     );
   },
   searchPost: async (query: string, maxTime: string, minTime: string,
-    minQuality: string, haveMade: string, page: number, pageSize:
-      number, token: string): Promise<PostResponse<searchPostData>> => {
+    minQuality: string, haveMade: string, difficulty: string[],
+    hashtags: string[],
+    page: number, pageSize: number, token: string): Promise<PostResponse<searchPostData>> => {
     return postInstance.get(postEndpoints.searchPost,
       {
         headers: {
@@ -466,7 +468,9 @@ export const postFetcher: PostFetcher = {
           minTime,
           maxTime,
           minQuality,
+          difficulty,
           haveMade,
+          hashtags,
           page,
           pageSize,
         }

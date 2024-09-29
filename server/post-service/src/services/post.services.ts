@@ -385,20 +385,21 @@ export const deletePostService = async (postId: string, userId: string) => {
   }
 };
 
-export const searchPostService = async (query: string, minTime: string, maxTime: string, minQuality: number, haveMade: boolean, pageSize: number, page: number) => {
-  console.log(haveMade);
+export const searchPostService = async (query: string, minTime: string,
+  maxTime: string, minQuality: number,
+  haveMade: boolean, difficulty: string[], hashtags: string[],
+  pageSize: number, page: number) => {
   const postSearchBuilder = new PostSearchBuilder()
     .search(query)
     .filterCookingTime(minTime, maxTime)
-    .filterQuality(minQuality)
     .filterByHavedMade(haveMade)
+    .filterQuality(minQuality)
+    .filterByHashtags(hashtags)
+    .filterByDifficulty(difficulty)
     .paginate(pageSize, page);
-
   const pipeline = postSearchBuilder.build();
-
   const posts = await postModel.aggregate(pipeline);
 
-  // Use the getter to access matchCriteria
   const totalPosts = await postModel.countDocuments(postSearchBuilder.getMatchCriteria());
   const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
   posts.forEach((post, index) => {

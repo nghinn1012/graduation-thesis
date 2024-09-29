@@ -2,7 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import { Error } from "mongoose";
 import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "../data/invalid_data.data";
-import { followAndUnFollowHashtagService, followAndUnFollowUserService, getSuggestUserService, searchUserByNameService, updateUserService, ManualAccountRegisterInfo } from "../services/index.services";
+import {
+  followAndUnFollowHashtagService, followAndUnFollowUserService,
+  getSuggestUserService, searchAndFilterUserService,
+  updateUserService, ManualAccountRegisterInfo
+} from "../services/index.services";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -25,14 +29,11 @@ export const getUser = async (req: Request, res: Response) => {
   }
 }
 
-export const searchUserByNameController = async (req: Request, res: Response) => {
-  const { name } = req.query;
-  if (!name) {
-    return res.status(400).json({ error: "Name parameter is required" });
-  }
-
+export const searchAndFilterUserController = async (req: AuthenticatedRequest, res: Response) => {
+  const { name, page, pageSize } = req.query;
+  const userId = req.userId;
   try {
-    const users = await searchUserByNameService(name as string);
+    const users = await searchAndFilterUserService(name as string, userId as string, Number(pageSize), Number(page));
     res.json(users);
   } catch (error) {
     return res.status(400).json({

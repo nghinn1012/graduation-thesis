@@ -1,40 +1,138 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { userFetcher, AccountInfo } from '../api/user';
-import { useAuthContext } from '../hooks/useAuthContext';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
+import { userFetcher, AccountInfo, searchInfoData } from "../api/user";
+import { useAuthContext } from "../hooks/useAuthContext";
+import { useSearchContext } from "./SearchContext";
+import { useToastContext } from "../hooks/useToastContext";
 
 interface UserContextType {
   allUsers: AccountInfo[];
   loading: boolean;
-  error: string | null;
+  loadMoreUsers: () => void;
+  hasMore: boolean;
+  suggestUsers: AccountInfo[];
+  fetchSuggestions: () => Promise<void>;
+  fetchUsers: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [allUsers, setAllUsers] = useState<AccountInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const {auth} = useAuthContext();
+  const [suggestUsers, setSuggestUsers] = useState<AccountInfo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { auth } = useAuthContext();
+  const [limit] = useState<number>(10);
+  const { searchQuery } = useSearchContext();
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const { error } = useToastContext();
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        if (!auth?.token) return;
-        const users = await userFetcher.getAllUsers(auth.token);
-        setAllUsers(users as unknown as AccountInfo[]);
-        setLoading(false);
-      } catch (err) {
-        console.log('Failed to fetch users:', err);
-        setError('Failed to fetch users');
-        setLoading(false);
+  const fetchUsers = useCallback(async () => {
+    if (!auth?.token || loading) return;
+    setLoading(true);
+    try {
+      const response = (await userFetcher.search(
+        searchQuery || "",
+        currentPage,
+        limit,
+        auth.token
+      )) as unknown as searchInfoData;
+      console.log("response:", response);
+      setAllUsers((prevUsers) => {
+        const existingUserIds = new Set(prevUsers.map((user) => user._id));
+        const newUsers = response.users.filter(
+          (user) => !existingUserIds.has(user._id)
+        );
+        return [...prevUsers, ...newUsers];
+      });
+      if (
+        (response as unknown as AccountInfo[]).length < limit ||
+        response.totalPages === currentPage
+      ) {
+        setHasMore(false);
       }
-    };
+    } catch (err) {
+      console.error("Failed to load posts:", err);
+      error("Failed to load posts: " + (err as Error));
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    auth?.token,
+    searchQuery,
+    currentPage,
+    limit,
+  ]);
 
-    fetchUsers();
+  const fetchSuggestions = useCallback(async () => {
+    if (!auth || !auth.token) return;
+    setLoading(true);
+    try {
+      const response = (await userFetcher.suggest(auth.token)) as unknown as AccountInfo[];
+      if (response.length === 0) {
+        setHasMore(false);
+      }
+      setSuggestUsers((prevUsers) => {
+        const existingUserIds = new Set(prevUsers.map((user) => user._id));
+        const newUsers = response.filter(
+          (user) => !existingUserIds.has(user._id)
+        );
+        const updatedUsers = [...prevUsers, ...newUsers];
+        return updatedUsers;
+      });
+    } catch (err) {
+      console.error("Failed to load suggestions:", err);
+      error("Failed to load suggestions: " + (err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   }, [auth?.token]);
 
+
+  useEffect(() => {
+    setAllUsers([]);
+    setHasMore(true);
+    setCurrentPage(1);
+  }, [searchQuery, auth?.token]);
+
+  const loadMoreUsers = useCallback(() => {
+    if (hasMore && !loading) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  }, [hasMore, loading]);
+
+  useEffect(() => {
+    if (auth?.token) {
+      setLoading(true);
+      const fetchUsersData = async () => {
+        await fetchUsers();
+        setLoading(false);
+      };
+      fetchUsersData();
+    }
+  }, [auth, fetchUsers, currentPage]);
+
+  useEffect(() => {
+    if (auth?.token) {
+      setLoading(true);
+      fetchUsers();
+      setLoading(false);
+    }
+  }, [auth, fetchUsers, currentPage]);
+
+
   return (
-    <UserContext.Provider value={{ allUsers, loading, error }}>
+    <UserContext.Provider value={{ allUsers,
+    loading, loadMoreUsers, hasMore,
+    suggestUsers, fetchSuggestions, fetchUsers }}>
       {children}
     </UserContext.Provider>
   );

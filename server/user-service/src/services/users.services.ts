@@ -1,4 +1,5 @@
 import { InvalidDataError, validatePassword } from "../data/index.data";
+import { UserSearchBuilder } from "../data/query_builder";
 import UserModel from "../db/models/User.models";
 import { hashText } from "../utlis/bcrypt";
 import { v2 as cloudinary } from "cloudinary";
@@ -12,19 +13,31 @@ export interface UpdateDataInfo {
   coverImage: string;
   bio: string;
 }
+export const searchAndFilterUserService = async (
+  searchTerm: string,
+  userId: string,
+  pageSize: number,
+  page: number,
+) => {
+  const userSearchBuilder = new UserSearchBuilder()
+    .search(searchTerm)
+    .paginate(pageSize, page);
 
-export const searchUserByNameService = async (searchTerm: string) => {
-  try {
-    const users = await UserModel.find({
-      name: { $regex: searchTerm, $options: "i" }
-    });
+  const pipeline = userSearchBuilder.build();
 
-    return users;
-  } catch (error) {
-    throw new InvalidDataError({
-      message: (error as Error).message || 'Search failed',
-    });
-  }
+  let users = await UserModel.aggregate(pipeline);
+  users = users.filter((user) => user._id.toString() !== userId);
+
+  const totalUsers = await UserModel.countDocuments(userSearchBuilder.getMatchCriteria());
+  const totalPages = Math.ceil(totalUsers / pageSize);
+
+  return {
+    users,
+    totalUsers,
+    totalPages,
+    currentPage: page,
+    pageSize,
+  };
 };
 
 export const updateUserService = async (userId: string, updateData: UpdateDataInfo) => {

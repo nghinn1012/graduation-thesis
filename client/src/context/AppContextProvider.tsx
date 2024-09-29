@@ -18,11 +18,11 @@ export default function AppContextProviders({
       <I18nContextProvider>
         <AuthContextProvider>
           <SearchProvider>
-          <PostProvider>
-            <UserProvider>
-              <SocketProvider>{children}</SocketProvider>
-            </UserProvider>
-          </PostProvider>
+            <PostProvider>
+              <UserProvider>
+                <SocketProvider>{children}</SocketProvider>
+              </UserProvider>
+            </PostProvider>
           </SearchProvider>
         </AuthContextProvider>
       </I18nContextProvider>

@@ -1,6 +1,6 @@
 export {
   getUser, getSuggestUserController,
-  updateUserControler, searchUserByNameController,
+  updateUserControler, searchAndFilterUserController,
   followAndUnFollowUserController
 } from "./users.controllers";
 

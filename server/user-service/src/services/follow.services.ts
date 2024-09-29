@@ -46,10 +46,12 @@ export const getSuggestUserService = async (currentUserId: string) => {
         _id: { $ne: currentUserId }
       }
     },
-    { $sample: { size: 10 } }
+    { $sample: { size: 5 } }
   ]);
 
-  const filteredUsers = users.filter(user => !followedUserIds.includes(user._id.toString()));
+  console.log(currentUserId);
+  const filteredUsers = users.filter(user => !followedUserIds.includes(user._id.toString())
+    && currentUserId !== user._id.toString());
 
   const suggestedUsers = filteredUsers.slice(0, 5);
 

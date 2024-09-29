@@ -32,6 +32,8 @@ export class PostSearchBuilder {
   public filterByHashtags(hashtags: string[]) {
     if (hashtags && hashtags.length > 0) {
       this.matchCriteria.hashtags = { $in: hashtags };
+    } else {
+      delete this.matchCriteria.hashtags;
     }
     return this;
   }
@@ -54,7 +56,27 @@ export class PostSearchBuilder {
   }
 
   public filterQuality(minQuality: number) {
-    this.matchCriteria.averageRating = { $gte: minQuality };
+    if (!this.matchCriteria.averageRating) {
+      this.matchCriteria.averageRating = minQuality === 0 ? {} : { $gte: minQuality };
+    } else {
+      this.matchCriteria.averageRating = {
+        ...this.matchCriteria.averageRating,
+        $gte: minQuality,
+      };
+    }
+    return this;
+  }
+
+  public filterByHavedMade = (haveMade: boolean) => {
+    const condition = haveMade ? { $gt: 0 } : { };
+    if (!this.matchCriteria.averageRating) {
+      this.matchCriteria.averageRating = condition;
+    } else {
+      this.matchCriteria.averageRating = {
+        ...this.matchCriteria.averageRating,
+        ...condition,
+      };
+    }
     return this;
   }
 
@@ -66,15 +88,15 @@ export class PostSearchBuilder {
     return this;
   }
 
-  public filterByHavedMade = (haveMade: boolean) => {
-    this.matchCriteria.averageRating = haveMade ? { $gt: 0 } : { $eq: 0 };
+  public filterByDifficulty(difficulty: string[]) {
+    if (difficulty && difficulty.length > 0) {
+      this.matchCriteria.difficulty = { $in: difficulty };
+    } else {
+      delete this.matchCriteria.difficulty;
+    }
     return this;
   }
 
-  public filterByDifficulty(difficulty: string) {
-    this.matchCriteria.difficulty = difficulty;
-    return this;
-  }
 
   public paginate(pageSize: number = this.pageSize, page?: number) {
     if (!pageSize && !page) {

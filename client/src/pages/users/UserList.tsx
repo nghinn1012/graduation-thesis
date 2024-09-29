@@ -1,18 +1,40 @@
+import React, { useEffect, useRef } from "react";
 import { useUserContext } from '../../context/UserContext';
+import { useAuthContext } from "../../hooks/useAuthContext";
+import { useSearchContext } from "../../context/SearchContext";
+
 const UsersList = () => {
-  const { allUsers, loading, error } = useUserContext();
+  const { allUsers, loading, loadMoreUsers, hasMore, fetchUsers} = useUserContext();
+  const { auth } = useAuthContext();
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
-  if (loading) {
-    return <div className="text-center">Loading users...</div>;
-  }
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !loading) {
+          loadMoreUsers();
+        }
+      },
+      { threshold: 1.0 }
+    );
 
-  if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
-  }
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) observer.disconnect();
+    };
+  }, [loadMoreUsers, loading, hasMore]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   return (
     <div className="space-y-4">
-      {allUsers.map((user) => (
+      {!loading && allUsers.map((user) => (
         <div key={user._id} className="card bg-base-100 shadow-xl">
           <div className="card-body p-4">
             <div className="flex items-start space-x-3">
@@ -29,18 +51,15 @@ const UsersList = () => {
                   </div>
                   <button className="btn btn-primary btn-sm">Follow</button>
                 </div>
-                {/* <p className="text-sm mt-2">{user.}</p>
-                <div className="card-actions justify-start mt-2">
-                  <a href={`https://${user.link}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 flex items-center">
-                    <FiExternalLink className="mr-1" />
-                    {user.link}
-                  </a>
-                </div> */}
               </div>
             </div>
           </div>
         </div>
       ))}
+      {allUsers.length === 0 && !loading && (
+        <p>No users found.</p>
+      )}
+      <div ref={observerRef} style={{ height: 20 }}></div>
     </div>
   );
 };

@@ -1,36 +1,11 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import RightPanelSkeleton from "../skeleton/RightPanelSkeleton";
 import React, { useEffect, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { Range } from "react-range";
 import { useSearchContext } from "../../context/SearchContext";
-
-const USERS_FOR_RIGHT_PANEL = [
-  {
-    _id: "1",
-    username: "user1",
-    name: "John Doe",
-    avatar: "https://random.imagecdn.app/500/150",
-  },
-  {
-    _id: "2",
-    username: "user2",
-    name: "VnExpress",
-    avatar: "https://random.imagecdn.app/500/150",
-  },
-  {
-    _id: "3",
-    username: "user3",
-    name: "Neil deGrasse Tyson",
-    avatar: "https://random.imagecdn.app/500/150",
-  },
-  {
-    _id: "4",
-    username: "user4",
-    name: "Elon Musk",
-    avatar: "https://random.imagecdn.app/500/150",
-  },
-];
+import { useUserContext } from "../../context/UserContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 interface User {
   _id: string;
@@ -44,6 +19,7 @@ const RightPanel: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
   const {
+    searchQuery,
     cookingTimeRange,
     setCookingTimeRange,
     setMinQuality,
@@ -52,19 +28,30 @@ const RightPanel: React.FC = () => {
     setPosts,
     haveMade,
     setHaveMade,
+    difficulty,
+    setDifficulty,
+    hashtagsSearch,
+    setHashtagsSearch,
   } = useSearchContext();
+  const { suggestUsers, fetchSuggestions } = useUserContext();
   const [localCookingTimeRange, setLocalCookingTimeRange] = useState<
     (number | string)[]
   >([0, 1440]);
-  const [rating, setRating] = useState<number | null>(null);
+  const [rating, setRating] = useState<number | null>(minQuality);
   const [selectedDifficulties, setSelectedDifficulties] = useState({
-    easy: false,
-    medium: false,
-    hard: false,
+    easy: difficulty.includes("easy"),
+    medium: difficulty.includes("medium"),
+    hard: difficulty.includes("hard"),
   });
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
   const [haveMadeOn, setHaveMadeOn] = useState(false);
+  const {auth} = useAuthContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, [fetchSuggestions]);
 
   const handleHashtagKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
@@ -79,6 +66,7 @@ const RightPanel: React.FC = () => {
     setHashtags((prev) =>
       prev.filter((hashtag) => hashtag !== hashtagToRemove)
     );
+    console.log(hashtags);
   };
 
   const handleCheckboxChange = (event: any) => {
@@ -94,7 +82,15 @@ const RightPanel: React.FC = () => {
 
   useEffect(() => {
     setLocalCookingTimeRange(cookingTimeRange);
-  }, [cookingTimeRange]);
+    setRating(minQuality);
+    setHaveMadeOn(haveMade);
+    setSelectedDifficulties({
+      easy: difficulty.includes("easy"),
+      medium: difficulty.includes("medium"),
+      hard: difficulty.includes("hard"),
+    });
+    setHashtags(hashtagsSearch);
+  }, [cookingTimeRange, minQuality, haveMade, difficulty, hashtagsSearch]);
 
   const handleInputChange = (index: number, value: string) => {
     const newCookingTimeRange = [...cookingTimeRange];
@@ -106,19 +102,51 @@ const RightPanel: React.FC = () => {
     setLocalCookingTimeRange(newCookingTimeRange);
   };
 
+  const handleArrayOfDifficulties = () => {
+    const difficulties = [];
+    if (selectedDifficulties.easy) {
+      difficulties.push("easy");
+    }
+    if (selectedDifficulties.medium) {
+      difficulties.push("medium");
+    }
+    if (selectedDifficulties.hard) {
+      difficulties.push("hard");
+    }
+    return difficulties;
+  };
+
   const handleFilterSubmit = () => {
+    console.log(hashtags, hashtagsSearch);
+
+    const params = new URLSearchParams();
+    params.append('searchQuery', searchQuery);
+    if (localCookingTimeRange) params.append('cookingTimeRangeMin', localCookingTimeRange[0].toString());
+    if (localCookingTimeRange) params.append('cookingTimeRangeMax', localCookingTimeRange[1].toString());
+    if (rating !== null && rating !== undefined) params.append('minQuality', rating.toString());
+    if (haveMadeOn !== null && haveMadeOn !== undefined) params.append('haveMade', haveMadeOn.toString());
+    if (handleArrayOfDifficulties()) params.append('difficulty', difficulty.join(','));
+    if (hashtags?.length > 0) params.append('hashtags', hashtags.join(','));
+
     if (
-      localCookingTimeRange != cookingTimeRange ||
+      localCookingTimeRange !== cookingTimeRange ||
       minQuality !== rating ||
-      haveMade !== haveMadeOn
+      haveMade !== haveMadeOn ||
+      handleArrayOfDifficulties() !== difficulty ||
+      hashtags !== hashtagsSearch
     ) {
       setCurrentPage(1);
       setPosts([]);
     }
-    console.log(haveMadeOn);
+
     setCookingTimeRange(localCookingTimeRange);
     setMinQuality(rating || 0);
     setHaveMade(haveMadeOn);
+    setDifficulty(handleArrayOfDifficulties());
+    setHashtagsSearch(hashtags || []);
+
+    const newUrl = `/users/search?${params.toString()}`;
+    navigate(newUrl);
   };
 
   const formatTime = (minutes: number) => {
@@ -129,11 +157,6 @@ const RightPanel: React.FC = () => {
     }`;
   };
 
-  const filteredUsers = USERS_FOR_RIGHT_PANEL.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="hidden lg:block">
@@ -186,18 +209,25 @@ const RightPanel: React.FC = () => {
                   {children}
                 </div>
               )}
-              renderThumb={({ props }) => (
-                <div
-                  {...props}
-                  style={{
-                    ...props.style,
-                    height: "20px",
-                    width: "20px",
-                    backgroundColor: "#007bff",
-                    borderRadius: "50%",
-                  }}
-                />
-              )}
+
+
+              renderThumb={({ props }) => {
+                const { key, ...otherProps } = props;
+
+                return (
+                  <div
+                    {...otherProps}
+                    key={key}
+                    style={{
+                      ...otherProps.style,
+                      height: "20px",
+                      width: "20px",
+                      backgroundColor: "#007bff",
+                      borderRadius: "50%",
+                    }}
+                  />
+                );
+              }}
             />
 
             <div className="flex justify-between mt-2">
@@ -257,19 +287,31 @@ const RightPanel: React.FC = () => {
                 Min Rating
               </label>
               <div className="flex items-center">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <span
-                    key={index}
-                    className={`cursor-pointer text-3xl mx-2 ${
-                      index < (rating || 0)
-                        ? "text-yellow-500"
-                        : "text-gray-300"
-                    }`}
-                    onClick={() => handleRatingClick(index + 1)}
+                <div className="flex items-center">
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <span
+                      key={index}
+                      className={`cursor-pointer text-3xl mx-2 ${
+                        index < (rating || 0)
+                          ? "text-yellow-500"
+                          : "text-gray-300"
+                      }`}
+                      onClick={() => handleRatingClick(index + 1)}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <button
+                    className={`btn ${
+                      rating === 0
+                        ? "bg-blue-300 border-blue-300"
+                        : "bg-gray-300 border-gray-300"
+                    } btn-sm cursor-pointer px-3 py-1 text-sm mx-2`}
+                    onClick={() => handleRatingClick(0)}
                   >
-                    ★
-                  </span>
-                ))}
+                    All
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -393,7 +435,7 @@ const RightPanel: React.FC = () => {
         <p className="font-bold my-4">Who to follow</p>
         <div className="flex flex-col gap-6">
           {/* Loading State */}
-          {isLoading && (
+          {isLoading || !suggestUsers  && (
             <>
               <RightPanelSkeleton />
               <RightPanelSkeleton />
@@ -403,8 +445,7 @@ const RightPanel: React.FC = () => {
           )}
 
           {/* User List */}
-          {!isLoading &&
-            filteredUsers.map((user: User) => (
+          {!isLoading && (suggestUsers.map((user: User) => (
               <Link
                 to={`/profile/${user.username}`}
                 className="flex items-center justify-between gap-4"
@@ -434,7 +475,7 @@ const RightPanel: React.FC = () => {
                   </button>
                 </div>
               </Link>
-            ))}
+            )))}
         </div>
       </div>
     </div>

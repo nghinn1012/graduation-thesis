@@ -6,13 +6,10 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import {
-  postFetcher,
-  PostInfo,
-  searchPostData,
-} from "../api/post";
+import { postFetcher, PostInfo, searchPostData } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
+import { useLocation } from "react-router-dom";
 
 interface SearchContextType {
   searchQuery: string;
@@ -32,11 +29,17 @@ interface SearchContextType {
   fetchPosts: () => Promise<void>;
   loadMorePosts: () => void;
   cookingTimeRange: (number | string)[];
-  setCookingTimeRange: React.Dispatch<React.SetStateAction<(number | string)[]>>;
+  setCookingTimeRange: React.Dispatch<
+    React.SetStateAction<(number | string)[]>
+  >;
   minQuality: number;
   setMinQuality: React.Dispatch<React.SetStateAction<number>>;
   haveMade: boolean;
   setHaveMade: React.Dispatch<React.SetStateAction<boolean>>;
+  difficulty: string[];
+  setDifficulty: React.Dispatch<React.SetStateAction<string[]>>;
+  hashtagsSearch: string[];
+  setHashtagsSearch: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -53,12 +56,31 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const [hasMore, setHasMore] = useState<boolean>(true);
   const { auth } = useAuthContext();
   const { error } = useToastContext();
-  const [cookingTimeRange, setCookingTimeRange] = useState<(number | string)[]>([0, 1440]);
+  const [cookingTimeRange, setCookingTimeRange] = useState<(number | string)[]>(
+    [0, 1440]
+  );
   const [minQuality, setMinQuality] = useState<number>(0);
   const [haveMade, setHaveMade] = useState<boolean>(false);
+  const [difficulty, setDifficulty] = useState<string[]>([]);
+  const [hashtagsSearch, setHashtagsSearch] = useState<string[]>([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname !== "/users/search") {
+      setSearchQuery("");
+      setPosts([]);
+      setCurrentPage(1);
+      setCookingTimeRange([0, 1440]);
+      setMinQuality(0);
+      setHaveMade(false);
+      setDifficulty([]);
+      setHashtagsSearch([]);
+      setHasMore(true);
+    }
+  }, [location.pathname]);
+
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
-    console.log(minQuality);
     setIsLoading(true);
     try {
       const response = (await postFetcher.searchPost(
@@ -67,11 +89,16 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         cookingTimeRange[0] as string,
         minQuality as unknown as string,
         haveMade ? "true" : "",
+        difficulty,
+        hashtagsSearch as string[],
         currentPage,
         10,
         auth.token
       )) as unknown as searchPostData;
-      setPosts((prevPosts) => {
+      if (response.totalPosts === 0) {
+        setHasMore(false);
+      }
+      await setPosts((prevPosts) => {
         const existingPostIds = new Set(prevPosts.map((post) => post._id));
         const newPosts = response.posts.filter(
           (post) => !existingPostIds.has(post._id)
@@ -79,7 +106,10 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         return [...prevPosts, ...newPosts];
       });
       await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
-      if ((response as unknown as PostInfo[]).length < limit || response.totalPages === currentPage) {
+      if (
+        (response as unknown as PostInfo[]).length < limit ||
+        response.totalPages === currentPage
+      ) {
         setHasMore(false);
       }
     } catch (err) {
@@ -88,14 +118,41 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [auth?.token, searchQuery, currentPage, limit,
-    cookingTimeRange, minQuality, haveMade]);
+  }, [
+    auth?.token,
+    searchQuery,
+    currentPage,
+    limit,
+    cookingTimeRange,
+    minQuality,
+    haveMade,
+    difficulty,
+    hashtagsSearch,
+  ]);
 
   useEffect(() => {
     setPosts([]);
     setHasMore(true);
     setCurrentPage(1);
-  }, [searchQuery, cookingTimeRange, auth?.token]);
+  }, [
+    searchQuery,
+    cookingTimeRange,
+    minQuality,
+    haveMade,
+    difficulty,
+    hashtagsSearch,
+    auth?.token,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setCookingTimeRange([0, 1440]);
+    setMinQuality(0);
+    setHaveMade(false);
+    setDifficulty([]);
+    setHashtagsSearch([]);
+    setHasMore(true);
+  }, [searchQuery, auth?.token]);
 
   const loadMorePosts = useCallback(() => {
     if (hasMore && !isLoading) {
@@ -223,6 +280,10 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         setMinQuality,
         haveMade,
         setHaveMade,
+        difficulty,
+        setDifficulty,
+        hashtagsSearch,
+        setHashtagsSearch,
       }}
     >
       {children}

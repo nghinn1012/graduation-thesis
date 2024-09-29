@@ -2,4 +2,4 @@ export { loginService, googleLoginService, refreshTokenService } from "./login.s
 export { registerService, ManualAccountRegisterInfo } from "./register.services";
 export { verifyEmailService } from "./verify.services";
 export { followAndUnFollowUserService, getSuggestUserService, followAndUnFollowHashtagService } from "./follow.services";
-export { searchUserByNameService, updateUserService } from "./users.services";
+export { searchAndFilterUserService, updateUserService } from "./users.services";

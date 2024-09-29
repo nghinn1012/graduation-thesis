@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchContext } from "../../context/SearchContext";
 import Post from "../posts/PostInfo";
+import PostSkeleton from "../skeleton/PostSkeleton";
 
 const FollowingTab: React.FC = () => {
   const {
@@ -34,15 +35,22 @@ const FollowingTab: React.FC = () => {
 
   return (
     <div>
-      {/* Posts */}
       <div>
-        {posts.map((post) => (
+        {!isLoading && posts.map((post) => (
           <Post key={post._id} post={post} />
         ))}
-        {isLoading && <p>Loading...</p>}
+        {isLoading && (
+          <>
+          <PostSkeleton />
+          <PostSkeleton />
+          </>
+        )}
       </div>
 
-      {/* Observer element */}
+      {posts.length === 0 && !isLoading && !hasMore && (
+        <p>No posts found for "{searchQuery}".</p>
+      )}
+
       <div ref={observerRef} style={{ height: 20 }}></div>
     </div>
   );

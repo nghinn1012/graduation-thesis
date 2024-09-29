@@ -13,6 +13,8 @@ export const userEndpoints = {
   loginWithGoogle: "/users/google-login",
   getUserById: "/users/getUser",
   getAllUsers: "/users",
+  search: "/users/search",
+  suggest: "/users/suggest",
 } as const;
 
 export interface UserResponseError
@@ -71,6 +73,13 @@ export interface LoginInfo {
   password: string;
 }
 
+export interface searchInfoData {
+  users: AccountInfo[];
+  totalUsers: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
 
 export interface UserFetcher {
   manualRegister(data: ManualRegisterInfo): Promise<UserResponse<AccountInfo>>;
@@ -80,6 +89,8 @@ export interface UserFetcher {
   loginWithGoogle(token: string): Promise<UserResponse<AccountInfo>>;
   getUserById(id: string, token: string): Promise<UserResponse<AccountInfo>>;
   getAllUsers(token: string): Promise<UserResponse<AccountInfo[]>>;
+  search(name: string, page: number, pageSize: number, token: string): Promise<UserResponse<searchInfoData>>;
+  suggest(token: string): Promise<UserResponse<AccountInfo[]>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -123,5 +134,28 @@ export const userFetcher: UserFetcher = {
         }
       }
     );
-  }
+  },
+  search: async (name: string,  page: number, pageSize: number,token: string): Promise<UserResponse<searchInfoData>> => {
+    return userInstance.get(userEndpoints.search,
+      {
+        params: {
+          name,
+          page,
+          pageSize
+         },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+  },
+  suggest: async (token: string): Promise<UserResponse<AccountInfo[]>> => {
+    return userInstance.get(userEndpoints.suggest,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+  },
 };
