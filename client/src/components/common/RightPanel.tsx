@@ -6,6 +6,7 @@ import { Range } from "react-range";
 import { useSearchContext } from "../../context/SearchContext";
 import { useUserContext } from "../../context/UserContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useFollowContext } from "../../context/FollowContext";
 
 interface User {
   _id: string;
@@ -34,6 +35,7 @@ const RightPanel: React.FC = () => {
     setHashtagsSearch,
   } = useSearchContext();
   const { suggestUsers, fetchSuggestions } = useUserContext();
+  const {followUser} = useFollowContext();
   const [localCookingTimeRange, setLocalCookingTimeRange] = useState<
     (number | string)[]
   >([0, 1440]);
@@ -156,6 +158,11 @@ const RightPanel: React.FC = () => {
       mins > 0 ? `${mins} minute${mins > 1 ? "s" : ""}` : ""
     }`;
   };
+
+  const handleFollowUser = (userId: string, event: any) => {
+    event.preventDefault();
+    followUser(userId);
+  }
 
 
   return (
@@ -445,7 +452,7 @@ const RightPanel: React.FC = () => {
           )}
 
           {/* User List */}
-          {!isLoading && (suggestUsers.map((user: User) => (
+          {!isLoading && (suggestUsers.slice(0,5).map((user: User) => (
               <Link
                 to={`/profile/${user.username}`}
                 className="flex items-center justify-between gap-4"
@@ -469,8 +476,7 @@ const RightPanel: React.FC = () => {
                 <div>
                   <button
                     className="btn btn-neutral text-white hover:bg-white hover:opacity-90 rounded-full btn-sm"
-                    onClick={(e) => e.preventDefault()}
-                  >
+                    onClick={(event) => handleFollowUser(user._id, event)}                  >
                     Follow
                   </button>
                 </div>

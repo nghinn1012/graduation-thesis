@@ -4,6 +4,7 @@ export interface IUserPersonal {
 }
 
 export interface IUserCredential {
+  _id: string
   email: string;
   password: string;
   verify: number;
@@ -12,7 +13,7 @@ export interface IUserCredential {
 export interface IUser extends IUserPersonal, IUserCredential { }
 
 export interface IAccountInfo
-  extends Partial<Pick<IUserCredential, "email">>,
+  extends Partial<Pick<IUserCredential, "_id" | "email">>,
   Partial<Pick<IUserPersonal, "avatar" | "name">> {
   token: string;
   user: unknown;

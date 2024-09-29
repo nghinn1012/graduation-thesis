@@ -2,10 +2,12 @@ import React, { useEffect, useRef } from "react";
 import { useUserContext } from '../../context/UserContext';
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useSearchContext } from "../../context/SearchContext";
+import { useFollowContext } from "../../context/FollowContext";
 
 const UsersList = () => {
   const { allUsers, loading, loadMoreUsers, hasMore, fetchUsers} = useUserContext();
   const { auth } = useAuthContext();
+  const {followUser} = useFollowContext();
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -32,6 +34,11 @@ const UsersList = () => {
     fetchUsers();
   }, [fetchUsers]);
 
+  const handleFollowOrUnfollow = async (userId: string, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    followUser(userId);
+  }
+
   return (
     <div className="space-y-4">
       {!loading && allUsers.map((user) => (
@@ -49,7 +56,10 @@ const UsersList = () => {
                     <h2 className="card-title text-sm font-bold">{user.name}</h2>
                     <p className="text-xs text-gray-500">@{user.username}</p>
                   </div>
-                  <button className="btn btn-primary btn-sm">Follow</button>
+                  <button className="btn btn-primary btn-sm"
+                    onClick={(event) => handleFollowOrUnfollow(user._id, event)}
+                  >{user.followed ? "Unfollow": "Follow"}
+                  </button>
                 </div>
               </div>
             </div>

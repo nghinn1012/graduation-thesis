@@ -15,6 +15,7 @@ export const userEndpoints = {
   getAllUsers: "/users",
   search: "/users/search",
   suggest: "/users/suggest",
+  follow: "/users/followUser/:userId",
 } as const;
 
 export interface UserResponseError
@@ -59,6 +60,9 @@ export interface AccountInfo {
   token: string;
   avatar?: string;
   refreshToken: string;
+  followers: string[];
+  following: string[];
+  followed: boolean;
 }
 
 interface ManualRegisterInfo {
@@ -91,6 +95,7 @@ export interface UserFetcher {
   getAllUsers(token: string): Promise<UserResponse<AccountInfo[]>>;
   search(name: string, page: number, pageSize: number, token: string): Promise<UserResponse<searchInfoData>>;
   suggest(token: string): Promise<UserResponse<AccountInfo[]>>;
+  followUser(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -158,4 +163,14 @@ export const userFetcher: UserFetcher = {
       }
     );
   },
+  followUser: async (userId: string, token: string): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(userEndpoints.follow.replace(":userId", userId),
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+  }
 };

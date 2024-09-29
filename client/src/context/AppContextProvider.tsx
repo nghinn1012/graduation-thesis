@@ -6,6 +6,7 @@ import { SocketProvider } from "./SocketContext";
 import ToastContextProvider from "./ToastContext";
 import { UserProvider } from "./UserContext";
 import { SearchProvider } from "./SearchContext";
+import { FollowProvider } from "./FollowContext";
 interface IAppContextProvidersProps {
   children?: React.ReactNode;
 }
@@ -18,11 +19,13 @@ export default function AppContextProviders({
       <I18nContextProvider>
         <AuthContextProvider>
           <SearchProvider>
-            <PostProvider>
-              <UserProvider>
-                <SocketProvider>{children}</SocketProvider>
-              </UserProvider>
-            </PostProvider>
+            <UserProvider>
+              <PostProvider>
+                <FollowProvider>
+                  <SocketProvider>{children}</SocketProvider>
+                </FollowProvider>
+              </PostProvider>
+            </UserProvider>
           </SearchProvider>
         </AuthContextProvider>
       </I18nContextProvider>

@@ -18,6 +18,8 @@ interface UserContextType {
   suggestUsers: AccountInfo[];
   fetchSuggestions: () => Promise<void>;
   fetchUsers: () => Promise<void>;
+  setSuggestUsers: React.Dispatch<React.SetStateAction<AccountInfo[]>>;
+  setAllUsers: React.Dispatch<React.SetStateAction<AccountInfo[]>>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -28,7 +30,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [allUsers, setAllUsers] = useState<AccountInfo[]>([]);
   const [suggestUsers, setSuggestUsers] = useState<AccountInfo[]>([]);
   const [loading, setLoading] = useState(false);
-  const { auth } = useAuthContext();
+  const { auth, account} = useAuthContext();
   const [limit] = useState<number>(10);
   const { searchQuery } = useSearchContext();
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -46,9 +48,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         auth.token
       )) as unknown as searchInfoData;
       console.log("response:", response);
+      const usersWithFollowed = response.users.map((user) => {
+        return {
+          ...user,
+          followed: user.followers?.includes(account?._id as string),
+        };
+      });
       setAllUsers((prevUsers) => {
         const existingUserIds = new Set(prevUsers.map((user) => user._id));
-        const newUsers = response.users.filter(
+        const newUsers = usersWithFollowed.filter(
           (user) => !existingUserIds.has(user._id)
         );
         return [...prevUsers, ...newUsers];
@@ -60,8 +68,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         setHasMore(false);
       }
     } catch (err) {
-      console.error("Failed to load posts:", err);
-      error("Failed to load posts: " + (err as Error));
+      console.error("Failed to load users:", err);
+      error("Failed to load users: " + (err as Error));
     } finally {
       setLoading(false);
     }
@@ -132,7 +140,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   return (
     <UserContext.Provider value={{ allUsers,
     loading, loadMoreUsers, hasMore,
-    suggestUsers, fetchSuggestions, fetchUsers }}>
+    suggestUsers, fetchSuggestions, fetchUsers, setSuggestUsers,
+    setAllUsers }}>
       {children}
     </UserContext.Provider>
   );

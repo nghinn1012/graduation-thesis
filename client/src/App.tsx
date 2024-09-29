@@ -45,7 +45,6 @@ export function App() {
               </IsNotAuthenticated>
             }
           />
-
           <Route path="/verify/*" element={<VerifyPage />} />
         </Routes>
       </GoogleOAuthProvider>
