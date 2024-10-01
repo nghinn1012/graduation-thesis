@@ -38,8 +38,8 @@ interface PostContextType {
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   limit: number;
-  userId: string | undefined;
-  setUserId: React.Dispatch<React.SetStateAction<string | undefined>>;
+  postUpdatedHome: string;
+  setPostUpdatedHome: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -57,7 +57,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   const [postCommentCounts, setPostCommentCounts] = useState<
     Record<string, number>
   >({});
-  const [userId, setUserId] = useState<string | undefined>();
+  const [postUpdatedHome, setPostUpdatedHome] = useState<string>("");
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
 
@@ -66,8 +66,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       const response: PostResponse<PostInfo[]> = await postFetcher.getAllPosts(
         auth.token,
         page,
-        limit,
-        userId || undefined
+        limit
       );
       setPosts((prevPosts) => {
         const existingPostIds = new Set(prevPosts.map((post) => post._id));
@@ -86,7 +85,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [auth?.token, page, limit, userId]);
+  }, [auth?.token, page, limit]);
 
   const loadMorePosts = useCallback(() => {
     if (hasMore && !isLoading) {
@@ -95,18 +94,12 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [hasMore, isLoading]);
 
   useEffect(() => {
-    setPosts([]);
-    setPage(1);
-    setHasMore(true);
-  }, [userId]);
-
-  useEffect(() => {
     if (auth?.token) {
       setIsLoading(true);
       fetchPosts();
       setIsLoading(false);
     }
-  }, [auth, fetchPosts, page, userId]);
+  }, [auth, fetchPosts, page]);
 
   const fetchPost = async (postId: string): Promise<PostInfo | void> => {
     if (!auth?.token) return;
@@ -115,7 +108,12 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       const updatedPost = await postFetcher.getPostById(postId, auth.token);
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId ? (updatedPost as unknown as PostInfo) : post
+          post._id === postId
+            ? ({
+                ...updatedPost,
+                author: post.author,
+              } as unknown as PostInfo)
+            : post
         )
       );
       return updatedPost as unknown as PostInfo;
@@ -239,6 +237,13 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth?.token]);
 
+  useEffect(() => {
+    if (postUpdatedHome) {
+      fetchPost(postUpdatedHome);
+      setPostUpdatedHome("");
+    }
+  }, [postUpdatedHome]);
+
   return (
     <PostContext.Provider
       value={{
@@ -261,8 +266,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         setPage,
         limit,
         setHasMore,
-        userId,
-        setUserId,
+        postUpdatedHome,
+        setPostUpdatedHome,
       }}
     >
       {children}

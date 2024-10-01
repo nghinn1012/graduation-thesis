@@ -34,6 +34,7 @@ import imageCompression from "browser-image-compression";
 import CommentSection from "../../components/posts/comment/CommentSection";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import * as yup from "yup";
+import { useProfileContext } from "../../context/ProfileContext";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -88,8 +89,9 @@ const PostDetails: React.FunctionComponent = () => {
   const [isSavedToShoppingList, setIsSavedToShoppingList] = useState<boolean>(
     post.isInShoppingList
   );
+  const {setPostUpdated, postUpdated} = useProfileContext();
   const { success, error } = useToastContext();
-  const { toggleLikePost, toggleSavePost } = usePostContext();
+  const { toggleLikePost, toggleSavePost, postUpdatedHome, setPostUpdatedHome } = usePostContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [servings, setServings] = useState<number>(post.servings);
@@ -313,6 +315,8 @@ const PostDetails: React.FunctionComponent = () => {
         }
 
         await postFetcher.updatePost(editPost._id, changes, token);
+        await setPostUpdated(editPost._id);
+        await setPostUpdatedHome(editPost._id);
         success("Post updated successfully");
       }
       setIsModalOpen(false);

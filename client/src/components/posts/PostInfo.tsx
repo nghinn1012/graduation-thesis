@@ -15,6 +15,7 @@ import { postFetcher, PostLikeResponse } from "../../api/post";
 import { Toaster } from "react-hot-toast";
 import { useToastContext } from "../../hooks/useToastContext";
 import { useSearchContext } from "../../context/SearchContext";
+import { useProfileContext } from "../../context/ProfileContext";
 
 interface Ingredient {
   name: string;
@@ -66,6 +67,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const { posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
     usePostContext();
   const { toggleLikePostSearch, toggleSavePostSearch } = useSearchContext();
+  const {toggleLikePostProfile, toggleSavePostProfile} = useProfileContext();
   const { success, error } = useToastContext();
   const [commentCount, setCommentCount] = useState<number>(
     postCommentCounts[post._id] || post.commentCount
@@ -128,10 +130,12 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         setIsLiked(true);
         toggleLikePost(post._id, true);
         toggleLikePostSearch(post._id, true);
+        toggleLikePostProfile(post._id, true);
       } else {
         setIsLiked(false);
         toggleLikePost(post._id, false);
         toggleLikePostSearch(post._id, false);
+        toggleLikePostProfile(post._id, false);
       }
     } catch (err) {
       console.error("An error occurred while liking the post:", err);
@@ -153,11 +157,13 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         setIsSaved(true);
         toggleSavePost(post._id, true);
         toggleSavePostSearch(post._id, true);
+        toggleSavePostProfile(post._id, true);
       } else {
         success("Post unsaved successfully");
         setIsSaved(false);
         toggleSavePost(post._id, false);
         toggleSavePostSearch(post._id, false);
+        toggleSavePostProfile(post._id, false);
       }
     } catch (err) {
       console.error("An error occurred while saving the post:", err);

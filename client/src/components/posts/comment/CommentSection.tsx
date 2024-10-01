@@ -5,6 +5,7 @@ import CommentSkeleton from "../../skeleton/CommentSkeleton";
 import * as yup from "yup";
 import { FaHeart as FaHeartSolid } from "react-icons/fa";
 import { usePostContext } from "../../../context/PostContext";
+import { Link } from "react-router-dom";
 interface CommentSectionProps {
   postId: string;
   token: string;
@@ -371,7 +372,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               <p className="mt-1">
                 {reply.userMention && (
                   <a
-                    href={`/profile/${reply.userMention._id}`}
+                    href={`/users/profile/${reply.userMention._id}`}
                     className="text-blue-500 hover:underline mr-1"
                   >
                     {reply.userMention.username &&
@@ -487,9 +488,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     <div className="flex-1 flex items-center justify-between">
                       <div className="flex flex-col">
                         <div className="flex flex-row">
-                          <span className="font-semibold">
+                          <Link to={`/users/profile/${comment.author._id}`} className="font-semibold">
                             {comment.author.name}
-                          </span>
+                          </Link>
                         </div>
                         <span className="text-xs text-gray-500">
                           {formatDistanceToNow(new Date(comment.createdAt), {
@@ -567,7 +568,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     <p className="mt-1">
                       {comment.userMention && (
                         <a
-                          href={`/profile/${comment.userMention._id}`}
+                          href={`/users/profile/${comment.userMention._id}`}
                           className="text-blue-500 hover:underline mr-1"
                         >
                           {comment.userMention.username &&

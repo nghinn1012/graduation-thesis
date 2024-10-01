@@ -54,6 +54,8 @@ export interface PostResponseError
   extends ResponseErrorLike<UserErrorTarget, UserErrorReason> { }
 export interface PostResponse<DataLike>
   extends ResponseLike<DataLike, PostResponseError> {
+  filter: any;
+  includes(arg0: string): any;
   replies: Comment[] | undefined;
   token(token: any): unknown;
   liked: boolean;

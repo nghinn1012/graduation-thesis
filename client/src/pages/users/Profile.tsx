@@ -1,13 +1,17 @@
 import { useRef, useState, ChangeEvent, useEffect, useCallback } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
 import { MdEdit } from "react-icons/md";
 import { usePostContext } from "../../context/PostContext";
 import { useUserContext } from "../../context/UserContext";
-import ProfilePost from "../../components/profile/ProfilePost";
 import ProfileHeaderSkeleton from "../../components/skeleton/ProfileHeaderSkeleton";
 import { AccountInfo, userFetcher } from "../../api/user";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useProfileContext } from "../../context/ProfileContext";
+import Post from "../../components/posts/PostInfo";
+import PostSkeleton from "../../components/skeleton/PostSkeleton";
+import EditProfileModal from "../../components/profile/EditProfileModal";
+import { useFollowContext } from "../../context/FollowContext";
 
 interface User {
   _id: string;
@@ -28,33 +32,71 @@ const ProfilePage: React.FC = () => {
 
   const coverImgRef = useRef<HTMLInputElement | null>(null);
   const profileImgRef = useRef<HTMLInputElement | null>(null);
-  const { posts, setUserId, userId, isLoading, setIsLoading } =
-    usePostContext();
+  const {
+    hasMore,
+    loadMorePosts,
+    posts,
+    setUserId,
+    userId,
+    isLoading,
+    fetchPosts,
+    fetchLikedPosts,
+    fetchSavedPosts,
+    setIsLoading,
+  } = useProfileContext();
 
-  const location = useLocation();
-  const id = location.state?.userId;
-  const { auth } = useAuthContext();
-  const isMyProfile = true;
+  const { followUser } = useFollowContext();
+  const { auth, account } = useAuthContext();
   const [user, setUser] = useState<AccountInfo | null>(null);
+  const { id } = useParams();
+  const {allUsers} = useUserContext();
+  const isMyProfile = account?._id === id;
+  const observer = useRef<IntersectionObserver | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const handleFollow = async () => {
+    if (!user || !auth?.token) return;
+    followUser(user._id);
+    console.log(allUsers);
+    setUser((prev) => ({ ...prev, followed: !prev?.followed } as AccountInfo));
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (id && auth?.token && setIsLoading) {
-        try {
-          setIsLoading(true);
+      try {
+        if (!id || !auth?.token) return;
+        if (id !== userId) {
+          console.log(`Fetching user: oldId = ${userId}, newId = ${id}`);
           setUserId(id);
-          const response = await userFetcher.getUserById(id, auth.token) as unknown as AccountInfo;
-          setUser(response);
-        } catch (error) {
-          console.error("Error fetching user:", error);
-        } finally {
+        }
+        const response = await userFetcher.getUserById(id, auth?.token);
+        setUser({
+          ...response,
+          followed: allUsers.find((user) => user._id === id)?.followed,
+        } as unknown as AccountInfo);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, [id, auth?.token, userId]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (id) {
+        try {
+          setUserId(id);
+          setIsLoading(true);
+          await fetchPosts(id);
+          await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
           setIsLoading(false);
+        } catch (error) {
+          console.error("Error loading posts:", error);
         }
       }
     };
-
-    fetchUser();
-  }, [id, auth?.token]);
+    loadData();
+  }, [fetchLikedPosts, fetchSavedPosts]);
 
   const handleImgChange = (
     e: ChangeEvent<HTMLInputElement>,
@@ -69,6 +111,44 @@ const ProfilePage: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  useEffect(() => {
+    if (!observer.current) {
+      observer.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasMore) {
+            loadMorePosts();
+          }
+        },
+        {
+          root: null,
+          rootMargin: "0px",
+          threshold: 1.0,
+        }
+      );
+    }
+
+    const loader = document.getElementById("loader");
+    if (loader) {
+      observer.current.observe(loader);
+    }
+
+    return () => {
+      if (loader) {
+        observer.current?.unobserve(loader);
+      }
+    };
+  }, [hasMore, loadMorePosts]);
+
+  const lastPostRef = useCallback((node: HTMLDivElement | null) => {
+    if (node && observer.current) {
+      observer.current.observe(node);
+    }
+  }, []);
+
+  const handleOpenEditModal = () => {
+    setIsModalOpen(true);
   };
 
   return (
@@ -97,14 +177,6 @@ const ProfilePage: React.FC = () => {
                   className="h-52 w-full object-cover"
                   alt="cover image"
                 />
-                {isMyProfile && (
-                  <div
-                    className="absolute top-2 right-2 rounded-full p-2 bg-gray-800 bg-opacity-75 cursor-pointer opacity-0 group-hover/cover:opacity-100 transition duration-200"
-                    onClick={() => coverImgRef.current?.click()}
-                  >
-                    <MdEdit className="w-5 h-5 text-white" />
-                  </div>
-                )}
 
                 <input
                   type="file"
@@ -126,34 +198,33 @@ const ProfilePage: React.FC = () => {
                         profileImg || user?.avatar || "/avatar-placeholder.png"
                       }
                     />
-                    <div className="absolute top-5 right-3 p-1 bg-primary rounded-full group-hover/avatar:opacity-100 opacity-0 cursor-pointer">
-                      {isMyProfile && (
-                        <MdEdit
-                          className="w-4 h-4 text-white"
-                          onClick={() => profileImgRef.current?.click()}
-                        />
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
               <div className="flex justify-end px-4 mt-5">
-                {/* {isMyProfile && <EditProfileModal />} */}
                 {!isMyProfile && (
                   <button
                     className="btn btn-outline rounded-full btn-sm"
-                    onClick={() => alert("Followed successfully")}
+                    onClick={handleFollow}
                   >
-                    Follow
+                    {user.followed ? "Unfollow" : "Follow"}
                   </button>
                 )}
-                {(coverImg || profileImg) && (
+                {isMyProfile && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => alert("Profile updated successfully")}
+                    onClick={handleOpenEditModal}
                   >
-                    Update
+                    Edit Profile
                   </button>
+                )}
+                {isModalOpen && (
+                  <EditProfileModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSave={() => {}}
+                    user={user}
+                  />
                 )}
               </div>
 
@@ -165,40 +236,18 @@ const ProfilePage: React.FC = () => {
                   </span>
                   <span className="text-sm my-1">kekeke</span>
                 </div>
-
-                {/* <div className='flex gap-2 flex-wrap'>
-                {user?.link && (
-                  <div className='flex gap-1 items-center '>
-                    <>
-                      <FaLink className='w-3 h-3 text-slate-500' />
-                      <a
-                        href={user.link}
-                        target='_blank'
-                        rel='noreferrer'
-                        className='text-sm text-blue-500 hover:underline'
-                      >
-                        youtube.com/@asaprogrammer_
-                      </a>
-                    </>
-                  </div>
-                )}
-                <div className='flex gap-2 items-center'>
-                  <IoCalendarOutline className='w-4 h-4 text-slate-500' />
-                  <span className='text-sm text-slate-500'>Joined July 2021</span>
-                </div>
-              </div> */}
                 <div className="flex gap-2">
                   <div className="flex gap-1 items-center">
-                    <span className="font-bold text-xs">
+                    <span className="font-bold text-sm">
                       {user?.following?.length}
                     </span>
-                    <span className="text-slate-500 text-xs">Following</span>
+                    <span className="text-slate-500 text-sm">Following</span>
                   </div>
                   <div className="flex gap-1 items-center">
-                    <span className="font-bold text-xs">
+                    <span className="font-bold text-sm">
                       {user?.followers?.length}
                     </span>
-                    <span className="text-slate-500 text-xs">Followers</span>
+                    <span className="text-slate-500 text-sm">Followers</span>
                   </div>
                 </div>
               </div>
@@ -225,7 +274,27 @@ const ProfilePage: React.FC = () => {
             </>
           )}
 
-          {posts && <ProfilePost />}
+          {/* Integrated Profile Posts */}
+          <div className="mt-5 px-4">
+            {posts.length > 0 && !isLoading && (
+              <div>
+                {posts.map((post, index) => (
+                  <div
+                    key={post._id}
+                    ref={index === posts.length - 1 ? lastPostRef : null}
+                  >
+                    <Post post={post} />
+                  </div>
+                ))}
+              </div>
+            )}
+            {isLoading && posts.length > 0 && (
+              <div className="flex justify-center my-4">
+                <PostSkeleton />
+              </div>
+            )}
+            <div id="loader" />
+          </div>
         </div>
       </div>
     </>

@@ -268,14 +268,14 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setCourse((prevCourses) =>
       prevCourses.includes(label)
         ? prevCourses.filter((course) => course !== label)
-        : [...prevCourses, label.toLocaleLowerCase()]
+        : [...prevCourses, label]
     );
     console.log(course);
   };
 
   const selectDifficulty = (label: string, event: any) => {
     event.preventDefault();
-    setDifficulty(label.toLocaleLowerCase());
+    setDifficulty(label);
     console.log(difficulty);
   };
 
@@ -284,7 +284,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setDietary((prevDietary) =>
       prevDietary.includes(label)
         ? prevDietary.filter((dietary) => dietary !== label)
-        : [...prevDietary, label.toLocaleLowerCase()]
+        : [...prevDietary, label]
     );
     console.log(dietary);
   };
@@ -368,9 +368,9 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           servings,
           ingredients,
           instructions,
-          difficulty,
-          course,
-          dietary,
+          difficulty.toLocaleLowerCase(),
+          course.map((c) => c.toLocaleLowerCase()),
+          dietary.map((d) => d.toLocaleLowerCase()),
           isEditing,
           post?.id
         );
