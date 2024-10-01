@@ -4,23 +4,31 @@ import UserModel from "../db/models/User.models";
 import { InvalidDataError } from "../data/invalid_data.data";
 import { followAndUnFollowUserService,
   getSuggestUserService, searchAndFilterUserService,
-  updateUserService, ManualAccountRegisterInfo
+  updateUserService
 } from "../services/index.services";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
 }
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.params.id;
+    const currentUserId = req.userId;
     const user = await UserModel.findById(userId);
+    const isFollowing = await UserModel.find({
+      _id: userId,
+      followers: { $in: [currentUserId] }
+    });
     if (!user) {
       throw new InvalidDataError({
         message: "Can't find this user!"
       })
     }
-    res.status(200).json(user);
+    res.status(200).json({
+      ...user.toJSON(),
+      followed: isFollowing.length > 0,
+    });
   } catch (error) {
     return res.status(400).json({
       error: (error as Error).message,

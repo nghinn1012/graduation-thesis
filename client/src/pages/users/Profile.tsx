@@ -1,5 +1,5 @@
 import { useRef, useState, ChangeEvent, useEffect, useCallback } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
 import { MdEdit } from "react-icons/md";
 import { usePostContext } from "../../context/PostContext";
@@ -43,6 +43,9 @@ const ProfilePage: React.FC = () => {
     fetchLikedPosts,
     fetchSavedPosts,
     setIsLoading,
+    setPosts,
+    setPage,
+    setHasMore,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
@@ -53,12 +56,15 @@ const ProfilePage: React.FC = () => {
   const isMyProfile = account?._id === id;
   const observer = useRef<IntersectionObserver | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
+  const navigate = useNavigate();
   const handleFollow = async () => {
-    if (!user || !auth?.token) return;
+    if (!user || !auth?.token || !account?._id) return;
     followUser(user._id);
-    console.log(allUsers);
-    setUser((prev) => ({ ...prev, followed: !prev?.followed } as AccountInfo));
+    setUser((prev) => ({ ...prev,
+      followers: prev?.followers?.includes(account?._id || '')
+      ? prev?.followers?.filter((id) => id !== account?._id)
+      : [...(prev?.followers || []), account?._id || ''],
+      followed: !prev?.followed } as AccountInfo));
   };
 
   useEffect(() => {
@@ -70,10 +76,7 @@ const ProfilePage: React.FC = () => {
           setUserId(id);
         }
         const response = await userFetcher.getUserById(id, auth?.token);
-        setUser({
-          ...response,
-          followed: allUsers.find((user) => user._id === id)?.followed,
-        } as unknown as AccountInfo);
+        setUser(response as unknown as AccountInfo);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -88,6 +91,7 @@ const ProfilePage: React.FC = () => {
           setUserId(id);
           setIsLoading(true);
           await fetchPosts(id);
+          console.log(posts);
           await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
           setIsLoading(false);
         } catch (error) {
@@ -151,6 +155,14 @@ const ProfilePage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleBack = () => {
+    navigate(-1);
+    setUserId(undefined);
+    setUser(null);
+    setPosts([]);
+    setPage(1);
+    setHasMore(true);
+  }
   return (
     <>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
@@ -160,9 +172,9 @@ const ProfilePage: React.FC = () => {
           {user && !isLoading && (
             <>
               <div className="flex gap-10 px-4 py-2 items-center">
-                <Link to="/">
+                <div className="font-bold" onClick={handleBack}>
                   <FaArrowLeft className="w-4 h-4" />
-                </Link>
+                </div>
                 <div className="flex flex-col">
                   <p className="font-bold text-lg">{user?.name}</p>
                   <span className="text-sm text-slate-500">

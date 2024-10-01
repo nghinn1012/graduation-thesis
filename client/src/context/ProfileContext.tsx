@@ -32,11 +32,13 @@ interface ProfileContextType {
   toggleSavePostProfile: (postId: string, saved: boolean) => void;
   updateCommentCount: (postId: string, count: number) => void;
   fetchSavePostToShoppingList: () => Promise<void>;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
   setUserId: React.Dispatch<React.SetStateAction<string | undefined>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   postUpdated: string;
   setPostUpdated: React.Dispatch<React.SetStateAction<string>>;
+  setPosts: React.Dispatch<React.SetStateAction<PostInfo[]>>;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setHasMore: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -74,6 +76,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
           limit,
           id
         )) as unknown as PostInfo[];
+        console.log(response);
         setPosts((prevPosts) => {
           const existingPostIds = new Set(prevPosts.map((post) => post._id));
           const newPosts = response.filter(
@@ -242,6 +245,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading,
         postUpdated,
         setPostUpdated,
+        setPosts,
+        setHasMore,
       }}
     >
       {children}
