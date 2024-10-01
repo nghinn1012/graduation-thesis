@@ -69,6 +69,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setHasMore(true);
       }
       setIsLoading(true);
+      console.log(id);
       try {
         const response = (await postFetcher.getAllPosts(
           auth.token,
@@ -80,7 +81,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setPosts((prevPosts) => {
           const existingPostIds = new Set(prevPosts.map((post) => post._id));
           const newPosts = response.filter(
-            (post) => !existingPostIds.has(post._id)
+            (post) => !existingPostIds.has(post._id) && post.author._id === id
           );
           return [...prevPosts, ...newPosts];
         });
@@ -209,10 +210,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     if (auth?.token) {
       setIsLoading(true);
       fetchPosts(userId || "");
-
       setIsLoading(false);
     }
-  }, [auth, page]);
+  }, [auth, page, userId]);
 
   useEffect(() => {
     if (postUpdated) {

@@ -91,9 +91,7 @@ const ProfilePage: React.FC = () => {
           setUserId(id);
           setIsLoading(true);
           await fetchPosts(id);
-          console.log(posts);
           await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
-          setIsLoading(false);
         } catch (error) {
           console.error("Error loading posts:", error);
         }
