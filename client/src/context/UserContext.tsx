@@ -18,8 +18,11 @@ interface UserContextType {
   suggestUsers: AccountInfo[];
   fetchSuggestions: () => Promise<void>;
   fetchUsers: () => Promise<void>;
+  fetchUser: (userId: string) => Promise<void>;
   setSuggestUsers: React.Dispatch<React.SetStateAction<AccountInfo[]>>;
   setAllUsers: React.Dispatch<React.SetStateAction<AccountInfo[]>>;
+  setUser: React.Dispatch<React.SetStateAction<AccountInfo | null>>;
+  user: AccountInfo | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -28,6 +31,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [allUsers, setAllUsers] = useState<AccountInfo[]>([]);
+  const [user, setUser] = useState<AccountInfo | null>(null);
   const [suggestUsers, setSuggestUsers] = useState<AccountInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const { auth, account} = useAuthContext();
@@ -104,6 +108,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth?.token]);
 
+  const fetchUser = useCallback(async (userId: string) => {
+    if (!auth?.token) return;
+    setLoading(true);
+    try {
+      const response = (await userFetcher.getUserById(userId, auth.token)) as unknown as AccountInfo;
+      setUser(response);
+    } catch (err) {
+      console.error("Failed to load user:", err);
+      error("Failed to load user: " + (err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [auth?.token]);
 
   useEffect(() => {
     setAllUsers([]);
@@ -136,12 +153,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth, fetchUsers, currentPage]);
 
-
   return (
     <UserContext.Provider value={{ allUsers,
     loading, loadMoreUsers, hasMore,
     suggestUsers, fetchSuggestions, fetchUsers, setSuggestUsers,
-    setAllUsers }}>
+    setAllUsers, fetchUser, setUser, user }}>
       {children}
     </UserContext.Provider>
   );

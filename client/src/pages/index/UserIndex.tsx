@@ -4,6 +4,7 @@ import ShoppingList from "../shoppingList/ShoppingList";
 import ScrollToTop from "../../components/common/ScrollToTop";
 import MealPlanner from "../meal_planner/MealPlanner";
 import SearchPage from "../post/Search";
+import ProfilePage from "../users/Profile";
 export default function User() {
   return (
     <>
@@ -12,6 +13,7 @@ export default function User() {
       <Route path="/shoppingList" element={<ShoppingList />} />
       <Route path="/mealPlanner" element={<MealPlanner />} />
       <Route path="/search" element={<SearchPage />} />
+      <Route path="/profile/:id" element={<ProfilePage />} />
     </Routes>
     </>
   );

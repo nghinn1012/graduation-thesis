@@ -268,14 +268,14 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setCourse((prevCourses) =>
       prevCourses.includes(label)
         ? prevCourses.filter((course) => course !== label)
-        : [...prevCourses, label]
+        : [...prevCourses, label.toLocaleLowerCase()]
     );
     console.log(course);
   };
 
   const selectDifficulty = (label: string, event: any) => {
     event.preventDefault();
-    setDifficulty(label);
+    setDifficulty(label.toLocaleLowerCase());
     console.log(difficulty);
   };
 
@@ -284,7 +284,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     setDietary((prevDietary) =>
       prevDietary.includes(label)
         ? prevDietary.filter((dietary) => dietary !== label)
-        : [...prevDietary, label]
+        : [...prevDietary, label.toLocaleLowerCase()]
     );
     console.log(dietary);
   };

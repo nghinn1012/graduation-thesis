@@ -162,6 +162,7 @@ const RightPanel: React.FC = () => {
   const handleFollowUser = (userId: string, event: any) => {
     event.preventDefault();
     followUser(userId);
+    suggestUsers.filter((user: User) => user._id !== userId);
   }
 
 
@@ -454,7 +455,7 @@ const RightPanel: React.FC = () => {
           {/* User List */}
           {!isLoading && (suggestUsers.slice(0,5).map((user: User) => (
               <Link
-                to={`/profile/${user.username}`}
+                to={`/users/profile/${user._id}`}
                 className="flex items-center justify-between gap-4"
                 key={user._id}
               >

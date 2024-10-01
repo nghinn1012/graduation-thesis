@@ -3,7 +3,6 @@ import PostSkeleton from "../skeleton/PostSkeleton";
 import Post from "./PostInfo";
 import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
-
 const Posts: React.FC = () => {
   const {
     posts,
@@ -84,6 +83,7 @@ const Posts: React.FC = () => {
     };
     loadData();
   }, [fetchPosts, fetchLikedPosts, fetchSavedPosts, setIsLoading]);
+
 
   return (
     <>

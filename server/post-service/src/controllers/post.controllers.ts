@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPostService, deletePostService, getAllPostsService, getPostService, updatePostService, searchPostService } from "../services/post.services";
+import { createPostService, deletePostService, getAllPostsService, getPostService, updatePostService, searchPostService, getAllPostsOfUserService } from "../services/post.services";
 import { AuthRequest, validatePostFoodBody } from "../data";
 
 export const createPostController = async (request: AuthRequest, response: Response) => {
@@ -74,7 +74,33 @@ export const getAllPostsController = async (request: Request, response: Response
   try {
     const page = parseInt(request.query.page as string, 10) || 1;
     const limit = parseInt(request.query.limit as string, 10) || 20;
-    const posts = await getAllPostsService(page, limit);
+    const userId = request.query.userId as string;
+    const posts = await getAllPostsService(page, limit, userId);
+    if (!posts) {
+      return response.status(400).json({
+        message: "Cannot get posts"
+      });
+    }
+    return response.status(200).json(posts);
+  } catch (error) {
+    return response.status(400).json({
+      message: "Cannot get posts",
+      error: (error as Error).message
+    });
+  }
+}
+
+export const getAllPostsOfUserController = async (request: AuthRequest, response: Response) => {
+  try {
+    const page = parseInt(request.query.page as string, 10) || 1;
+    const limit = parseInt(request.query.limit as string, 10) || 20;
+    const userId = request.params.userId;
+    if (!userId) {
+      return response.status(400).json({
+        message: "Can't get posts without user validate"
+      });
+    }
+    const posts = await getAllPostsOfUserService(userId, page, limit);
     if (!posts) {
       return response.status(400).json({
         message: "Cannot get posts"

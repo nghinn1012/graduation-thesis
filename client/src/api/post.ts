@@ -19,6 +19,7 @@ export const postEndpoints = {
   likeOrUnlikeComment: "/posts/:commentId/likeComment",
 
   // posts
+  getPostOfUser: "/posts/:userId/getAllOfUser",
   createPost: "/posts/create",
   searchPost: "/posts/search",
   getAllPosts: "/posts",
@@ -303,8 +304,9 @@ export interface searchPostData {
 
 export interface PostFetcher {
   // posts
+  getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
-  getAllPosts: (token: string, page: number, limit: number) => Promise<PostResponse<PostInfo[]>>;
+  getAllPosts: (token: string, page: number, limit: number, userId?: string) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
   getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
   deletePost: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
@@ -349,6 +351,19 @@ export interface PostFetcher {
 }
 
 export const postFetcher: PostFetcher = {
+  getPostOfUser: async (userId: string, page: number = 1, limit: number = 20, token: string): Promise<PostResponse<PostInfo[]>> => {
+    return postInstance.get(postEndpoints.getPostOfUser.replace(":userId", userId),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        params: {
+          page,
+          limit,
+        }
+      }
+    );
+  },
   createPost: async (data: createPostInfo, token: string): Promise<PostResponse<createPostInfo>> => {
     return postInstance.post(postEndpoints.createPost, data,
       {
@@ -358,7 +373,7 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  getAllPosts: async (token: string, page: number = 1, limit: number = 20): Promise<PostResponse<PostInfo[]>> => {
+  getAllPosts: async (token: string, page: number = 1, limit: number = 20, userId?: string): Promise<PostResponse<PostInfo[]>> => {
     try {
       return postInstance.get(postEndpoints.getAllPosts, {
         headers: {
@@ -367,6 +382,7 @@ export const postFetcher: PostFetcher = {
         params: {
           page,
           limit,
+          userId,
         },
       });
     } catch (error) {

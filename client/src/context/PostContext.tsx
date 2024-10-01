@@ -1,5 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { postFetcher, PostInfo, PostResponse, PostLikesByUser, PostShoppingList, ShoppingListData, searchPostData } from "../api/post";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  postFetcher,
+  PostInfo,
+  PostResponse,
+  PostLikesByUser,
+  PostShoppingList,
+  ShoppingListData,
+  searchPostData,
+} from "../api/post";
 import toast from "react-hot-toast";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
@@ -24,11 +38,15 @@ interface PostContextType {
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   limit: number;
+  userId: string | undefined;
+  setUserId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
 
-export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [posts, setPosts] = useState<PostInfo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [limit] = useState<number>(10);
@@ -36,17 +54,26 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [page, setPage] = useState<number>(1);
   const { auth } = useAuthContext();
   const { error } = useToastContext();
-  const [postCommentCounts, setPostCommentCounts] = useState<Record<string, number>>({});
-
+  const [postCommentCounts, setPostCommentCounts] = useState<
+    Record<string, number>
+  >({});
+  const [userId, setUserId] = useState<string | undefined>();
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading) return;
 
     setIsLoading(true);
     try {
-      const response: PostResponse<PostInfo[]> = await postFetcher.getAllPosts(auth.token, page, limit);
+      const response: PostResponse<PostInfo[]> = await postFetcher.getAllPosts(
+        auth.token,
+        page,
+        limit,
+        userId || undefined
+      );
       setPosts((prevPosts) => {
-        const existingPostIds = new Set(prevPosts.map(post => post._id));
-        const newPosts = (response as unknown as PostInfo[]).filter(post => !existingPostIds.has(post._id));
+        const existingPostIds = new Set(prevPosts.map((post) => post._id));
+        const newPosts = (response as unknown as PostInfo[]).filter(
+          (post) => !existingPostIds.has(post._id)
+        );
         return [...prevPosts, ...newPosts];
       });
 
@@ -59,7 +86,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, [auth?.token, page, limit]);
+  }, [auth?.token, page, limit, userId]);
 
   const loadMorePosts = useCallback(() => {
     if (hasMore && !isLoading) {
@@ -68,12 +95,18 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [hasMore, isLoading]);
 
   useEffect(() => {
+    setPosts([]);
+    setPage(1);
+    setHasMore(true);
+  }, [userId]);
+
+  useEffect(() => {
     if (auth?.token) {
       setIsLoading(true);
       fetchPosts();
       setIsLoading(false);
     }
-  }, [auth, fetchPosts, page]);
+  }, [auth, fetchPosts, page, userId]);
 
   const fetchPost = async (postId: string): Promise<PostInfo | void> => {
     if (!auth?.token) return;
@@ -124,7 +157,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
           prevPosts.map((post) => ({
             ...post,
             saved: savedPosts.includes(post._id.toString()),
-          })));
+          }))
+        );
       } else {
         console.error("Fetched saved posts is not an array");
         error("Failed to process saved posts data.");
@@ -140,7 +174,11 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
           p._id === postId
-            ? { ...p, liked: isLiked, likeCount: isLiked ? p.likeCount + 1 : p.likeCount - 1 }
+            ? {
+                ...p,
+                liked: isLiked,
+                likeCount: isLiked ? p.likeCount + 1 : p.likeCount - 1,
+              }
             : p
         )
       );
@@ -152,17 +190,21 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
           p._id === postId
-            ? { ...p, saved: isSaved, savedCount: isSaved ? p.savedCount + 1 : p.savedCount - 1 }
+            ? {
+                ...p,
+                saved: isSaved,
+                savedCount: isSaved ? p.savedCount + 1 : p.savedCount - 1,
+              }
             : p
         )
       );
     }
-  }
+  };
 
   const updateCommentCount = (postId: string, count: number) => {
-    setPostCommentCounts(prevState => ({
+    setPostCommentCounts((prevState) => ({
       ...prevState,
-      [postId]: count
+      [postId]: count,
     }));
     console.log("postCommentCounts:", postCommentCounts);
   };
@@ -171,30 +213,58 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!auth?.token) return;
 
     try {
-      const response = await postFetcher.getShoppingList(auth.token) as unknown as ShoppingListData;
-      console.log(response.posts.map((responsePost: PostShoppingList) => responsePost.postId));
+      const response = (await postFetcher.getShoppingList(
+        auth.token
+      )) as unknown as ShoppingListData;
+      console.log(
+        response.posts.map(
+          (responsePost: PostShoppingList) => responsePost.postId
+        )
+      );
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          response.posts.map((responsePost: PostShoppingList) => responsePost.postId).includes(post._id)
+          response.posts
+            .map((responsePost: PostShoppingList) => responsePost.postId)
+            .includes(post._id)
             ? { ...post, isInShoppingList: true }
             : post
         )
       );
-
     } catch (err) {
       console.error("Failed to fetch post of user's shopping list:", err);
-      error("Failed to fetch post of user's shopping list: " + (err as Error).message);
+      error(
+        "Failed to fetch post of user's shopping list: " +
+          (err as Error).message
+      );
     }
   }, [auth?.token]);
 
-
   return (
-    <PostContext.Provider value={{ fetchSavePostToShoppingList,
-     postCommentCounts, updateCommentCount, setIsLoading,
-     fetchSavedPosts, toggleSavePost, toggleLikePost, setPosts,
-     fetchPosts, loadMorePosts, hasMore, posts, isLoading,
-     fetchPost, fetchLikedPosts,
-     page, setPage, limit, setHasMore }}>
+    <PostContext.Provider
+      value={{
+        fetchSavePostToShoppingList,
+        postCommentCounts,
+        updateCommentCount,
+        setIsLoading,
+        fetchSavedPosts,
+        toggleSavePost,
+        toggleLikePost,
+        setPosts,
+        fetchPosts,
+        loadMorePosts,
+        hasMore,
+        posts,
+        isLoading,
+        fetchPost,
+        fetchLikedPosts,
+        page,
+        setPage,
+        limit,
+        setHasMore,
+        userId,
+        setUserId,
+      }}
+    >
       {children}
     </PostContext.Provider>
   );

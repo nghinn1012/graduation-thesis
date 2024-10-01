@@ -65,7 +65,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const auth = useAuthContext();
   const { posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
     usePostContext();
-  const {toggleLikePostSearch, toggleSavePostSearch} = useSearchContext();
+  const { toggleLikePostSearch, toggleSavePostSearch } = useSearchContext();
   const { success, error } = useToastContext();
   const [commentCount, setCommentCount] = useState<number>(
     postCommentCounts[post._id] || post.commentCount
@@ -172,7 +172,9 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   }, [post.author]);
 
   const handleImageClick = (id: string) => {
-    navigate(`/posts/${id}`, { state: { post, postAuthor, locationPath: locationPath } });
+    navigate(`/posts/${id}`, {
+      state: { post, postAuthor, locationPath: locationPath },
+    });
   };
 
   const handleCommentIconClick = (id: string) => {
@@ -195,7 +197,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
       <div className="flex gap-2 items-start p-4 border-b border-gray-300">
         <div className="avatar">
           <Link
-            to={`/profile/${postAuthor?.username}`}
+            to={`/users/profile/${postAuthor?._id}`}
             className="w-8 rounded-full overflow-hidden"
           >
             <img src={postAuthor?.avatar || "/boy1.png"} alt="Profile" />
@@ -203,11 +205,19 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         </div>
         <div className="flex flex-col flex-1">
           <div className="flex gap-2 items-center">
-            <Link to={`/profile/${postAuthor?.username}`} className="font-bold">
+            <Link
+              to={`/users/profile/${postAuthor?._id}`}
+              state={{ userId: postAuthor?._id }}
+              className="font-bold"
+            >
               {postAuthor?.name}
             </Link>
+
             <span className="text-gray-300 flex gap-1 text-sm">
-              <Link to={`/profile/${postAuthor?.username}`}>
+              <Link
+                to={`/users/profile/${postAuthor?._id}`}
+                state={{ userId: postAuthor?._id }}
+              >
                 @{postAuthor?.username}
               </Link>
               <span>·</span>
@@ -263,13 +273,12 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
 
           <div className="flex justify-between mt-3">
             <div className="flex gap-4 items-center w-2/3 justify-between">
-              <div className="flex gap-1 items-center cursor-pointer group"
-                  onClick={() => handleCommentIconClick(post._id)}
+              <div
+                className="flex gap-1 items-center cursor-pointer group"
+                onClick={() => handleCommentIconClick(post._id)}
               >
                 <FaRegComment className="w-4 h-4 text-slate-500 group-hover:text-sky-400" />
-                <span
-                  className="text-sm text-slate-500 group-hover:text-sky-400"
-                >
+                <span className="text-sm text-slate-500 group-hover:text-sky-400">
                   {commentCount}
                 </span>
               </div>

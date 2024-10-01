@@ -130,11 +130,35 @@ export const getPostService = async (postId: string) => {
   }
 }
 
-export const getAllPostsService = async (page: number, limit: number) => {
+export const getAllPostsService = async (page: number, limit: number, userId?: string) => {
   try {
     const skip = (page - 1) * limit;
 
-    const posts = await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const posts = userId ? await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit)
+      : await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+
+    const postsWithAuthors = posts.map((post, index) => ({
+      ...post.toObject(),
+      author: authors ? authors[index] : null,
+    }));
+
+    return postsWithAuthors;
+  } catch (error) {
+    throw new InternalError({
+      data: {
+        target: "post-food",
+        reason: (error as Error).message,
+      },
+    });
+  }
+}
+
+export const getAllPostsOfUserService = async (userId: string, page: number, limit: number) => {
+  try {
+    const skip = (page - 1) * limit;
+
+    const posts = await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit);
 
     const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
 
