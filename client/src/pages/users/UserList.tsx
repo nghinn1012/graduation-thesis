@@ -30,11 +30,7 @@ const UsersList = () => {
     return () => {
       if (observerRef.current) observer.disconnect();
     };
-  }, [loadMoreUsers, loading, hasMore]);
-
-  // useEffect(() => {
-  //   fetchUsers();
-  // }, [fetchUsers]);
+  }, [loadMoreUsers, hasMore]);
 
   const handleFollowOrUnfollow = async (
     userId: string,

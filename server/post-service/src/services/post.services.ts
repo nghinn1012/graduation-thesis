@@ -143,7 +143,10 @@ export const getAllPostsService = async (page: number, limit: number, userId?: s
 
     const postsWithAuthors = userId ? {
       posts,
-      authors,
+      authors: {
+        ...authors,
+        postCount: await postModel.countDocuments({ author: userId }),
+      },
     } : posts.map((post, index) => ({
       ...post.toObject(),
       author: authors ? authors[index] : null,

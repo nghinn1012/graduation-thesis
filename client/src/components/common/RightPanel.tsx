@@ -8,6 +8,7 @@ import { useUserContext } from "../../context/UserContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useFollowContext } from "../../context/FollowContext";
 import { useProfileContext } from "../../context/ProfileContext";
+import { AccountInfo } from "../../api/user";
 
 interface User {
   _id: string;
@@ -51,7 +52,7 @@ const RightPanel: React.FC = () => {
   const [haveMadeOn, setHaveMadeOn] = useState(false);
   const {auth} = useAuthContext();
   const navigate = useNavigate();
-  const { userId, setUserId } = useProfileContext();
+  const { user, setUser } = useProfileContext();
 
   useEffect(() => {
     fetchSuggestions();
@@ -164,10 +165,12 @@ const RightPanel: React.FC = () => {
   const handleFollowUser = (userId: string, event: any) => {
     event.preventDefault();
     followUser(userId);
-    console.log(suggestUsers);
     setSuggestUsers(suggestUsers.filter((user: User) => user._id !== userId));
-    setUserId(userId);
-    console.log(suggestUsers);
+    setUser({
+      ...user,
+      following: [...user?.following || [], userId],
+    } as unknown as AccountInfo
+    );
   }
 
 
@@ -459,8 +462,7 @@ const RightPanel: React.FC = () => {
 
           {/* User List */}
           {!isLoading && (suggestUsers.slice(0,5).map((user: User) => (
-              <Link
-                to={`/users/profile/${user._id}`}
+              <div
                 className="flex items-center justify-between gap-4"
                 key={user._id}
               >
@@ -471,9 +473,11 @@ const RightPanel: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold tracking-tight truncate w-40">
+                    <Link
+                    to={`/users/profile/${user._id}`}
+                    className="font-semibold tracking-tight truncate w-40">
                       {user.name}
-                    </span>
+                    </Link>
                     <span className="text-sm text-slate-500">
                       @{user.username}
                     </span>
@@ -486,7 +490,7 @@ const RightPanel: React.FC = () => {
                     Follow
                   </button>
                 </div>
-              </Link>
+              </div>
             )))}
         </div>
       </div>

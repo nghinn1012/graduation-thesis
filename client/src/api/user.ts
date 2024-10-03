@@ -66,6 +66,7 @@ export interface AccountInfo {
   followed: boolean;
   coverImage?: string;
   bio?: string;
+  postCount?: number;
 }
 
 interface ManualRegisterInfo {

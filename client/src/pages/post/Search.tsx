@@ -6,7 +6,7 @@ import { useSearchContext } from "../../context/SearchContext";
 import { useNavigate } from "react-router-dom";
 
 const SearchPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("following");
+  const [activeTab, setActiveTab] = useState<string>("posts");
   const { searchQuery, setSearchQuery, setCurrentPage, fetchPosts } =
     useSearchContext();
   const [localSearchQuery, setLocalSearchQuery] = useState("");
@@ -27,7 +27,7 @@ const SearchPage: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "following":
+      case "posts":
         return <FollowingTab />;
       case "users":
         return <UserList />;
@@ -111,11 +111,11 @@ const SearchPage: React.FC = () => {
 
       <div className="tabs tabs-bordered" role="tablist">
         <a
-          className={`tab ${activeTab === "following" ? "tab-active" : ""}`}
+          className={`tab ${activeTab === "posts" ? "tab-active" : ""}`}
           role="tab"
-          onClick={() => setActiveTab("following")}
+          onClick={() => setActiveTab("posts")}
         >
-          Following
+          Posts
         </a>
         <a
           className={`tab ${activeTab === "users" ? "tab-active" : ""}`}

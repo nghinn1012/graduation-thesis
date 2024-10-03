@@ -30,7 +30,7 @@ const Explore: React.FC = () => {
             <img
               src={post.images[0]}
               alt={post.about}
-              className="w-full h-[350px] min-h-[300px] object-cover"
+              className="w-full aspect-square object-cover"
             />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50">
               <div className="flex items-center text-white">

@@ -7,8 +7,6 @@ import cors from 'cors';
 import { RabbitMQ, initBrokerConsumners, initRpcConsumers } from "./src/broker";
 import { connectCloudinary } from "./src/db/cloudinary.db";
 import http from 'http';
-import { Server as SocketIOServer } from 'socket.io';
-import { setupSocketIO } from "./src/socket";
 
 dotenv.config();
 
@@ -18,25 +16,16 @@ initRpcConsumers(rabbit);
 initBrokerConsumners(rabbit);
 const app = express();
 
-const server = http.createServer(app);
-export const io = new SocketIOServer(server, {
-  cors: {
-    origin: '*',
-  },
-});
-
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-setupSocketIO(io);
 const PORT = process.env.USER_PORT;
 
 connectDB();
 (async () => {
   await connectCloudinary();
 })();
-
 
 app.use("/users", userRouter);
 

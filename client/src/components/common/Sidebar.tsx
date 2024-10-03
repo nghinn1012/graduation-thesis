@@ -54,7 +54,7 @@ const Sidebar = () => {
 					</li>
 					<li className='flex justify-center md:justify-start'>
 						<Link
-							to='/notifications'
+							to='/users/notifications'
 							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
 						>
 							<IoNotificationsOutline className='w-6 h-6' />

@@ -47,11 +47,12 @@ const ProfilePage: React.FC = () => {
     setPage,
     setHasMore,
     user,
-    setUser
+    setUser,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
   const { auth, account } = useAuthContext();
+  const { posts: postsHome, setPosts: setPostsHome } = usePostContext();
   const { id } = useParams();
   const isMyProfile = account?._id === id;
   const observer = useRef<IntersectionObserver | null>(null);
@@ -156,7 +157,7 @@ const ProfilePage: React.FC = () => {
     bio: string
   ) => {
     console.log(name, bio, avatarImageFile, coverImageFile);
-    if (!auth?.token || !user) return;
+    if (!auth?.token || !user || !setPostsHome) return;
     try {
       const response = await userFetcher.updateUser(
         user._id,
@@ -173,6 +174,13 @@ const ProfilePage: React.FC = () => {
       setPosts((prev) =>
         prev.map((post) => ({ ...post, author: response.user }))
       );
+      setPostsHome((prev) =>
+        prev.map((post) =>
+          post.author._id === user._id
+            ? { ...post, author: response.user }
+            : post
+        )
+      );
     } catch (error) {
       console.error("Error updating user:", error);
     }
@@ -180,7 +188,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <>
-      <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
+      <div className="flex-[4_4_0]  border-r border-gray-300 min-h-screen ">
         {/* HEADER */}
         {isLoading && <ProfileHeaderSkeleton />}
         <div className="flex flex-col">
@@ -193,7 +201,7 @@ const ProfilePage: React.FC = () => {
                 <div className="flex flex-col">
                   <p className="font-bold text-lg">{user?.name}</p>
                   <span className="text-sm text-slate-500">
-                    {posts?.length} posts
+                    {user.postCount} posts
                   </span>
                 </div>
               </div>
@@ -278,7 +286,7 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex w-full border-b border-gray-700 mt-4">
+              <div className="flex w-full border-b border-gray-300 mt-4">
                 <div
                   className="flex justify-center flex-1 p-3 hover:bg-red-500 transition duration-300 relative cursor-pointer"
                   onClick={() => setFeedType("posts")}
@@ -301,7 +309,6 @@ const ProfilePage: React.FC = () => {
             </>
           )}
 
-
           {/* Integrated Profile Posts */}
           <div className="mt-5 px-4">
             {posts.length > 0 && (
@@ -316,7 +323,7 @@ const ProfilePage: React.FC = () => {
                 ))}
               </div>
             )}
-            {isLoading && (
+            {isLoading && hasMore && (
               <div className="flex justify-center my-4">
                 <PostSkeleton />
               </div>

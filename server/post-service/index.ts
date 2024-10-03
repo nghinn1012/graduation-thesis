@@ -27,7 +27,6 @@ setupSocketIO(io);
 
 app.use("/posts", postRouter);
 
-// Start the server
 server.listen(NOTIFICATION_PORT, () => {
   console.log(`Post-Service running on port ${NOTIFICATION_PORT}`);
 });
