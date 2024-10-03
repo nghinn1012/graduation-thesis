@@ -29,34 +29,35 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
 }) => {
 
   const courses: ItemType[] = [
-    { label: "Breakfast" },
-    { label: "Lunch" },
-    { label: "Dinner" },
-    { label: "Dessert" },
-    { label: "Appetizer" },
-    { label: "Drink" },
-    { label: "Snack" },
-    { label: "Side" },
+    { label: "breakfast" },
+    { label: "lunch" },
+    { label: "dinner" },
+    { label: "dessert" },
+    { label: "snack" },
+    { label: "appetizer" },
+    { label: "drink" },
+    { label: "side" },
   ];
 
   const difficulties: ItemType[] = [
-    { label: "Easy" },
-    { label: "Medium" },
-    { label: "Hard" },
+    { label: "easy" },
+    { label: "medium" },
+    { label: "hard" },
   ];
 
   const dietaryRestrictions: ItemType[] = [
-    { label: "Vegetarian" },
-    { label: "Vegan" },
-    { label: "Gluten-Free" },
-    { label: "Dairy-Free" },
-    { label: "Nut-Free" },
-    { label: "Soy-Free" },
-    { label: "Shellfish-Free" },
-    { label: "Pescatarian" },
-    { label: "Keto" },
-    { label: "Paleo" },
-    { label: "Whole30" },
+    { label: "vegetarian" },
+    { label: "vegan" },
+    { label: "gluten-free" },
+    { label: "dairy-free" },
+    { label: "nut-free" },
+    { label: "soy-free" },
+    { label: "fish-free" },
+    { label: "shellfish-free" },
+    { label: "pork-free" },
+    { label: "kosher" },
+    { label: "halal" },
+    {label: "whole30" },
   ];
 
   const renderPillGroup = (

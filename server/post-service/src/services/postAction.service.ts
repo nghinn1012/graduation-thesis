@@ -13,7 +13,7 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
     }
     const user = await rpcGetUser<Id>(userId, "_id");
     if (!user) {
-      console.log("rpc-author", "unknown");
+      console.log("rpc-author", "unknown like post");
       throw new InternalError({
         data: {
           target: "rpc-author",
@@ -37,16 +37,16 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
 
 export const getPostLikesByUserService = async (userId: string) => {
   try {
-    const user = await rpcGetUser<Id>(userId, "_id");
-    if (!user) {
-      console.log("rpc-author", "unknown");
-      throw new InternalError({
-        data: {
-          target: "rpc-author",
-          reason: "unknown",
-        },
-      });
-    }
+    // const user = await rpcGetUser<Id>(userId, "_id");
+    // if (!user) {
+    //   console.log("rpc-author", "unknown postlikebyuser");
+    //   throw new InternalError({
+    //     data: {
+    //       target: "rpc-author",
+    //       reason: "unknown",
+    //     },
+    //   });
+    // }
     const likes = await postLikeModel.find({ userId: userId });
 
     const postIds = likes.map(like => like.postId);
@@ -68,7 +68,7 @@ export const saveOrUnsavedPostService = async (postId: string, userId: string) =
 
     const user = await rpcGetUser<Id>(userId, "_id");
     if (!user) {
-      console.log("rpc-author", "unknown");
+      console.log("rpc-author", "unknown savepost");
       throw new InternalError({
         data: {
           target: "rpc-author",

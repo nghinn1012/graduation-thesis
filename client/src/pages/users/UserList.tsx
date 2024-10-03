@@ -32,9 +32,9 @@ const UsersList = () => {
     };
   }, [loadMoreUsers, loading, hasMore]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  // useEffect(() => {
+  //   fetchUsers();
+  // }, [fetchUsers]);
 
   const handleFollowOrUnfollow = async (
     userId: string,

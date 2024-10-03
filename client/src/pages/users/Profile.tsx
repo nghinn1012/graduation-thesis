@@ -5,7 +5,7 @@ import { MdEdit } from "react-icons/md";
 import { usePostContext } from "../../context/PostContext";
 import { useUserContext } from "../../context/UserContext";
 import ProfileHeaderSkeleton from "../../components/skeleton/ProfileHeaderSkeleton";
-import { AccountInfo, userFetcher } from "../../api/user";
+import { AccountInfo, UpdateDataInfo, userFetcher } from "../../api/user";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useProfileContext } from "../../context/ProfileContext";
 import Post from "../../components/posts/PostInfo";
@@ -52,7 +52,6 @@ const ProfilePage: React.FC = () => {
   const { auth, account } = useAuthContext();
   const [user, setUser] = useState<AccountInfo | null>(null);
   const { id } = useParams();
-  const {allUsers} = useUserContext();
   const isMyProfile = account?._id === id;
   const observer = useRef<IntersectionObserver | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -60,11 +59,16 @@ const ProfilePage: React.FC = () => {
   const handleFollow = async () => {
     if (!user || !auth?.token || !account?._id) return;
     followUser(user._id);
-    setUser((prev) => ({ ...prev,
-      followers: prev?.followers?.includes(account?._id || '')
-      ? prev?.followers?.filter((id) => id !== account?._id)
-      : [...(prev?.followers || []), account?._id || ''],
-      followed: !prev?.followed } as AccountInfo));
+    setUser(
+      (prev) =>
+        ({
+          ...prev,
+          followers: prev?.followers?.includes(account?._id || "")
+            ? prev?.followers?.filter((id) => id !== account?._id)
+            : [...(prev?.followers || []), account?._id || ""],
+          followed: !prev?.followed,
+        } as AccountInfo)
+    );
   };
 
   useEffect(() => {
@@ -94,11 +98,13 @@ const ProfilePage: React.FC = () => {
           await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
         } catch (error) {
           console.error("Error loading posts:", error);
+        } finally {
+          setIsLoading(false);
         }
       }
     };
     loadData();
-  }, [fetchLikedPosts, fetchSavedPosts]);
+  }, [fetchLikedPosts, fetchSavedPosts, id]);
 
   const handleImgChange = (
     e: ChangeEvent<HTMLInputElement>,
@@ -160,7 +166,37 @@ const ProfilePage: React.FC = () => {
     setPosts([]);
     setPage(1);
     setHasMore(true);
-  }
+  };
+
+  const handleSubmit = async (
+    avatarImageFile: string | null,
+    coverImageFile: string | null,
+    name: string,
+    bio: string
+  ) => {
+    console.log(name, bio, avatarImageFile, coverImageFile);
+    if (!auth?.token || !user) return;
+    try {
+      const response = await userFetcher.updateUser(
+        user._id,
+        {
+          avatar: avatarImageFile || "",
+          coverImage: coverImageFile || "",
+          name,
+          bio,
+        } as unknown as UpdateDataInfo,
+        auth?.token
+      );
+      console.log("Updated user:", response);
+      setUser(response.user as unknown as AccountInfo);
+      setPosts((prev) =>
+        prev.map((post) => ({ ...post, author: response.user }))
+      );
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
   return (
     <>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
@@ -183,7 +219,7 @@ const ProfilePage: React.FC = () => {
               {/* COVER IMG */}
               <div className="relative group/cover">
                 <img
-                  src={coverImg || user?.avatar || "/cover.png"}
+                  src={coverImg || user?.coverImage || "/cover.png"}
                   className="h-52 w-full object-cover"
                   alt="cover image"
                 />
@@ -232,7 +268,7 @@ const ProfilePage: React.FC = () => {
                   <EditProfileModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onSave={() => {}}
+                    onSave={handleSubmit}
                     user={user}
                   />
                 )}
@@ -244,7 +280,7 @@ const ProfilePage: React.FC = () => {
                   <span className="text-sm text-slate-500">
                     @{user?.username}
                   </span>
-                  <span className="text-sm my-1">kekeke</span>
+                  <span className="text-sm my-1">{user?.bio}</span>
                 </div>
                 <div className="flex gap-2">
                   <div className="flex gap-1 items-center">

@@ -9,7 +9,7 @@ export const createPostService = async (data: IPost) => {
   try {
     const author = await rpcGetUser<Id>(data.author, "_id");
     if (!author) {
-      console.log("rpc-author", "unknown");
+      console.log("rpc-author", "unknown create post");
       throw new InternalError({
         data: {
           target: "rpc-author",
@@ -426,6 +426,7 @@ export const searchPostService = async (query: string, minTime: string,
 
   const totalPosts = await postModel.countDocuments(postSearchBuilder.getMatchCriteria());
   const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+  console.log(authors);
   posts.forEach((post, index) => {
     post.author = authors ? authors[index] : null;
   });

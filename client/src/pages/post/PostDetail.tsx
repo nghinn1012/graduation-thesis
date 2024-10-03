@@ -551,7 +551,7 @@ const PostDetails: React.FunctionComponent = () => {
             </div>
 
             <div className="flex mt-2 gap-2">
-              {post.hashtags.map((tag, index) => (
+              {[...post.hashtags, post.difficulty, ...post.course, ...post.dietary].map((tag, index) => (
                 <span
                   key={index}
                   className="badge badge-md badge-success py-4 px-2 font-bold text-white"

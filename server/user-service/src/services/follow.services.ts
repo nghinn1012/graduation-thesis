@@ -45,26 +45,22 @@ export const followAndUnFollowUserService = async (currentUserId: string, userId
   }
 }
 export const getSuggestUserService = async (currentUserId: string) => {
-  const usersFollowedByCurrentUser = await UserModel.find({
-    _id: currentUserId
-    }).populate("followers");
-  const followedUserIds = usersFollowedByCurrentUser.map(follower => follower._id.toString());
+  const currentUser = await UserModel.findById(currentUserId).populate('following');
+  const followedUserIds = currentUser?.following.map((user: any) => user._id.toString());
 
   const users = await UserModel.aggregate([
     {
       $match: {
-        _id: { $ne: currentUserId }
+        _id: { $ne: currentUser?._id },
       }
     },
-    { $sample: { size: 5 } }
+    { $sample: { size: 10 } }
   ]);
 
-  console.log(currentUserId);
-  const filteredUsers = users.filter(user => !followedUserIds.
-    includes(user._id.toString())
-    && currentUserId !== user._id.toString());
-
-  const suggestedUsers = filteredUsers.slice(0, 5);
+  const suggestedUsers = users.filter(user => {
+    const userIdStr = user._id.toString();
+    return !followedUserIds?.includes(userIdStr) && userIdStr !== currentUserId;
+  }).slice(0, 5);
 
   suggestedUsers.forEach(user => {
     user.password = null;
@@ -72,4 +68,4 @@ export const getSuggestUserService = async (currentUserId: string) => {
   });
 
   return suggestedUsers;
-}
+};

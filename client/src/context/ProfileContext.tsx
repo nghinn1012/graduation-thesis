@@ -95,7 +95,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(false);
       }
     },
-    [auth?.token, page, limit, userId, isLoading]
+    [page, limit, userId, auth?.token, isLoading]
   );
 
   const loadMorePosts = useCallback(() => {
@@ -110,10 +110,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         auth.token
       )) as unknown as PostInfo;
       setPosts((prevPosts) =>
-        prevPosts.map((post) => (post._id === postId ? {
-          ...updatedPost,
-          author: post.author,
-        } : post))
+        prevPosts.map((post) =>
+          post._id === postId
+            ? {
+                ...updatedPost,
+                author: post.author,
+              }
+            : post
+        )
       );
       return updatedPost;
     } catch (err) {
@@ -212,7 +216,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
       fetchPosts(userId || "");
       setIsLoading(false);
     }
-  }, [auth, page, userId]);
+  }, [page, userId]);
 
   useEffect(() => {
     if (postUpdated) {

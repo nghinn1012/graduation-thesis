@@ -1,7 +1,7 @@
 // SocketContext.tsx
 import React, { createContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { VITE_SOCKET_URL } from "../config/config";
+import { VITE_SOCKET_POST_URL } from "../config/config";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -13,7 +13,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const socketInstance: Socket = io(VITE_SOCKET_URL);
+    const socketInstance: Socket = io(VITE_SOCKET_POST_URL);
 
     socketInstance.on("connect", () => {
       console.log("Successfully connected to server");

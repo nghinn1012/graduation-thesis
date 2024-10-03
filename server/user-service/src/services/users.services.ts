@@ -3,6 +3,7 @@ import { UserSearchBuilder } from "../data/query_builder";
 import UserModel from "../db/models/User.models";
 import { hashText } from "../utlis/bcrypt";
 import { v2 as cloudinary } from "cloudinary";
+import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
 
 export interface UpdateDataInfo {
   password: string;
@@ -44,63 +45,71 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
   try {
     const { avatar, coverImage, ...textData } = updateData;
 
-    validatePassword(updateData.password);
-    if (updateData.password !== updateData.confirmPassword) {
-      throw new InvalidDataError({
-        message: "Password does not match"
-      });
-    }
-
-    const hashedPassword = await hashText(updateData.password);
     let user = await UserModel.findByIdAndUpdate(
       userId,
+      { ...textData },
       {
-        ...textData,
-        password: hashedPassword,
-      },
-      {
-        new: true, runValidators: true
+        new: true,
+        runValidators: true,
+      }
+    );
 
-      });
     user = await UserModel.findById(userId);
     if (!user) {
       throw new InvalidDataError({
-        message: "User not found"
+        message: "User not found",
       });
     }
-    if (avatar) {
-      if (user.avatar) {
-        await cloudinary.uploader.destroy(user.avatar.split("/").pop()!.split(".")![0]);
-      }
-      const uploadedRespone = await cloudinary.uploader.upload(avatar, {
-        folder: "users",
-      });
-      await UserModel.findByIdAndUpdate(userId, {
-        avatar: uploadedRespone.secure_url
-      }, { new: true, runValidators: true });
-    }
-    if (coverImage) {
-      if (user.coverImage) {
-        await cloudinary.uploader.destroy(user.coverImage.split("/").pop()!.split(".")![0]);
-      }
-      const uploadedRespone = await cloudinary.uploader.upload(coverImage, {
-        folder: "users",
-      });
-      await UserModel.findByIdAndUpdate(userId, {
-        coverImage: uploadedRespone.secure_url
-      }, { new: true, runValidators: true });
-    }
-    const updatedUser = await UserModel.findById(userId);
 
-    if (user) {
-      return updatedUser
+    const uploadTasks: Promise<any>[] = [];
+
+    if (avatar && avatar !== user.avatar) {
+      if (user.avatar) {
+        const oldAvatarId = extractPublicIdFromUrl(user.avatar);
+        uploadTasks.push(deleteImageFromCloudinary(oldAvatarId));
+      }
+
+      const uploadAvatarTask = uploadImageToCloudinary(avatar, 'users')
+        .then((uploadedUrl) => {
+          return UserModel.findByIdAndUpdate(
+            userId,
+            { avatar: uploadedUrl },
+            { new: true, runValidators: true }
+          );
+        });
+
+      uploadTasks.push(uploadAvatarTask);
+    }
+
+    if (coverImage && coverImage !== user.coverImage) {
+      if (user.coverImage) {
+        const oldCoverImageId = extractPublicIdFromUrl(user.coverImage);
+        uploadTasks.push(deleteImageFromCloudinary(oldCoverImageId));
+      }
+
+      const uploadCoverImageTask = uploadImageToCloudinary(coverImage, 'users')
+        .then((uploadedUrl) => {
+          return UserModel.findByIdAndUpdate(
+            userId,
+            { coverImage: uploadedUrl },
+            { new: true, runValidators: true }
+          );
+        });
+
+      uploadTasks.push(uploadCoverImageTask);
+    }
+
+    await Promise.all(uploadTasks);
+    const updatedUser = await UserModel.findById(userId);
+    if (updatedUser) {
+      return updatedUser;
     }
   } catch (error) {
     throw new InvalidDataError({
       message: (error as Error).message || 'Update user failed!',
     });
   }
-}
+};
 
 export const getAllUsersService = async () => {
   try {

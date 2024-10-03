@@ -126,7 +126,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     setAllUsers([]);
     setHasMore(true);
     setCurrentPage(1);
-  }, [searchQuery, auth?.token]);
+  }, [searchQuery]);
 
   const loadMoreUsers = useCallback(() => {
     if (hasMore && !loading) {
@@ -143,7 +143,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       };
       fetchUsersData();
     }
-  }, [auth, fetchUsers, currentPage]);
+  }, [fetchUsers, currentPage]);
 
   useEffect(() => {
     if (auth?.token) {
@@ -151,7 +151,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       fetchUsers();
       setLoading(false);
     }
-  }, [auth, fetchUsers, currentPage]);
+  }, [fetchUsers, currentPage]);
 
   return (
     <UserContext.Provider value={{ allUsers,

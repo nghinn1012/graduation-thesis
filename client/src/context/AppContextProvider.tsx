@@ -22,11 +22,11 @@ export default function AppContextProviders({
           <SearchProvider>
             <UserProvider>
               <PostProvider>
-                <ProfileProvider>
                 <FollowProvider>
+                <ProfileProvider>
                   <SocketProvider>{children}</SocketProvider>
-                </FollowProvider>
                 </ProfileProvider>
+                </FollowProvider>
               </PostProvider>
             </UserProvider>
           </SearchProvider>

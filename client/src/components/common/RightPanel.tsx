@@ -7,6 +7,7 @@ import { useSearchContext } from "../../context/SearchContext";
 import { useUserContext } from "../../context/UserContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useFollowContext } from "../../context/FollowContext";
+import { useProfileContext } from "../../context/ProfileContext";
 
 interface User {
   _id: string;
@@ -34,7 +35,7 @@ const RightPanel: React.FC = () => {
     hashtagsSearch,
     setHashtagsSearch,
   } = useSearchContext();
-  const { suggestUsers, fetchSuggestions } = useUserContext();
+  const { suggestUsers, fetchSuggestions, setSuggestUsers } = useUserContext();
   const {followUser} = useFollowContext();
   const [localCookingTimeRange, setLocalCookingTimeRange] = useState<
     (number | string)[]
@@ -50,6 +51,7 @@ const RightPanel: React.FC = () => {
   const [haveMadeOn, setHaveMadeOn] = useState(false);
   const {auth} = useAuthContext();
   const navigate = useNavigate();
+  const { userId, setUserId } = useProfileContext();
 
   useEffect(() => {
     fetchSuggestions();
@@ -162,7 +164,10 @@ const RightPanel: React.FC = () => {
   const handleFollowUser = (userId: string, event: any) => {
     event.preventDefault();
     followUser(userId);
-    suggestUsers.filter((user: User) => user._id !== userId);
+    console.log(suggestUsers);
+    setSuggestUsers(suggestUsers.filter((user: User) => user._id !== userId));
+    setUserId(userId);
+    console.log(suggestUsers);
   }
 
 

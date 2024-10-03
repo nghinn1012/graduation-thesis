@@ -1,11 +1,17 @@
 import React, { useState, useRef, ChangeEvent } from "react";
 import { MdEdit } from "react-icons/md";
 import { AccountInfo } from "../../api/user";
+import imageCompression from "browser-image-compression";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (avatar: File | null, cover: File | null) => void;
+  onSave: (
+    avatar: string | null,
+    cover: string | null,
+    name: string,
+    bio: string
+  ) => void;
   user: AccountInfo;
 }
 
@@ -15,39 +21,58 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onSave,
   user,
 }) => {
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
-    null
-  );
-  const [avatarImagePreview, setAvatarImagePreview] = useState<string | null>(
-    null
-  );
-  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
-  const [avatarImageFile, setAvatarImageFile] = useState<File | null>(null);
-  const [name, setName] = useState<string>(user.name);
-  const [bio, setBio] = useState<string>("");
-  const [location, setLocation] = useState<string>("");
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(user.coverImage || null);
+  const [avatarImagePreview, setAvatarImagePreview] = useState<string | null>(user.avatar || null);
+  const [coverImageFile, setCoverImageFile] = useState<string | null>(user.coverImage || "");
+  const [avatarImageFile, setAvatarImageFile] = useState<string | null>(user.avatar || "");
+  const [name, setName] = useState<string>(user.name || "");
+  const [bio, setBio] = useState<string>(user.bio ||"");
 
   const coverImgRef = useRef<HTMLInputElement | null>(null);
   const profileImgRef = useRef<HTMLInputElement | null>(null);
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleImageChange = async (
+    e: ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
     const files = e.target.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      const previewUrl = URL.createObjectURL(file);
+    const compressOptions = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+    };
 
-      if (type === "coverImg") {
-        setCoverImagePreview(previewUrl);
-        setCoverImageFile(file);
-      } else if (type === "profileImg") {
-        setAvatarImagePreview(previewUrl);
-        setAvatarImageFile(file);
+    if (files && files.length > 0) {
+      let imageUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        try {
+          const compressedFile = await imageCompression(file, compressOptions);
+
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            imageUrls.push(result);
+
+            if (type === "coverImg") {
+              setCoverImagePreview(result);
+              setCoverImageFile(result);
+            } else if (type === "profileImg") {
+              setAvatarImagePreview(result);
+              setAvatarImageFile(result);
+            }
+          };
+          reader.readAsDataURL(compressedFile);
+        } catch (error) {
+          console.error("Image compression error: ", error);
+        }
       }
     }
   };
 
   const handleSave = () => {
-    onSave(avatarImageFile, coverImageFile);
+    onSave(avatarImageFile, coverImageFile, name, bio);
     onClose();
   };
 
@@ -131,16 +156,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             onChange={(e) => setBio(e.target.value)}
             className="textarea textarea-bordered w-full"
           ></textarea>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Location</label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="input input-bordered w-full"
-          />
         </div>
 
         {/* Save Button */}

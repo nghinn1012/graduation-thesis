@@ -16,6 +16,7 @@ export const userEndpoints = {
   search: "/users/search",
   suggest: "/users/suggest",
   follow: "/users/followUser/:userId",
+  updateUser: "/users/update/:userId",
 } as const;
 
 export interface UserResponseError
@@ -63,6 +64,8 @@ export interface AccountInfo {
   followers: string[];
   following: string[];
   followed: boolean;
+  coverImage?: string;
+  bio?: string;
 }
 
 interface ManualRegisterInfo {
@@ -85,6 +88,16 @@ export interface searchInfoData {
   pageSize: number;
 }
 
+export interface UpdateDataInfo {
+  password: string;
+  name: string;
+  confirmPassword: string;
+  username: string;
+  avatar: string;
+  coverImage: string;
+  bio: string;
+}
+
 export interface UserFetcher {
   manualRegister(data: ManualRegisterInfo): Promise<UserResponse<AccountInfo>>;
   verifyEmail(token: string): Promise<UserResponse<AccountInfo>>;
@@ -96,6 +109,7 @@ export interface UserFetcher {
   search(name: string, page: number, pageSize: number, token: string): Promise<UserResponse<searchInfoData>>;
   suggest(token: string): Promise<UserResponse<AccountInfo[]>>;
   followUser(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
+  updateUser(userId: string, data: UpdateDataInfo, token: string): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -172,5 +186,14 @@ export const userFetcher: UserFetcher = {
         }
       }
     );
-  }
+  },
+  updateUser: async (userId: string, data: UpdateDataInfo, token: string): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.patch(userEndpoints.updateUser.replace(":userId", userId), data,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+  },
 };

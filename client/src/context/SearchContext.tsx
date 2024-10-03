@@ -66,7 +66,7 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname !== "/users/search") {
+    if (location.pathname !== "/users/search" && searchQuery !== "") {
       setSearchQuery("");
       setPosts([]);
       setCurrentPage(1);
@@ -114,12 +114,10 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
       }
     } catch (err) {
       console.error("Failed to load posts:", err);
-      error("Failed to load posts: " + (err as Error));
     } finally {
       setIsLoading(false);
     }
   }, [
-    auth?.token,
     searchQuery,
     currentPage,
     limit,
@@ -141,7 +139,6 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
     haveMade,
     difficulty,
     hashtagsSearch,
-    auth?.token,
   ]);
 
   useEffect(() => {
