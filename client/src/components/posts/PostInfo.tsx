@@ -204,7 +204,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         <div className="avatar">
           <Link
             to={`/users/profile/${postAuthor?._id}`}
-            className="w-8 rounded-full overflow-hidden"
+            className="w-8 h-8 rounded-full overflow-hidden"
           >
             <img src={postAuthor?.avatar || "/boy1.png"} alt="Profile" />
           </Link>

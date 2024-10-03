@@ -136,13 +136,18 @@ export const getAllPostsService = async (page: number, limit: number, userId?: s
 
     const posts = userId ? await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit)
       : await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+    const authors = userId ? await rpcGetUser<IAuthor[]>(userId,
+      ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]):
+      await rpcGetUsers<IAuthor[]>(posts.map(post => post.author),
+        ["_id", "email", "name", "avatar", "username"]);
 
-    const postsWithAuthors = posts.map((post, index) => ({
+    const postsWithAuthors = userId ? {
+      posts,
+      authors,
+    } : posts.map((post, index) => ({
       ...post.toObject(),
       author: authors ? authors[index] : null,
     }));
-
     return postsWithAuthors;
   } catch (error) {
     throw new InternalError({
@@ -160,7 +165,7 @@ export const getAllPostsOfUserService = async (userId: string, page: number, lim
 
     const posts = await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit);
 
-    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]);
 
     const postsWithAuthors = posts.map((post, index) => ({
       ...post.toObject(),

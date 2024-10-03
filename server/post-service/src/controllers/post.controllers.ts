@@ -76,7 +76,7 @@ export const getAllPostsController = async (request: Request, response: Response
     const limit = parseInt(request.query.limit as string, 10) || 20;
     const userId = request.query.userId as string;
     const posts = await getAllPostsService(page, limit, userId);
-    if (!posts) {
+    if (posts === null) {
       return response.status(400).json({
         message: "Cannot get posts"
       });
@@ -85,7 +85,7 @@ export const getAllPostsController = async (request: Request, response: Response
   } catch (error) {
     return response.status(400).json({
       message: "Cannot get posts",
-      error: (error as Error).message
+      error: (error as Error)
     });
   }
 }

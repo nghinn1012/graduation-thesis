@@ -8,12 +8,15 @@ import React, {
 import {
   postFetcher,
   PostInfo,
+  PostProfile,
   PostResponse,
   PostShoppingList,
   ShoppingListData,
 } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
+import { AccountInfo } from "../api/user";
+import { set } from "date-fns";
 
 interface ProfileContextType {
   posts: PostInfo[];
@@ -39,6 +42,8 @@ interface ProfileContextType {
   setPosts: React.Dispatch<React.SetStateAction<PostInfo[]>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   setHasMore: React.Dispatch<React.SetStateAction<boolean>>;
+  user: AccountInfo | undefined;
+  setUser: React.Dispatch<React.SetStateAction<AccountInfo | undefined>>;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -56,46 +61,60 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   >({});
   const [userId, setUserId] = useState<string | undefined>();
   const [postUpdated, setPostUpdated] = useState<string>("");
+  const [user, setUser] = useState<AccountInfo | undefined>();
 
   const { auth } = useAuthContext();
   const { error } = useToastContext();
 
   const fetchPosts = useCallback(
     async (id: string) => {
-      if (!auth?.token || isLoading) return;
-      if (id !== userId && id !== posts[0]?.author._id) {
+      setIsLoading(true);
+      if (!auth?.token) return;
+      if (id !== userId) {
         setPosts([]);
         setPage(1);
+        setUserId(id);
+        setUser(undefined);
         setHasMore(true);
+        console.log("gan id", id);
       }
-      setIsLoading(true);
-      console.log(id);
+
       try {
         const response = (await postFetcher.getAllPosts(
           auth.token,
           page,
           limit,
           id
-        )) as unknown as PostInfo[];
-        console.log(response);
+        )) as unknown as PostProfile;
+
+        if (response?.authors) setUser(response.authors);
+        console.log(user);
         setPosts((prevPosts) => {
           const existingPostIds = new Set(prevPosts.map((post) => post._id));
-          const newPosts = response.filter(
-            (post) => !existingPostIds.has(post._id) && post.author._id === id
-          );
-          return [...prevPosts, ...newPosts];
+
+          const newPosts =
+            response?.posts?.filter((post) => !existingPostIds.has(post._id)) ||
+            [];
+
+          const postsWithAuthors = newPosts.map((post) => ({
+            ...post,
+            author: response.authors,
+          })) as PostInfo[];
+
+          return [...prevPosts, ...postsWithAuthors];
         });
-        if (response.length < limit) {
+
+        if (response?.posts?.length < limit) {
           setHasMore(false);
         }
       } catch (err) {
         console.error("Failed to load posts:", err);
-        error(`Failed to load posts: ${(err as Error).message}`);
+        error(`Failed to load posts: ${(err as Error)}`);
       } finally {
         setIsLoading(false);
       }
     },
-    [page, limit, userId, auth?.token, isLoading]
+    [page, limit, userId, auth?.token, isLoading, posts]
   );
 
   const loadMorePosts = useCallback(() => {
@@ -212,9 +231,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (auth?.token) {
-      setIsLoading(true);
       fetchPosts(userId || "");
-      setIsLoading(false);
     }
   }, [page, userId]);
 
@@ -251,6 +268,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setPostUpdated,
         setPosts,
         setHasMore,
+        user,
+        setUser,
       }}
     >
       {children}

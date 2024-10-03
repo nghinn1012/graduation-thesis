@@ -3,6 +3,7 @@ import { PROXY_URL, POST_PATH } from "../config/config";
 import { ResponseErrorLike } from "../data/response_error_like";
 import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
+import { AccountInfo } from "./user";
 
 export const postEndpoints = {
   //mealPlanner
@@ -302,6 +303,11 @@ export interface searchPostData {
   currentPage: number,
   pageSize: number,
   totalPages: number,
+}
+
+export interface PostProfile {
+  posts: PostInfo[];
+  authors: AccountInfo;
 }
 
 export interface PostFetcher {

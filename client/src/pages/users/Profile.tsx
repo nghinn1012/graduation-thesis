@@ -46,11 +46,12 @@ const ProfilePage: React.FC = () => {
     setPosts,
     setPage,
     setHasMore,
+    user,
+    setUser
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
   const { auth, account } = useAuthContext();
-  const [user, setUser] = useState<AccountInfo | null>(null);
   const { id } = useParams();
   const isMyProfile = account?._id === id;
   const observer = useRef<IntersectionObserver | null>(null);
@@ -72,34 +73,14 @@ const ProfilePage: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        if (!id || !auth?.token) return;
-        if (id !== userId) {
-          console.log(`Fetching user: oldId = ${userId}, newId = ${id}`);
-          setUserId(id);
-        }
-        const response = await userFetcher.getUserById(id, auth?.token);
-        setUser(response as unknown as AccountInfo);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, [id, auth?.token, userId]);
-
-  useEffect(() => {
     const loadData = async () => {
       if (id) {
         try {
           setUserId(id);
-          setIsLoading(true);
-          await fetchPosts(id);
+          fetchPosts(id);
           await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
         } catch (error) {
           console.error("Error loading posts:", error);
-        } finally {
-          setIsLoading(false);
         }
       }
     };
@@ -162,7 +143,7 @@ const ProfilePage: React.FC = () => {
   const handleBack = () => {
     navigate(-1);
     setUserId(undefined);
-    setUser(null);
+    setUser(undefined);
     setPosts([]);
     setPage(1);
     setHasMore(true);
@@ -320,9 +301,10 @@ const ProfilePage: React.FC = () => {
             </>
           )}
 
+
           {/* Integrated Profile Posts */}
           <div className="mt-5 px-4">
-            {posts.length > 0 && !isLoading && (
+            {posts.length > 0 && (
               <div>
                 {posts.map((post, index) => (
                   <div
@@ -334,7 +316,7 @@ const ProfilePage: React.FC = () => {
                 ))}
               </div>
             )}
-            {isLoading && posts.length > 0 && (
+            {isLoading && (
               <div className="flex justify-center my-4">
                 <PostSkeleton />
               </div>
