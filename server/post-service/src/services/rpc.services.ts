@@ -19,6 +19,7 @@ export interface IAuthor {
   email: string;
   username: string;
   postCount?: number;
+  following?: string[];
 }
 
 export const rpcGetUser = async <T>(

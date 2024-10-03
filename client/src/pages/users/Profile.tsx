@@ -42,12 +42,20 @@ const ProfilePage: React.FC = () => {
     fetchPosts,
     fetchLikedPosts,
     fetchSavedPosts,
-    setIsLoading,
     setPosts,
     setPage,
     setHasMore,
     user,
     setUser,
+    postLikes,
+    fetchSavedPostInProfile,
+    fetchPostsLikeInProfile,
+    pageLike,
+    setPageLike,
+    setPostLikes,
+    hasMoreLike,
+    isLoadingLike,
+    loadMorePostsLike,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
@@ -55,7 +63,8 @@ const ProfilePage: React.FC = () => {
   const { posts: postsHome, setPosts: setPostsHome } = usePostContext();
   const { id } = useParams();
   const isMyProfile = account?._id === id;
-  const observer = useRef<IntersectionObserver | null>(null);
+  const postsObserver = useRef<IntersectionObserver | null>(null);
+  const likesObserver = useRef<IntersectionObserver | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const handleFollow = async () => {
@@ -88,6 +97,21 @@ const ProfilePage: React.FC = () => {
     loadData();
   }, [fetchLikedPosts, fetchSavedPosts, id]);
 
+  useEffect(() => {
+    const loadData = async () => {
+      if (id) {
+        try {
+          setUserId(id);
+          fetchPostsLikeInProfile(id);
+          fetchSavedPostInProfile();
+        } catch (error) {
+          console.error("Error loading posts:", error);
+        }
+      }
+    };
+    loadData();
+  }, [fetchSavedPostInProfile, id]);
+
   const handleImgChange = (
     e: ChangeEvent<HTMLInputElement>,
     state: "coverImg" | "profileImg"
@@ -104,8 +128,8 @@ const ProfilePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!observer.current) {
-      observer.current = new IntersectionObserver(
+    if (!postsObserver.current) {
+      postsObserver.current = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting && hasMore) {
             loadMorePosts();
@@ -119,21 +143,55 @@ const ProfilePage: React.FC = () => {
       );
     }
 
-    const loader = document.getElementById("loader");
-    if (loader) {
-      observer.current.observe(loader);
+    const postsLoader = document.getElementById("postsLoader");
+    if (postsLoader) {
+      postsObserver.current.observe(postsLoader);
     }
 
     return () => {
-      if (loader) {
-        observer.current?.unobserve(loader);
+      if (postsLoader && postsObserver.current) {
+        postsObserver.current.unobserve(postsLoader);
       }
     };
   }, [hasMore, loadMorePosts]);
 
+  useEffect(() => {
+    if (!likesObserver.current) {
+      likesObserver.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasMoreLike) {
+            loadMorePostsLike();
+          }
+        },
+        {
+          root: null,
+          rootMargin: "0px",
+          threshold: 1.0,
+        }
+      );
+    }
+
+    const likesLoader = document.getElementById("likesLoader");
+    if (likesLoader) {
+      likesObserver.current.observe(likesLoader);
+    }
+
+    return () => {
+      if (likesLoader && likesObserver.current) {
+        likesObserver.current.unobserve(likesLoader);
+      }
+    };
+  }, [hasMoreLike, loadMorePostsLike]);
+
   const lastPostRef = useCallback((node: HTMLDivElement | null) => {
-    if (node && observer.current) {
-      observer.current.observe(node);
+    if (node && postsObserver.current) {
+      postsObserver.current.observe(node);
+    }
+  }, []);
+
+  const lastLikeRef = useCallback((node: HTMLDivElement | null) => {
+    if (node && likesObserver.current) {
+      likesObserver.current.observe(node);
     }
   }, []);
 
@@ -146,7 +204,9 @@ const ProfilePage: React.FC = () => {
     setUserId(undefined);
     setUser(undefined);
     setPosts([]);
+    setPostLikes([]);
     setPage(1);
+    setPageLike(1);
     setHasMore(true);
   };
 
@@ -310,26 +370,52 @@ const ProfilePage: React.FC = () => {
           )}
 
           {/* Integrated Profile Posts */}
-          <div className="mt-5 px-4">
-            {posts.length > 0 && (
-              <div>
-                {posts.map((post, index) => (
-                  <div
-                    key={post._id}
-                    ref={index === posts.length - 1 ? lastPostRef : null}
-                  >
-                    <Post post={post} />
-                  </div>
-                ))}
-              </div>
-            )}
-            {isLoading && hasMore && (
-              <div className="flex justify-center my-4">
-                <PostSkeleton />
-              </div>
-            )}
-            <div id="loader" />
-          </div>
+          {feedType === "posts" && (
+            <div className="mt-5 px-4">
+              {posts.length > 0 && (
+                <div>
+                  {posts.map((post, index) => (
+                    <div
+                      key={post._id}
+                      ref={index === posts.length - 1 ? lastPostRef : null}
+                    >
+                      <Post post={post} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isLoadingLike && hasMoreLike && (
+                <div className="flex justify-center my-4">
+                  <PostSkeleton />
+                </div>
+              )}
+              <div id="postsLoader" />
+            </div>
+          )}
+          {feedType === "likes" && (
+            <div className="mt-5 px-4">
+              {postLikes.length > 0 && (
+                <div>
+                  {postLikes.map((post, index) => (
+                    <div
+                      key={post._id}
+                      ref={
+                        index === postLikes.length - 1 ? lastLikeRef : null
+                      }
+                    >
+                      <Post post={post} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isLoadingLike && hasMoreLike && (
+                <div className="flex justify-center my-4">
+                  <PostSkeleton />
+                </div>
+              )}
+              <div id="likesLoader" />
+            </div>
+          )}
         </div>
       </div>
     </>

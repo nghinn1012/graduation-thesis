@@ -2,7 +2,7 @@ import { InternalError } from '../data';
 import postLikeModel from '../models/postLikeModel';
 import postModel from '../models/postModel';
 import savedListModel from '../models/savedListModel.model';
-import { Id, rpcGetUser } from './index.services';
+import { IAuthor, Id, rpcGetUser, rpcGetUsers } from './index.services';
 import mongoose from 'mongoose';
 
 export const likeOrUnlikePostService = async (postId: string, userId: string) => {
@@ -35,26 +35,44 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
   }
 }
 
-export const getPostLikesByUserService = async (userId: string) => {
+export const getPostLikesByUserService = async (userId: string, page?: number, limit?: number) => {
+  // console.log(page, limit);
   try {
-    // const user = await rpcGetUser<Id>(userId, "_id");
-    // if (!user) {
-    //   console.log("rpc-author", "unknown postlikebyuser");
-    //   throw new InternalError({
-    //     data: {
-    //       target: "rpc-author",
-    //       reason: "unknown",
-    //     },
-    //   });
-    // }
     const likes = await postLikeModel.find({ userId: userId });
 
-    const postIds = likes.map(like => like.postId);
+    const postsLikesWithInfo = await Promise.all(
+      likes.map(async (like) => {
+        const post = await postModel.findById(like.postId);
+        return post;
+      })
+    );
+
+    if (!postsLikesWithInfo || postsLikesWithInfo.length === 0) {
+      return [];
+    }
+
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      const paginatedPosts = postsLikesWithInfo.slice(skip, skip + limit);
+      const authors = await rpcGetUsers<IAuthor[]>(
+        paginatedPosts.map((post) => post?.author || ""),
+        ["_id", "email", "name", "avatar", "username"]
+      );
+
+      const postsWithAuthors = paginatedPosts.map((post) => ({
+        ...post?.toObject(),
+        author: authors?.find((author) => author._id.toString() === post?.author.toString()),
+      }));
+
+      return postsWithAuthors;
+    }
+
+    const postIds = postsLikesWithInfo.map((post) => post?._id.toString());
     return postIds;
   } catch (error) {
     throw new Error(`Cannot get post likes by user: ${(error as Error).message}`);
   }
-}
+};
 
 export const saveOrUnsavedPostService = async (postId: string, userId: string) => {
   try {
@@ -136,5 +154,48 @@ export const isSavedPostByUserService = async (postId: string, userId: string) =
     return response;
   } catch (error) {
     throw new Error(`Cannot check if post is saved by user: ${(error as Error).message}`);
+  }
+}
+
+export const getPostByUserFollowingService = async (userId: string, page?: number, limit?: number) => {
+  try {
+    const user = await rpcGetUser<IAuthor>(userId, ["_id", "following"]);
+    if (!user) {
+      console.log("rpc-author", "unknown get post by user following");
+      throw new InternalError({
+        data: {
+          target: "rpc-author",
+          reason: "unknown",
+        },
+      });
+    }
+
+    const following = user.following;
+
+    if (!following || following.length === 0) {
+      return [];
+    }
+
+
+    const posts = await postModel.find({ author: { $in: following } });
+
+    if (!posts || posts.length === 0 || !page || !limit) {
+      return [];
+    }
+
+    const skip = (page - 1) * limit;
+    const paginatedPosts = posts.slice(skip, skip + limit);
+    const authors = await rpcGetUsers<IAuthor[]>(
+      paginatedPosts.map((post) => post?.author || ""),
+      ["_id", "email", "name", "avatar", "username"]
+    );
+
+    const postsWithAuthors = paginatedPosts.map((post) => ({
+      ...post?.toObject(),
+      author: authors?.find((author) => author._id.toString() === post?.author.toString()),
+    }));
+    return postsWithAuthors;
+  } catch (error) {
+    throw new Error(`Cannot get post by user following: ${(error as Error).message}`);
   }
 }
