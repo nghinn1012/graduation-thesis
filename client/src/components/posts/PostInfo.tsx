@@ -11,7 +11,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import React from "react";
 import { usePostContext } from "../../context/PostContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import { postFetcher, PostLikeResponse } from "../../api/post";
+import { postFetcher, PostInfo, PostLikeResponse } from "../../api/post";
 import { Toaster } from "react-hot-toast";
 import { useToastContext } from "../../hooks/useToastContext";
 import { useSearchContext } from "../../context/SearchContext";
@@ -66,6 +66,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const auth = useAuthContext();
   const { posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
     usePostContext();
+  const { postLikes, setPostLikes } = useProfileContext();
   const { toggleLikePostSearch, toggleSavePostSearch } = useSearchContext();
   const {toggleLikePostProfile, toggleSavePostProfile} = useProfileContext();
   const { success, error } = useToastContext();
@@ -131,11 +132,16 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         toggleLikePost(post._id, true);
         toggleLikePostSearch(post._id, true);
         toggleLikePostProfile(post._id, true);
+        setPostLikes([...postLikes, {
+          ...post,
+          liked: true,
+        } as unknown as PostInfo]);
       } else {
         setIsLiked(false);
         toggleLikePost(post._id, false);
         toggleLikePostSearch(post._id, false);
         toggleLikePostProfile(post._id, false);
+        setPostLikes(postLikes.filter((postLike) => postLike._id !== post._id));
       }
     } catch (err) {
       console.error("An error occurred while liking the post:", err);
