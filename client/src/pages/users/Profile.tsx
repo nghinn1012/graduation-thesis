@@ -50,7 +50,7 @@ const ProfilePage: React.FC = () => {
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
-  const { auth, account } = useAuthContext();
+  const { auth, account, setAccount} = useAuthContext();
   const { posts: postsHome, setPosts: setPostsHome } = usePostContext();
   const { id } = useParams();
   const isMyProfile = account?._id === id;
@@ -82,6 +82,7 @@ const ProfilePage: React.FC = () => {
           const updatedUser = response as unknown as AccountInfo;
           setUser({
             ...updatedUser,
+            followed: user?.followers?.includes(account?._id || "") || false,
             postCount: user?.postCount,
           });
 
@@ -107,6 +108,12 @@ const ProfilePage: React.FC = () => {
                 : post
             )
           );
+          setAccount((prev) =>
+            prev?._id === id
+              ? { ...prev, ...updatedUser }
+              : prev
+          );
+
         } catch (error) {
           console.error("Error fetching user:", error);
         }
@@ -285,6 +292,7 @@ const ProfilePage: React.FC = () => {
       );
 
       if (!change.avatar && !change.coverImage) {
+        console.log("No image change");
         setUser(response.user as unknown as AccountInfo);
         setPosts((prev) =>
           prev.map((post) => ({ ...post, author: response.user }))

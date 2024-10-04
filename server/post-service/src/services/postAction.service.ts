@@ -158,7 +158,7 @@ export const isSavedPostByUserService = async (postId: string, userId: string) =
 
 export const getPostByUserFollowingService = async (userId: string, page?: number, limit?: number) => {
   try {
-    const user = await rpcGetUser<IAuthor>(userId, ["_id", "following"]);
+    const user = await rpcGetUser<IAuthor>(userId, ["_id", "following", "followers"]);
     if (!user) {
       console.log("rpc-author", "unknown get post by user following");
       throw new InternalError({
@@ -186,7 +186,7 @@ export const getPostByUserFollowingService = async (userId: string, page?: numbe
     const paginatedPosts = posts.slice(skip, skip + limit);
     const authors = await rpcGetUsers<IAuthor[]>(
       paginatedPosts.map((post) => post?.author || ""),
-      ["_id", "email", "name", "avatar", "username"]
+      ["_id", "email", "name", "avatar", "username", "followers"]
     );
 
     const postsWithAuthors = paginatedPosts.map((post) => ({

@@ -64,7 +64,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   const [limit] = useState<number>(10);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
-  const { auth } = useAuthContext();
+  const { auth, account } = useAuthContext();
   const { error } = useToastContext();
   const [postCommentCounts, setPostCommentCounts] = useState<
     Record<string, number>
@@ -84,7 +84,15 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         const existingPostIds = new Set(prevPosts.map((post) => post._id));
         const newPosts = (response as unknown as PostInfo[]).filter(
           (post) => !existingPostIds.has(post._id)
-        );
+        ).map((post) => {
+          return {
+            ...post,
+            author: {
+              ...post.author,
+              followed: post.author.followers?.includes(account?._id  || ""),
+            },
+          };
+        });
         return [...prevPosts, ...newPosts];
       });
 
@@ -113,7 +121,15 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         const existingPostIds = new Set(prevPosts.map((post) => post._id));
         const newPosts = (response as unknown as PostInfo[]).filter(
           (post) => !existingPostIds.has(post._id)
-        );
+        ).map((post) => {
+          return {
+            ...post,
+            author: {
+              ...post.author,
+              followed: post.author.followers?.includes(account?._id  || ""),
+            },
+          };
+        });
         return [...prevPosts, ...newPosts];
       });
 

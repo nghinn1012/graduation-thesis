@@ -76,7 +76,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const [postUpdated, setPostUpdated] = useState<string>("");
   const [user, setUser] = useState<AccountInfo | undefined>();
 
-  const { auth } = useAuthContext();
+  const { auth, account } = useAuthContext();
   const { error } = useToastContext();
 
   const fetchPosts = useCallback(
@@ -100,7 +100,13 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
           id
         )) as unknown as PostProfile;
 
-        if (response?.authors) setUser(response.authors);
+        if (response?.authors)
+          setUser({
+            ...response.authors,
+            followed: response.authors.followers?.includes(
+              account?._id as string
+            ),
+          });
         setPosts((prevPosts) => {
           const existingPostIds = new Set(prevPosts.map((post) => post._id));
 
@@ -126,7 +132,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(false);
       }
     },
-    [page, limit, userId, auth?.token, posts]
+    [page, limit, auth?.token, userId]
+    // [page, limit, userId, auth?.token, posts]
   );
 
   const loadMorePosts = useCallback(() => {
@@ -267,47 +274,54 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth?.token]);
 
-  const fetchPostsLikeInProfile = useCallback(async (id: string) => {
-    if (!auth?.token) return;
-    console.log("id", id);
-    console.log("userId", userId);
-    if (id !== userId) {
-      setPostLikes([]);
-      setPageLike(1);
-      setUserId(id);
-      setHasMoreLike(true);
-    }
-    console.log(userId);
-    setIsLoadingLike(true);
-    try {
-      const response = (await postFetcher.postLikesByUser(
-        auth.token,
-        id || "",
-        pageLike,
-        limit
-      )) as unknown as PostInfo[];
-      const likedPostIds = await postFetcher.postLikesByUser(auth.token);
-
-      setPostLikes((prevPosts) => {
-        const existingPostIds = new Set(prevPosts.map((post) => post._id));
-
-        const newPosts =
-          response.filter((post) => !existingPostIds.has(post._id)) || [];
-
-        return [...prevPosts, ...newPosts.map((post) => ({ ...post,
-          liked: likedPostIds.includes(post._id.toString()),
-         }))];
-      });
-      if (response.length < limit) {
-        setHasMore(false);
+  const fetchPostsLikeInProfile = useCallback(
+    async (id: string) => {
+      if (!auth?.token) return;
+      console.log("id", id);
+      console.log("userId", userId);
+      if (id !== userId) {
+        setPostLikes([]);
+        setPageLike(1);
+        setUserId(id);
+        setHasMoreLike(true);
       }
-    } catch (err) {
-      console.error("Failed to load posts:", err);
-      error(`Failed to load posts: ${(err as Error).message}`);
-    } finally {
-      setIsLoadingLike(false);
-    }
-  }, [pageLike, limit, auth?.token, userId]);
+      console.log(userId);
+      setIsLoadingLike(true);
+      try {
+        const response = (await postFetcher.postLikesByUser(
+          auth.token,
+          id || "",
+          pageLike,
+          limit
+        )) as unknown as PostInfo[];
+        const likedPostIds = await postFetcher.postLikesByUser(auth.token);
+
+        setPostLikes((prevPosts) => {
+          const existingPostIds = new Set(prevPosts.map((post) => post._id));
+
+          const newPosts =
+            response.filter((post) => !existingPostIds.has(post._id)) || [];
+
+          return [
+            ...prevPosts,
+            ...newPosts.map((post) => ({
+              ...post,
+              liked: likedPostIds.includes(post._id.toString()),
+            })),
+          ];
+        });
+        if (response.length < limit) {
+          setHasMore(false);
+        }
+      } catch (err) {
+        console.error("Failed to load posts:", err);
+        error(`Failed to load posts: ${(err as Error).message}`);
+      } finally {
+        setIsLoadingLike(false);
+      }
+    },
+    [pageLike, limit, auth?.token, userId]
+  );
 
   const fetchSavedPostInProfile = useCallback(async () => {
     if (!auth?.token) return;

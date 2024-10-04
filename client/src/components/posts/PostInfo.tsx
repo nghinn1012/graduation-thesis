@@ -38,6 +38,8 @@ interface PostProps {
       avatar: string;
       username: string;
       email: string;
+      followers: string[];
+      followed?: boolean;
     };
     images: string[];
     hashtags: string[];

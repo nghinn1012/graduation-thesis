@@ -101,6 +101,8 @@ export interface PostInfo {
     avatar: string;
     email: string;
     username: string;
+    followers: string[];
+    followed?: boolean;
   };
   images: string[];
   hashtags: string[];

@@ -147,7 +147,7 @@ export const getAllPostsService = async (page: number, limit: number, userId?: s
     const authors = userId ? await rpcGetUser<IAuthor[]>(userId,
       ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]):
       await rpcGetUsers<IAuthor[]>(posts.map(post => post.author),
-        ["_id", "email", "name", "avatar", "username"]);
+        ["_id", "email", "name", "avatar", "username", "following", "followers"]);
 
     const postsWithAuthors = userId ? {
       posts,

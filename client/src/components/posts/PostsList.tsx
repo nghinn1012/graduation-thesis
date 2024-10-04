@@ -82,6 +82,7 @@ const Posts: React.FC = () => {
       }
     };
     loadData();
+    console.log(posts);
   }, [fetchPosts, fetchLikedPosts, fetchSavedPosts, setIsLoading]);
 
 

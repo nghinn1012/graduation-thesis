@@ -113,7 +113,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoading(true);
     try {
       const response = (await userFetcher.getUserById(userId, auth.token)) as unknown as AccountInfo;
-      setUser(response);
+      setUser({
+        ...response,
+        followed: response.followers?.includes(account?._id as string),
+      });
     } catch (err) {
       console.error("Failed to load user:", err);
       error("Failed to load user: " + (err as Error).message);
