@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   CommentAuthor,
   postFetcher,
@@ -35,6 +35,8 @@ import CommentSection from "../../components/posts/comment/CommentSection";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import * as yup from "yup";
 import { useProfileContext } from "../../context/ProfileContext";
+import { useFollowContext } from "../../context/FollowContext";
+import { AccountInfo, PostAuthor, userFetcher } from "../../api/user";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -76,7 +78,7 @@ const PostDetails: React.FunctionComponent = () => {
   );
   const navigate = useNavigate();
   const [post, setPost] = useState<PostInfo>([] as unknown as PostInfo);
-  const postAuthor = location.state?.postAuthor;
+  const [postAuthor, setPostAuthor] = useState<PostAuthor>({} as PostAuthor);
   const { account, auth } = useAuthContext();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editPost, setEditPost] = useState<PostInfo | null>(post);
@@ -89,14 +91,25 @@ const PostDetails: React.FunctionComponent = () => {
   const [isSavedToShoppingList, setIsSavedToShoppingList] = useState<boolean>(
     post.isInShoppingList
   );
-  const {setPostUpdated, postUpdated} = useProfileContext();
+  const { setPostUpdated, postUpdated } = useProfileContext();
   const { success, error } = useToastContext();
-  const { toggleLikePost, toggleSavePost, postUpdatedHome, setPostUpdatedHome } = usePostContext();
+  const {
+    toggleLikePost,
+    toggleSavePost,
+    postUpdatedHome,
+    setPostUpdatedHome,
+  } = usePostContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [servings, setServings] = useState<number>(post.servings);
   const [isInSchedule, setIsInSchedule] = useState<boolean>(false);
-  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: string;
+  }>({});
+  const { followUser } = useFollowContext();
+  const { posts, setPosts } = usePostContext();
+  const { user, setUser } = useProfileContext();
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -166,13 +179,13 @@ const PostDetails: React.FunctionComponent = () => {
     };
 
     if (socket) {
-      socket.on("images-updated", async () => {
+      socket.on("food-uploads-updated", async () => {
         await fetchUpdatedPostLike();
         setIsLoading(false);
       });
 
       return () => {
-        socket.off("images-updated");
+        socket.off("food-uploads-updated");
       };
     }
   }, [socket, post._id, auth?.token]);
@@ -191,7 +204,29 @@ const PostDetails: React.FunctionComponent = () => {
       }
     };
     isPostScheduled();
+    console.log(postAuthor);
   }, [auth?.token, post._id]);
+
+  useEffect(() => {
+    const fetchPostAuthor = async () => {
+      if (location.state?.post) {
+        try {
+          const foundPost = await userFetcher.getUserById(
+            location.state.post.author._id,
+            auth?.token || ""
+          );
+          if (foundPost) {
+            setPostAuthor(foundPost as unknown as PostAuthor);
+          }
+        } catch (error) {
+          console.error("Error fetching post author:", error);
+        }
+      }
+    };
+
+    fetchPostAuthor();
+  }, [location.state?.post, auth?.token]);
+
 
   const handleEditClick = () => {
     setIsModalOpen(true);
@@ -272,18 +307,16 @@ const PostDetails: React.FunctionComponent = () => {
     if (!token) return;
 
     try {
-      const isValid = await validateData(
-        {
-            title,
-            about,
-            images,
-            hashtags,
-            timeToTake,
-            servings,
-            ingredients,
-            instructions,
-        }
-      );
+      const isValid = await validateData({
+        title,
+        about,
+        images,
+        hashtags,
+        timeToTake,
+        servings,
+        ingredients,
+        instructions,
+      });
       if (!isValid) return;
       setIsSubmitting(true);
 
@@ -301,7 +334,8 @@ const PostDetails: React.FunctionComponent = () => {
           JSON.stringify(editPost.ingredients) !== JSON.stringify(ingredients)
         )
           changes.ingredients = ingredients;
-        if (editPost.timeToTake !== Number(timeToTake)) changes.timeToTake = Number(timeToTake);
+        if (editPost.timeToTake !== Number(timeToTake))
+          changes.timeToTake = Number(timeToTake);
         if (Number(editPost.servings) !== Number(servings))
           changes.servings = Number(servings);
         if (JSON.stringify(editPost.hashtags) !== JSON.stringify(hashtags))
@@ -309,7 +343,7 @@ const PostDetails: React.FunctionComponent = () => {
         if (editPost.difficulty !== difficulty) changes.difficulty = difficulty;
         if (JSON.stringify(editPost.course) !== JSON.stringify(course)) {
           changes.course = course;
-      }
+        }
         if (JSON.stringify(editPost.dietary) !== JSON.stringify(dietary)) {
           changes.dietary = dietary;
         }
@@ -508,6 +542,39 @@ const PostDetails: React.FunctionComponent = () => {
     const modifiedMinutes = minutes > 0 ? `${minutes}` : "";
     return `${modifiedHours} hours ${modifiedMinutes} minutes`;
   };
+
+  const handleFollowOrUnfollow = async (
+    userId: string,
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    if (!setPosts) return;
+    event.preventDefault();
+    followUser(userId);
+    setPostAuthor({
+      ...postAuthor,
+      followed: !postAuthor.followed,
+    });
+    location.state.postAuthor.followed = !postAuthor.followed;
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.author._id === userId) {
+          return {
+            ...post,
+            followers: post.author?.followers?.includes(account?._id || "")
+              ? post.author?.followers?.filter((id) => id !== account?._id)
+              : [...(post.author?.followers || []), account?._id || ""],
+            followed: !post.author?.followed,
+          };
+        }
+        return post;
+      })
+    );
+    setUser({
+      ...user,
+      followed: !postAuthor.followed,
+    } as AccountInfo);
+  };
+
   return (
     <>
       {isLoading ? (
@@ -551,7 +618,12 @@ const PostDetails: React.FunctionComponent = () => {
             </div>
 
             <div className="flex mt-2 gap-2">
-              {[...post.hashtags, post.difficulty, ...post.course, ...post.dietary].map((tag, index) => (
+              {[
+                ...post.hashtags,
+                post.difficulty,
+                ...post.course,
+                ...post.dietary,
+              ].map((tag, index) => (
                 <span
                   key={index}
                   className="badge badge-md badge-success py-4 px-2 font-bold text-white"
@@ -634,12 +706,22 @@ const PostDetails: React.FunctionComponent = () => {
                 className="w-12 h-12 rounded-full"
               />
               <div className="ml-3">
-                <h2 className="font-semibold">{postAuthor.name}</h2>
+                <Link
+                  to={`/users/profile/${postAuthor._id}`}
+                  className="font-semibold"
+                >
+                  {postAuthor.name}
+                </Link>
                 <p className="text-sm text-gray-500">{postAuthor.username}</p>
               </div>
               {account?.email !== postAuthor.email && (
-                <button className="ml-auto btn btn-sm btn-outline">
-                  Follow
+                <button
+                  className="ml-auto btn btn-sm btn-outline"
+                  onClick={(event) =>
+                    handleFollowOrUnfollow(postAuthor._id, event)
+                  }
+                >
+                  {postAuthor.followed ? "Unfollow" : "Follow"}
                 </button>
               )}
             </div>

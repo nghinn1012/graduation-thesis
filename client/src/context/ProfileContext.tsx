@@ -44,6 +44,15 @@ interface ProfileContextType {
   setHasMore: React.Dispatch<React.SetStateAction<boolean>>;
   user: AccountInfo | undefined;
   setUser: React.Dispatch<React.SetStateAction<AccountInfo | undefined>>;
+  postLikes: PostInfo[];
+  isLoadingLike: boolean;
+  hasMoreLike: boolean;
+  fetchPostsLikeInProfile: (id: string) => Promise<void>;
+  setPostLikes: React.Dispatch<React.SetStateAction<PostInfo[]>>;
+  fetchSavedPostInProfile: () => Promise<void>;
+  pageLike: number;
+  setPageLike: React.Dispatch<React.SetStateAction<number>>;
+  loadMorePostsLike: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -52,10 +61,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [posts, setPosts] = useState<PostInfo[]>([]);
+  const [postLikes, setPostLikes] = useState<PostInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoadingLike, setIsLoadingLike] = useState(false);
+  const [hasMoreLike, setHasMoreLike] = useState(true);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [pageLike, setPageLike] = useState(1);
   const [postCommentCounts, setPostCommentCounts] = useState<
     Record<string, number>
   >({});
@@ -63,11 +76,12 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const [postUpdated, setPostUpdated] = useState<string>("");
   const [user, setUser] = useState<AccountInfo | undefined>();
 
-  const { auth } = useAuthContext();
+  const { auth, account } = useAuthContext();
   const { error } = useToastContext();
 
   const fetchPosts = useCallback(
     async (id: string) => {
+      console.log("chay qua fetch");
       setIsLoading(true);
       if (!auth?.token) return;
       if (id !== userId) {
@@ -76,7 +90,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserId(id);
         setUser(undefined);
         setHasMore(true);
-        console.log("gan id", id);
       }
 
       try {
@@ -87,8 +100,13 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
           id
         )) as unknown as PostProfile;
 
-        if (response?.authors) setUser(response.authors);
-        console.log(user);
+        if (response?.authors)
+          setUser({
+            ...response.authors,
+            followed: response.authors.followers?.includes(
+              account?._id as string
+            ),
+          });
         setPosts((prevPosts) => {
           const existingPostIds = new Set(prevPosts.map((post) => post._id));
 
@@ -109,17 +127,22 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (err) {
         console.error("Failed to load posts:", err);
-        error(`Failed to load posts: ${(err as Error)}`);
+        error(`Failed to load posts: ${err as Error}`);
       } finally {
         setIsLoading(false);
       }
     },
-    [page, limit, userId, auth?.token, isLoading, posts]
+    [page, limit, auth?.token, userId]
+    // [page, limit, userId, auth?.token, posts]
   );
 
   const loadMorePosts = useCallback(() => {
     if (hasMore) setPage((prevPage) => prevPage + 1);
   }, [hasMore]);
+
+  const loadMorePostsLike = useCallback(() => {
+    if (hasMoreLike) setPageLike((prevPage) => prevPage + 1);
+  }, [hasMoreLike]);
 
   const fetchPost = async (postId: string): Promise<PostInfo | void> => {
     if (!auth?.token) return;
@@ -189,10 +212,32 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
           : post
       )
     );
+    setPostLikes((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId
+          ? {
+              ...post,
+              liked,
+              likeCount: liked ? post.likeCount + 1 : post.likeCount - 1,
+            }
+          : post
+      )
+    );
   };
 
   const toggleSavePostProfile = (postId: string, saved: boolean) => {
     setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId
+          ? {
+              ...post,
+              saved,
+              savedCount: saved ? post.savedCount + 1 : post.savedCount - 1,
+            }
+          : post
+      )
+    );
+    setPostLikes((prevPosts) =>
       prevPosts.map((post) =>
         post._id === postId
           ? {
@@ -229,11 +274,82 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth?.token]);
 
+  const fetchPostsLikeInProfile = useCallback(
+    async (id: string) => {
+      if (!auth?.token) return;
+      console.log("id", id);
+      console.log("userId", userId);
+      if (id !== userId) {
+        setPostLikes([]);
+        setPageLike(1);
+        setUserId(id);
+        setHasMoreLike(true);
+      }
+      console.log(userId);
+      setIsLoadingLike(true);
+      try {
+        const response = (await postFetcher.postLikesByUser(
+          auth.token,
+          id || "",
+          pageLike,
+          limit
+        )) as unknown as PostInfo[];
+        const likedPostIds = await postFetcher.postLikesByUser(auth.token);
+
+        setPostLikes((prevPosts) => {
+          const existingPostIds = new Set(prevPosts.map((post) => post._id));
+
+          const newPosts =
+            response.filter((post) => !existingPostIds.has(post._id)) || [];
+
+          return [
+            ...prevPosts,
+            ...newPosts.map((post) => ({
+              ...post,
+              liked: likedPostIds.includes(post._id.toString()),
+            })),
+          ];
+        });
+        if (response.length < limit) {
+          setHasMore(false);
+        }
+      } catch (err) {
+        console.error("Failed to load posts:", err);
+        error(`Failed to load posts: ${(err as Error).message}`);
+      } finally {
+        setIsLoadingLike(false);
+      }
+    },
+    [pageLike, limit, auth?.token, userId]
+  );
+
+  const fetchSavedPostInProfile = useCallback(async () => {
+    if (!auth?.token) return;
+    try {
+      const savedPosts = await postFetcher.postSavedByUser(auth.token);
+      setPostLikes((prevPosts) =>
+        prevPosts.map((post) => ({
+          ...post,
+          saved: savedPosts.includes(post._id.toString()),
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch saved posts:", err);
+      error(`Failed to fetch saved posts: ${(err as Error).message}`);
+    }
+  }, [auth?.token]);
+
   useEffect(() => {
     if (auth?.token) {
       fetchPosts(userId || "");
     }
-  }, [page, userId]);
+  }, [auth?.token, page, userId]);
+
+  useEffect(() => {
+    if (auth?.token) {
+      fetchPostsLikeInProfile(userId || "");
+    }
+  }, [pageLike, auth?.token]);
 
   useEffect(() => {
     if (postUpdated) {
@@ -270,6 +386,15 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setHasMore,
         user,
         setUser,
+        postLikes,
+        isLoadingLike,
+        hasMoreLike,
+        fetchPostsLikeInProfile,
+        setPostLikes,
+        fetchSavedPostInProfile,
+        pageLike,
+        setPageLike,
+        loadMorePostsLike,
       }}
     >
       {children}

@@ -66,7 +66,7 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname !== "/users/search" && searchQuery !== "") {
+    if (location.pathname !== "/users/search" && searchQuery !== "" && searchQuery !== undefined) {
       setSearchQuery("");
       setPosts([]);
       setCurrentPage(1);

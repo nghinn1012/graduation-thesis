@@ -99,6 +99,16 @@ export interface UpdateDataInfo {
   bio: string;
 }
 
+export interface PostAuthor {
+  _id: string;
+  name: string;
+  email: string;
+  username: string;
+  avatar: string;
+  followers: string[];
+  followed: boolean;
+}
+
 export interface UserFetcher {
   manualRegister(data: ManualRegisterInfo): Promise<UserResponse<AccountInfo>>;
   verifyEmail(token: string): Promise<UserResponse<AccountInfo>>;

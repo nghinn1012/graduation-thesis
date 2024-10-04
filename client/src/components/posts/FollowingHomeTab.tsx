@@ -3,17 +3,17 @@ import PostSkeleton from "../skeleton/PostSkeleton";
 import Post from "./PostInfo";
 import { usePostContext } from "../../context/PostContext";
 import { useLocation } from "react-router-dom";
-const Posts: React.FC = () => {
+const FollowingHomeTab: React.FC = () => {
   const {
-    posts,
-    isLoading,
-    hasMore,
-    loadMorePosts,
-    setPosts,
+    followingPosts,
+    isLoadingFollowing,
+    fetchFollowingPosts,
+    setFollowingPosts,
     fetchLikedPosts,
-    fetchPosts,
     fetchSavedPosts,
-    setIsLoading,
+    setIsLoadingFollowing,
+    hasMoreFollowing,
+    loadMoreFollowingPosts,
   } = usePostContext();
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -22,8 +22,8 @@ const Posts: React.FC = () => {
   const updatedPost = location.state?.updatedPost;
 
   useEffect(() => {
-    if (updatedPost && setPosts) {
-      setPosts((prevPosts) =>
+    if (updatedPost && setFollowingPosts) {
+      setFollowingPosts((prevPosts) =>
         prevPosts.map((post) =>
           post._id === updatedPost._id
             ? { ...updatedPost, author: postAuthor }
@@ -31,14 +31,14 @@ const Posts: React.FC = () => {
         )
       );
     }
-  }, [updatedPost, postAuthor, setPosts]);
+  }, [updatedPost, postAuthor, setFollowingPosts]);
 
   useEffect(() => {
     if (!observer.current) {
       observer.current = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting && !isLoading && hasMore) {
-            loadMorePosts();
+          if (entry.isIntersecting && !isLoadingFollowing && hasMoreFollowing) {
+            loadMoreFollowingPosts();
           }
         },
         {
@@ -49,7 +49,7 @@ const Posts: React.FC = () => {
       );
     }
 
-    const loader = document.getElementById("loader");
+    const loader = document.getElementById("followingHomeLoader");
     if (loader) {
       observer.current.observe(loader);
     }
@@ -59,7 +59,7 @@ const Posts: React.FC = () => {
         observer.current?.unobserve(loader);
       }
     };
-  }, [isLoading, hasMore, loadMorePosts]);
+  }, [isLoadingFollowing, hasMoreFollowing, loadMoreFollowingPosts]);
 
   const lastPostRef = useCallback((node: HTMLDivElement | null) => {
     if (node && observer.current) {
@@ -69,50 +69,48 @@ const Posts: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (setIsLoading) {
-        setIsLoading(true);
+      if (setIsLoadingFollowing) {
+        setIsLoadingFollowing(true);
         try {
-          await fetchPosts();
-          await Promise.all([fetchLikedPosts(), fetchSavedPosts()]);
+          await fetchFollowingPosts();
         } catch (error) {
           console.error("Error loading data:", error);
         } finally {
-          setIsLoading(false);
+          setIsLoadingFollowing(false);
         }
       }
     };
     loadData();
-    console.log(posts);
-  }, [fetchPosts, fetchLikedPosts, fetchSavedPosts, setIsLoading]);
+  }, [fetchFollowingPosts, fetchLikedPosts, fetchSavedPosts, setIsLoadingFollowing]);
 
 
   return (
     <>
-      {isLoading && posts.length === 0 && (
+      {isLoadingFollowing && followingPosts.length === 0 && (
         <div className="flex justify-center my-4">
           <PostSkeleton />
         </div>
       )}
-      {posts.length > 0 && !isLoading && (
+      {followingPosts.length > 0 && !isLoadingFollowing && (
         <div>
-          {posts.map((post, index) => (
+          {followingPosts.map((post, index) => (
             <div
               key={post._id}
-              ref={index === posts.length - 1 ? lastPostRef : null}
+              ref={index === followingPosts.length - 1 ? lastPostRef : null}
             >
               <Post post={post}/>
             </div>
           ))}
         </div>
       )}
-      {isLoading && posts.length > 0 && (
+      {isLoadingFollowing && followingPosts.length > 0 && (
         <div className="flex justify-center my-4">
           <PostSkeleton />
         </div>
       )}
-      <div id="loader" />
+      <div id="followingHomeLoader" />
     </>
   );
 };
 
-export default Posts;
+export default FollowingHomeTab;

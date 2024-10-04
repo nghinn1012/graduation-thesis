@@ -1,7 +1,7 @@
 import express from "express";
 import { createPostController, deletePostController, getAllPostsController, getAllPostsOfUserController, getPostController, searchPostController, updatePostController } from "../controllers/post.controllers";
 import { tokenValidate, errorHandler } from "../middlewares/index";
-import { getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
+import { getPostByUserFollowingController, getPostLikesByUserController, getSavedPostsByUserController, isLikedPostByUserController, isSavedPostByUserController, likeOrUnlikePostController, saveOrUnsavedPostController } from "../controllers/postAction.controller";
 import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeByIdController, getMadeRecipeOfPostController, updateMadeRecipeController } from "../controllers/madeRecipe.controllers";
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
 import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
@@ -31,6 +31,7 @@ postRouter.get("/:commentId/getComment", tokenValidate, getCommentByIdController
 postRouter.patch("/:commentId/comment", tokenValidate, updateCommentController);
 postRouter.delete("/:commentId/comment", tokenValidate, deleteCommentController);
 
+postRouter.get("/following", tokenValidate, getPostByUserFollowingController);
 postRouter.post("/:id/like", tokenValidate, likeOrUnlikePostController);
 postRouter.get("/likes", tokenValidate, getPostLikesByUserController);
 postRouter.post("/:id/save", tokenValidate, saveOrUnsavedPostController);

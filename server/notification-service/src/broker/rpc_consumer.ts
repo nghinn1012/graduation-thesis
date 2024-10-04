@@ -1,6 +1,7 @@
-import { sendActiveMannualAccount, MannualAccountInfo } from "../services/mailService";
+import { NotifiFoodUploadResponse } from "../services/foodService";
+import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
-
+import { io } from "../../index";
 export interface Ided {
   _id: string;
 }
@@ -19,6 +20,10 @@ export const brokerOperations = {
   },
   food: {
     NOTIFY_NEW_FOOD: "NOTIFY_NEW_FOOD",
+    NOTIFY_FOOD_UPLOAD_COMPLETE: "NOTIFY_FOOD_UPLOAD_COMPLETE",
+  },
+  user: {
+    NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
   },
 } as const;
 
@@ -43,6 +48,20 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
     }
   );
 
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_FOOD_UPLOAD_COMPLETE,
+    (msg: IBrokerMessage<NotifiFoodUploadResponse>) => {
+      io.emit(msg.data.type, msg.data._id);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.user.NOTIFY_UPLOADS_IMAGE_COMPLETE,
+    (msg: IBrokerMessage<UpdateProfileInfo>) => {
+      io.emit(msg.data.type, msg.data._id);
+    }
+  );
+  
   // rabbit.listenMessage(
   //   brokerOperations.mail.NEW_ACCOUNT_CREATED,
   //   (msg: IBrokerMessage<NewAccountInfo>) => {

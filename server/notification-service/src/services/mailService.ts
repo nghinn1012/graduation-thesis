@@ -12,6 +12,11 @@ export interface MannualAccountInfo {
   email: string;
 }
 
+export interface UpdateProfileInfo {
+  _id: string;
+  type: string;
+}
+
 export const sendActiveMannualAccount = async (info: MannualAccountInfo): Promise<SMTPTransport.SentMessageInfo | null> => {
   let result: SMTPTransport.SentMessageInfo | null = null;
   try {

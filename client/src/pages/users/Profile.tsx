@@ -12,18 +12,8 @@ import Post from "../../components/posts/PostInfo";
 import PostSkeleton from "../../components/skeleton/PostSkeleton";
 import EditProfileModal from "../../components/profile/EditProfileModal";
 import { useFollowContext } from "../../context/FollowContext";
-
-interface User {
-  _id: string;
-  fullName: string;
-  username: string;
-  profileImg: string;
-  coverImg: string;
-  bio: string;
-  link: string;
-  following: string[];
-  followers: string[];
-}
+import { useSocket } from "../../hooks/useSocketContext";
+import { PostInfo } from "../../api/post";
 
 const ProfilePage: React.FC = () => {
   const [coverImg, setCoverImg] = useState<string | null>(null);
@@ -42,22 +32,33 @@ const ProfilePage: React.FC = () => {
     fetchPosts,
     fetchLikedPosts,
     fetchSavedPosts,
-    setIsLoading,
     setPosts,
     setPage,
     setHasMore,
     user,
     setUser,
+    postLikes,
+    fetchSavedPostInProfile,
+    fetchPostsLikeInProfile,
+    pageLike,
+    setPageLike,
+    setPostLikes,
+    hasMoreLike,
+    isLoadingLike,
+    loadMorePostsLike,
+    setIsLoading,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
-  const { auth, account } = useAuthContext();
+  const { auth, account, setAccount} = useAuthContext();
   const { posts: postsHome, setPosts: setPostsHome } = usePostContext();
   const { id } = useParams();
   const isMyProfile = account?._id === id;
-  const observer = useRef<IntersectionObserver | null>(null);
+  const postsObserver = useRef<IntersectionObserver | null>(null);
+  const likesObserver = useRef<IntersectionObserver | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { socket } = useSocket();
   const handleFollow = async () => {
     if (!user || !auth?.token || !account?._id) return;
     followUser(user._id);
@@ -74,6 +75,70 @@ const ProfilePage: React.FC = () => {
   };
 
   useEffect(() => {
+    const handleFetchUser = async () => {
+      if (id && auth?.token && setPostsHome) {
+        try {
+          const response = await userFetcher.getUserById(id, auth?.token);
+          const updatedUser = response as unknown as AccountInfo;
+          setUser({
+            ...updatedUser,
+            followed: user?.followers?.includes(account?._id || "") || false,
+            postCount: user?.postCount,
+          });
+
+          setPosts((prev) =>
+            prev.map((post) =>
+              post.author._id === id
+                ? { ...post, author: updatedUser } as unknown as PostInfo
+                : post
+            )
+          );
+
+          setPostsHome((prev) =>
+            prev.map((post) =>
+              post.author._id === id
+                ? { ...post, author: updatedUser } as unknown as PostInfo
+                : post
+            )
+          );
+          setPostLikes((prev) =>
+            prev.map((post) =>
+              post.author._id === id
+                ? { ...post, author: updatedUser } as unknown as PostInfo
+                : post
+            )
+          );
+          setAccount((prev) =>
+            prev?._id === id
+              ? { ...prev, ...updatedUser }
+              : prev
+          );
+
+        } catch (error) {
+          console.error("Error fetching user:", error);
+        }
+      }
+    };
+
+    if (socket) {
+      const handleProfileUpdate = async () => {
+        setIsLoading(true);
+        await handleFetchUser();
+        setIsLoading(false);
+      };
+
+      socket.on("user_profile_updated", handleProfileUpdate);
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("user_profile_updated", handleFetchUser);
+      }
+    };
+  }, [auth?.token, socket, setPosts, setPostsHome]);
+
+
+  useEffect(() => {
     const loadData = async () => {
       if (id) {
         try {
@@ -87,6 +152,21 @@ const ProfilePage: React.FC = () => {
     };
     loadData();
   }, [fetchLikedPosts, fetchSavedPosts, id]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (id) {
+        try {
+          setUserId(id);
+          fetchPostsLikeInProfile(id);
+          fetchSavedPostInProfile();
+        } catch (error) {
+          console.error("Error loading posts:", error);
+        }
+      }
+    };
+    loadData();
+  }, [fetchSavedPostInProfile, id]);
 
   const handleImgChange = (
     e: ChangeEvent<HTMLInputElement>,
@@ -104,8 +184,8 @@ const ProfilePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!observer.current) {
-      observer.current = new IntersectionObserver(
+    if (!postsObserver.current) {
+      postsObserver.current = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting && hasMore) {
             loadMorePosts();
@@ -119,21 +199,55 @@ const ProfilePage: React.FC = () => {
       );
     }
 
-    const loader = document.getElementById("loader");
-    if (loader) {
-      observer.current.observe(loader);
+    const postsLoader = document.getElementById("postsLoader");
+    if (postsLoader) {
+      postsObserver.current.observe(postsLoader);
     }
 
     return () => {
-      if (loader) {
-        observer.current?.unobserve(loader);
+      if (postsLoader && postsObserver.current) {
+        postsObserver.current.unobserve(postsLoader);
       }
     };
   }, [hasMore, loadMorePosts]);
 
+  useEffect(() => {
+    if (!likesObserver.current) {
+      likesObserver.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasMoreLike) {
+            loadMorePostsLike();
+          }
+        },
+        {
+          root: null,
+          rootMargin: "0px",
+          threshold: 1.0,
+        }
+      );
+    }
+
+    const likesLoader = document.getElementById("likesLoader");
+    if (likesLoader) {
+      likesObserver.current.observe(likesLoader);
+    }
+
+    return () => {
+      if (likesLoader && likesObserver.current) {
+        likesObserver.current.unobserve(likesLoader);
+      }
+    };
+  }, [hasMoreLike, loadMorePostsLike]);
+
   const lastPostRef = useCallback((node: HTMLDivElement | null) => {
-    if (node && observer.current) {
-      observer.current.observe(node);
+    if (node && postsObserver.current) {
+      postsObserver.current.observe(node);
+    }
+  }, []);
+
+  const lastLikeRef = useCallback((node: HTMLDivElement | null) => {
+    if (node && likesObserver.current) {
+      likesObserver.current.observe(node);
     }
   }, []);
 
@@ -146,7 +260,9 @@ const ProfilePage: React.FC = () => {
     setUserId(undefined);
     setUser(undefined);
     setPosts([]);
+    setPostLikes([]);
     setPage(1);
+    setPageLike(1);
     setHasMore(true);
   };
 
@@ -157,34 +273,47 @@ const ProfilePage: React.FC = () => {
     bio: string
   ) => {
     console.log(name, bio, avatarImageFile, coverImageFile);
+    setIsLoading(true);
     if (!auth?.token || !user || !setPostsHome) return;
+
+    const change = {
+      avatar: avatarImageFile !== user.avatar ? avatarImageFile : undefined,
+      coverImage:
+        coverImageFile !== user.coverImage ? coverImageFile : undefined,
+      name: name !== user.name ? name : undefined,
+      bio: bio !== user.bio ? bio : undefined,
+    };
+
     try {
       const response = await userFetcher.updateUser(
         user._id,
-        {
-          avatar: avatarImageFile || "",
-          coverImage: coverImageFile || "",
-          name,
-          bio,
-        } as unknown as UpdateDataInfo,
+        change as unknown as UpdateDataInfo,
         auth?.token
       );
-      console.log("Updated user:", response);
-      setUser(response.user as unknown as AccountInfo);
-      setPosts((prev) =>
-        prev.map((post) => ({ ...post, author: response.user }))
-      );
-      setPostsHome((prev) =>
-        prev.map((post) =>
-          post.author._id === user._id
-            ? { ...post, author: response.user }
-            : post
-        )
-      );
+
+      if (!change.avatar && !change.coverImage) {
+        console.log("No image change");
+        setUser(response.user as unknown as AccountInfo);
+        setPosts((prev) =>
+          prev.map((post) => ({ ...post, author: response.user }))
+        );
+        setPostsHome((prev) =>
+          prev.map((post) =>
+            post.author._id === user._id
+              ? { ...post, author: response.user }
+              : post
+          )
+        );
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error("Error updating user:", error);
     }
   };
+
+  useEffect(() => {
+    console.log("isLoading state updated:", isLoading);
+  }, [isLoading]);
 
   return (
     <>
@@ -310,26 +439,50 @@ const ProfilePage: React.FC = () => {
           )}
 
           {/* Integrated Profile Posts */}
-          <div className="mt-5 px-4">
-            {posts.length > 0 && (
-              <div>
-                {posts.map((post, index) => (
-                  <div
-                    key={post._id}
-                    ref={index === posts.length - 1 ? lastPostRef : null}
-                  >
-                    <Post post={post} />
-                  </div>
-                ))}
-              </div>
-            )}
-            {isLoading && hasMore && (
-              <div className="flex justify-center my-4">
-                <PostSkeleton />
-              </div>
-            )}
-            <div id="loader" />
-          </div>
+          {feedType === "posts" && (
+            <div className="mt-5 px-4">
+              {posts.length > 0 && !isLoading && (
+                <div>
+                  {posts.map((post, index) => (
+                    <div
+                      key={post._id}
+                      ref={index === posts.length - 1 ? lastPostRef : null}
+                    >
+                      <Post post={post} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isLoading && hasMoreLike && (
+                <div className="flex justify-center my-4">
+                  <PostSkeleton />
+                </div>
+              )}
+              <div id="postsLoader" />
+            </div>
+          )}
+          {feedType === "likes" && (
+            <div className="mt-5 px-4">
+              {postLikes.length > 0 && (
+                <div>
+                  {postLikes.map((post, index) => (
+                    <div
+                      key={post._id}
+                      ref={index === postLikes.length - 1 ? lastLikeRef : null}
+                    >
+                      <Post post={post} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isLoadingLike && hasMoreLike && (
+                <div className="flex justify-center my-4">
+                  <PostSkeleton />
+                </div>
+              )}
+              <div id="likesLoader" />
+            </div>
+          )}
         </div>
       </div>
     </>

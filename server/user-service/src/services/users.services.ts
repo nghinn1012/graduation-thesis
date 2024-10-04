@@ -4,6 +4,7 @@ import UserModel from "../db/models/User.models";
 import { hashText } from "../utlis/bcrypt";
 import { v2 as cloudinary } from "cloudinary";
 import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
+import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 
 export interface UpdateDataInfo {
   password: string;
@@ -14,6 +15,7 @@ export interface UpdateDataInfo {
   coverImage: string;
   bio: string;
 }
+
 export const searchAndFilterUserService = async (
   searchTerm: string,
   userId: string,
@@ -43,6 +45,7 @@ export const searchAndFilterUserService = async (
 
 export const updateUserService = async (userId: string, updateData: UpdateDataInfo) => {
   try {
+    console.log("chay qua");
     const { avatar, coverImage, ...textData } = updateData;
 
     let user = await UserModel.findByIdAndUpdate(
@@ -99,11 +102,24 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
       uploadTasks.push(uploadCoverImageTask);
     }
 
-    await Promise.all(uploadTasks);
-    const updatedUser = await UserModel.findById(userId);
-    if (updatedUser) {
-      return updatedUser;
-    }
+    const updatedUser = user;
+
+    Promise.all(uploadTasks)
+      .then(([updatedAvatar, updatedCoverImage]) => {
+        RabbitMQ.instance.publicMessage(
+          BrokerSource.NOTIFICATION,
+          brokerOperations.user.NOTIFY_UPLOADS_IMAGE_COMPLETE,
+          {
+            _id: userId,
+            type: "user_profile_updated",
+          }
+        );
+      })
+      .catch((uploadError) => {
+        console.error("Image upload failed: ", uploadError);
+      });
+
+    return updatedUser;
   } catch (error) {
     throw new InvalidDataError({
       message: (error as Error).message || 'Update user failed!',

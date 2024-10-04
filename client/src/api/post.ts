@@ -20,6 +20,7 @@ export const postEndpoints = {
   likeOrUnlikeComment: "/posts/:commentId/likeComment",
 
   // posts
+  getPostByUserFollowing: "/posts/following",
   getPostOfUser: "/posts/:userId/getAllOfUser",
   createPost: "/posts/create",
   searchPost: "/posts/search",
@@ -100,6 +101,8 @@ export interface PostInfo {
     avatar: string;
     email: string;
     username: string;
+    followers: string[];
+    followed?: boolean;
   };
   images: string[];
   hashtags: string[];
@@ -312,6 +315,7 @@ export interface PostProfile {
 
 export interface PostFetcher {
   // posts
+  getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string, page: number, limit: number, userId?: string) => Promise<PostResponse<PostInfo[]>>;
@@ -319,7 +323,7 @@ export interface PostFetcher {
   getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
   deletePost: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
   likeOrUnlikePost: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  postLikesByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
+  postLikesByUser: (token: string, userId?: string, page?: number, limit?: number) => Promise<PostResponse<PostLikesByUser>>;
   postSavedOrUnsaved: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
   isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
@@ -359,6 +363,19 @@ export interface PostFetcher {
 }
 
 export const postFetcher: PostFetcher = {
+  getPostByUserFollowing: async (page: number = 1, limit: number = 20, token: string): Promise<PostResponse<PostInfo[]>> => {
+    return postInstance.get(postEndpoints.getPostByUserFollowing,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        params: {
+          page,
+          limit,
+        }
+      }
+    );
+  },
   getPostOfUser: async (userId: string, page: number = 1, limit: number = 20, token: string): Promise<PostResponse<PostInfo[]>> => {
     return postInstance.get(postEndpoints.getPostOfUser.replace(":userId", userId),
       {
@@ -433,11 +450,16 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  postLikesByUser: async (token: string): Promise<PostResponse<PostLikesByUser>> => {
+  postLikesByUser: async (token: string, userId?: string, page?: number, limit?: number): Promise<PostResponse<PostLikesByUser>> => {
     return postInstance.get(postEndpoints.getPostLikesByUser,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
+        },
+        params: {
+          userId,
+          page,
+          limit,
         }
       }
     );

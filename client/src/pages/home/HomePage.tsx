@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import CreatePostBox from "../../components/posts/CreatePostBox";
 import React from "react";
 import Posts from "../../components/posts/PostsList";
+import FollowingHomeTab from "../../components/posts/FollowingHomeTab";
 
 const HomePage = () => {
   const [feedType, setFeedType] = useState("forYou");
@@ -36,7 +37,8 @@ const HomePage = () => {
 				<CreatePostBox />
 
 				{/* POSTS */}
-				<Posts />
+				{feedType === "forYou" && <Posts />}
+				{feedType === "following" && <FollowingHomeTab />}
 			</div>
 		</>
 	);

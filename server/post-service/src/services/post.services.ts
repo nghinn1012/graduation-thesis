@@ -4,6 +4,7 @@ import { IPost, InternalError, autoAssignSteps } from "../data/index";
 import { io } from '../../index';
 import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
 import { PostSearchBuilder } from "../data/interface/queryBuilder";
+import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 
 export const createPostService = async (data: IPost) => {
   try {
@@ -97,7 +98,14 @@ export const createPostService = async (data: IPost) => {
           await uploadInstructionsImages();
         }
 
-        io.emit('uploads-complete', post._id);
+        RabbitMQ.instance.publicMessage(
+          BrokerSource.NOTIFICATION,
+          brokerOperations.food.NOTIFY_FOOD_UPLOAD_COMPLETE,
+          {
+            _id: post._id,
+            type: "food-uploads-complete",
+          }
+        );
       } catch (error) {
         console.error("Error handling uploads:", error);
       }
@@ -139,7 +147,7 @@ export const getAllPostsService = async (page: number, limit: number, userId?: s
     const authors = userId ? await rpcGetUser<IAuthor[]>(userId,
       ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]):
       await rpcGetUsers<IAuthor[]>(posts.map(post => post.author),
-        ["_id", "email", "name", "avatar", "username"]);
+        ["_id", "email", "name", "avatar", "username", "following", "followers"]);
 
     const postsWithAuthors = userId ? {
       posts,
@@ -314,7 +322,14 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
           await uploadInstructionsImages();
         }
 
-        io.emit('images-updated', post._id);
+        RabbitMQ.instance.publicMessage(
+          BrokerSource.NOTIFICATION,
+          brokerOperations.food.NOTIFY_FOOD_UPLOAD_COMPLETE,
+          {
+            _id: post._id,
+            type: "food-updated-complete",
+          }
+        );
 
         if (oldImages.length > 0) {
           await deleteOldImages();
@@ -434,7 +449,6 @@ export const searchPostService = async (query: string, minTime: string,
 
   const totalPosts = await postModel.countDocuments(postSearchBuilder.getMatchCriteria());
   const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
-  console.log(authors);
   posts.forEach((post, index) => {
     post.author = authors ? authors[index] : null;
   });

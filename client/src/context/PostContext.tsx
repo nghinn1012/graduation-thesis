@@ -40,6 +40,14 @@ interface PostContextType {
   limit: number;
   postUpdatedHome: string;
   setPostUpdatedHome: React.Dispatch<React.SetStateAction<string>>;
+  followingPosts: PostInfo[];
+  setFollowingPosts?: React.Dispatch<React.SetStateAction<PostInfo[]>>;
+  isLoadingFollowing: boolean;
+  setIsLoadingFollowing?: React.Dispatch<React.SetStateAction<boolean>>;
+  fetchFollowingPosts: () => void;
+  hasMoreFollowing: boolean;
+  setHasMoreFollowing?: React.Dispatch<React.SetStateAction<boolean>>;
+  loadMoreFollowingPosts: () => void;
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
@@ -48,18 +56,22 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [posts, setPosts] = useState<PostInfo[]>([]);
+  const [followingPosts, setFollowingPosts] = useState<PostInfo[]>([]);
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState<boolean>(false);
+  const [hasMoreFollowing, setHasMoreFollowing] = useState<boolean>(true);
+  const [pageFollowing, setPageFollowing] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [limit] = useState<number>(10);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
-  const { auth } = useAuthContext();
+  const { auth, account } = useAuthContext();
   const { error } = useToastContext();
   const [postCommentCounts, setPostCommentCounts] = useState<
     Record<string, number>
   >({});
   const [postUpdatedHome, setPostUpdatedHome] = useState<string>("");
   const fetchPosts = useCallback(async () => {
-    if (!auth?.token || isLoading) return;
+    if (!auth?.token || isLoading || !hasMore) return;
 
     setIsLoading(true);
     try {
@@ -72,7 +84,15 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         const existingPostIds = new Set(prevPosts.map((post) => post._id));
         const newPosts = (response as unknown as PostInfo[]).filter(
           (post) => !existingPostIds.has(post._id)
-        );
+        ).map((post) => {
+          return {
+            ...post,
+            author: {
+              ...post.author,
+              followed: post.author.followers?.includes(account?._id  || ""),
+            },
+          };
+        });
         return [...prevPosts, ...newPosts];
       });
 
@@ -87,6 +107,50 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth?.token, page, limit]);
 
+  const fetchFollowingPosts = useCallback(async () => {
+    if (!auth?.token || isLoadingFollowing || !hasMoreFollowing) return;
+
+    setIsLoadingFollowing(true);
+    try {
+      const response: PostResponse<PostInfo[]> = await postFetcher.getPostByUserFollowing(
+        pageFollowing,
+        limit,
+        auth.token
+      );
+      setFollowingPosts((prevPosts) => {
+        const existingPostIds = new Set(prevPosts.map((post) => post._id));
+        const newPosts = (response as unknown as PostInfo[]).filter(
+          (post) => !existingPostIds.has(post._id)
+        ).map((post) => {
+          return {
+            ...post,
+            author: {
+              ...post.author,
+              followed: post.author.followers?.includes(account?._id  || ""),
+            },
+          };
+        });
+        return [...prevPosts, ...newPosts];
+      });
+
+      if ((response as unknown as PostInfo[]).length < limit) {
+        setHasMoreFollowing(false);
+        console.log(hasMoreFollowing);
+      }
+    } catch (err) {
+      console.error("Failed to load following posts:", err);
+      error("Failed to load following posts: " + (err as Error).message);
+    } finally {
+      setIsLoadingFollowing(false);
+    }
+  }, [auth?.token, pageFollowing, limit]);
+
+  const loadMoreFollowingPosts = useCallback(() => {
+    if (hasMoreFollowing && !isLoadingFollowing) {
+      setPageFollowing((prevPage) => prevPage + 1);
+    }
+  }, [hasMoreFollowing, isLoadingFollowing]);
+
   const loadMorePosts = useCallback(() => {
     if (hasMore && !isLoading) {
       setPage((prevPage) => prevPage + 1);
@@ -100,6 +164,14 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsLoading(false);
     }
   }, [auth, fetchPosts, page]);
+
+  useEffect(() => {
+    if (auth?.token) {
+      setIsLoadingFollowing(true);
+      fetchFollowingPosts();
+      setIsLoadingFollowing(false);
+    }
+  }, [auth, fetchFollowingPosts, pageFollowing]);
 
   const fetchPost = async (postId: string): Promise<PostInfo | void> => {
     if (!auth?.token) return;
@@ -268,6 +340,14 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
         setHasMore,
         postUpdatedHome,
         setPostUpdatedHome,
+        followingPosts,
+        setFollowingPosts,
+        isLoadingFollowing,
+        setIsLoadingFollowing,
+        fetchFollowingPosts,
+        hasMoreFollowing,
+        setHasMoreFollowing,
+        loadMoreFollowingPosts
       }}
     >
       {children}
