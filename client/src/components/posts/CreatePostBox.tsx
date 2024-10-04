@@ -41,11 +41,11 @@ const CreatePostBox: React.FC = () => {
       }
     };
 
-    socket.on("uploads-complete", handleUploadsComplete);
+    socket.on("food-uploads-complete", handleUploadsComplete);
 
     return () => {
-      socket.off("uploads-complete", handleUploadsComplete);
-      socket.off("uploads-complete", handleUploadsComplete);
+      socket.off("food-uploads-complete", handleUploadsComplete);
+      socket.off("food-uploads-complete", handleUploadsComplete);
     };
   }, [socket, fetchPost, setPosts, auth?.account]);
 

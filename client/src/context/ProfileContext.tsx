@@ -125,7 +125,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(false);
       }
     },
-    [page, limit, userId, auth?.token, isLoading, posts]
+    [page, limit, userId, auth?.token, posts]
   );
 
   const loadMorePosts = useCallback(() => {

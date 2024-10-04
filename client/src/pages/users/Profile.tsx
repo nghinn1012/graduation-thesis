@@ -12,18 +12,8 @@ import Post from "../../components/posts/PostInfo";
 import PostSkeleton from "../../components/skeleton/PostSkeleton";
 import EditProfileModal from "../../components/profile/EditProfileModal";
 import { useFollowContext } from "../../context/FollowContext";
-
-interface User {
-  _id: string;
-  fullName: string;
-  username: string;
-  profileImg: string;
-  coverImg: string;
-  bio: string;
-  link: string;
-  following: string[];
-  followers: string[];
-}
+import { useSocket } from "../../hooks/useSocketContext";
+import { PostInfo } from "../../api/post";
 
 const ProfilePage: React.FC = () => {
   const [coverImg, setCoverImg] = useState<string | null>(null);
@@ -56,6 +46,7 @@ const ProfilePage: React.FC = () => {
     hasMoreLike,
     isLoadingLike,
     loadMorePostsLike,
+    setIsLoading,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
@@ -67,6 +58,7 @@ const ProfilePage: React.FC = () => {
   const likesObserver = useRef<IntersectionObserver | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { socket } = useSocket();
   const handleFollow = async () => {
     if (!user || !auth?.token || !account?._id) return;
     followUser(user._id);
@@ -81,6 +73,63 @@ const ProfilePage: React.FC = () => {
         } as AccountInfo)
     );
   };
+
+  useEffect(() => {
+    const handleFetchUser = async () => {
+      if (id && auth?.token && setPostsHome) {
+        try {
+          const response = await userFetcher.getUserById(id, auth?.token);
+          const updatedUser = response as unknown as AccountInfo;
+          setUser({
+            ...updatedUser,
+            postCount: user?.postCount,
+          });
+
+          setPosts((prev) =>
+            prev.map((post) =>
+              post.author._id === id
+                ? { ...post, author: updatedUser } as unknown as PostInfo
+                : post
+            )
+          );
+
+          setPostsHome((prev) =>
+            prev.map((post) =>
+              post.author._id === id
+                ? { ...post, author: updatedUser } as unknown as PostInfo
+                : post
+            )
+          );
+          setPostLikes((prev) =>
+            prev.map((post) =>
+              post.author._id === id
+                ? { ...post, author: updatedUser } as unknown as PostInfo
+                : post
+            )
+          );
+        } catch (error) {
+          console.error("Error fetching user:", error);
+        }
+      }
+    };
+
+    if (socket) {
+      const handleProfileUpdate = async () => {
+        setIsLoading(true);
+        await handleFetchUser();
+        setIsLoading(false);
+      };
+
+      socket.on("user_profile_updated", handleProfileUpdate);
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("user_profile_updated", handleFetchUser);
+      }
+    };
+  }, [auth?.token, socket, setPosts, setPostsHome]);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -217,34 +266,46 @@ const ProfilePage: React.FC = () => {
     bio: string
   ) => {
     console.log(name, bio, avatarImageFile, coverImageFile);
+    setIsLoading(true);
     if (!auth?.token || !user || !setPostsHome) return;
+
+    const change = {
+      avatar: avatarImageFile !== user.avatar ? avatarImageFile : undefined,
+      coverImage:
+        coverImageFile !== user.coverImage ? coverImageFile : undefined,
+      name: name !== user.name ? name : undefined,
+      bio: bio !== user.bio ? bio : undefined,
+    };
+
     try {
       const response = await userFetcher.updateUser(
         user._id,
-        {
-          avatar: avatarImageFile || "",
-          coverImage: coverImageFile || "",
-          name,
-          bio,
-        } as unknown as UpdateDataInfo,
+        change as unknown as UpdateDataInfo,
         auth?.token
       );
-      console.log("Updated user:", response);
-      setUser(response.user as unknown as AccountInfo);
-      setPosts((prev) =>
-        prev.map((post) => ({ ...post, author: response.user }))
-      );
-      setPostsHome((prev) =>
-        prev.map((post) =>
-          post.author._id === user._id
-            ? { ...post, author: response.user }
-            : post
-        )
-      );
+
+      if (!change.avatar && !change.coverImage) {
+        setUser(response.user as unknown as AccountInfo);
+        setPosts((prev) =>
+          prev.map((post) => ({ ...post, author: response.user }))
+        );
+        setPostsHome((prev) =>
+          prev.map((post) =>
+            post.author._id === user._id
+              ? { ...post, author: response.user }
+              : post
+          )
+        );
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error("Error updating user:", error);
     }
   };
+
+  useEffect(() => {
+    console.log("isLoading state updated:", isLoading);
+  }, [isLoading]);
 
   return (
     <>
@@ -372,7 +433,7 @@ const ProfilePage: React.FC = () => {
           {/* Integrated Profile Posts */}
           {feedType === "posts" && (
             <div className="mt-5 px-4">
-              {posts.length > 0 && (
+              {posts.length > 0 && !isLoading && (
                 <div>
                   {posts.map((post, index) => (
                     <div
@@ -384,7 +445,7 @@ const ProfilePage: React.FC = () => {
                   ))}
                 </div>
               )}
-              {isLoadingLike && hasMoreLike && (
+              {isLoading && hasMoreLike && (
                 <div className="flex justify-center my-4">
                   <PostSkeleton />
                 </div>
@@ -399,9 +460,7 @@ const ProfilePage: React.FC = () => {
                   {postLikes.map((post, index) => (
                     <div
                       key={post._id}
-                      ref={
-                        index === postLikes.length - 1 ? lastLikeRef : null
-                      }
+                      ref={index === postLikes.length - 1 ? lastLikeRef : null}
                     >
                       <Post post={post} />
                     </div>

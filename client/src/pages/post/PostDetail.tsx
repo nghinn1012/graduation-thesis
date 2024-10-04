@@ -166,13 +166,13 @@ const PostDetails: React.FunctionComponent = () => {
     };
 
     if (socket) {
-      socket.on("images-updated", async () => {
+      socket.on("food-uploads-updated", async () => {
         await fetchUpdatedPostLike();
         setIsLoading(false);
       });
 
       return () => {
-        socket.off("images-updated");
+        socket.off("food-uploads-updated");
       };
     }
   }, [socket, post._id, auth?.token]);

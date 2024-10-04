@@ -24,6 +24,9 @@ export const brokerOperations = {
     ACTIVE_MANUAL_ACCOUNT: "ACTIVE_MANUAL_ACCOUNT",
     NEW_ACCOUNT_CREATED: "NEW_ACCOUNT_CREATED",
   },
+  user: {
+    NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
+  }
 } as const;
 
 export interface IRpcGetInfoPayLoad {
