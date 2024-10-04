@@ -36,7 +36,6 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
 }
 
 export const getPostLikesByUserService = async (userId: string, page?: number, limit?: number) => {
-  // console.log(page, limit);
   try {
     const likes = await postLikeModel.find({ userId: userId });
 

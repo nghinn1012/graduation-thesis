@@ -15,6 +15,7 @@ export interface UpdateDataInfo {
   coverImage: string;
   bio: string;
 }
+
 export const searchAndFilterUserService = async (
   searchTerm: string,
   userId: string,
@@ -125,8 +126,6 @@ export const updateUserService = async (userId: string, updateData: UpdateDataIn
     });
   }
 };
-
-
 
 export const getAllUsersService = async () => {
   try {

@@ -46,7 +46,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoading(true);
     try {
       const response = (await userFetcher.search(
-        searchQuery || "",
+        searchQuery,
         currentPage,
         limit,
         auth.token

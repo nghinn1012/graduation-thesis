@@ -81,6 +81,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchPosts = useCallback(
     async (id: string) => {
+      console.log("chay qua fetch");
       setIsLoading(true);
       if (!auth?.token) return;
       if (id !== userId) {
