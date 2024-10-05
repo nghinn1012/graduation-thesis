@@ -37,7 +37,7 @@ const RightPanel: React.FC = () => {
     setHashtagsSearch,
   } = useSearchContext();
   const { suggestUsers, fetchSuggestions, setSuggestUsers } = useUserContext();
-  const {followUser} = useFollowContext();
+  const { followUser } = useFollowContext();
   const [localCookingTimeRange, setLocalCookingTimeRange] = useState<
     (number | string)[]
   >([0, 1440]);
@@ -50,7 +50,7 @@ const RightPanel: React.FC = () => {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
   const [haveMadeOn, setHaveMadeOn] = useState(false);
-  const {auth} = useAuthContext();
+  const { auth } = useAuthContext();
   const navigate = useNavigate();
   const { user, setUser } = useProfileContext();
 
@@ -125,13 +125,18 @@ const RightPanel: React.FC = () => {
     console.log(hashtags, hashtagsSearch);
 
     const params = new URLSearchParams();
-    params.append('searchQuery', searchQuery);
-    if (localCookingTimeRange) params.append('cookingTimeRangeMin', localCookingTimeRange[0].toString());
-    if (localCookingTimeRange) params.append('cookingTimeRangeMax', localCookingTimeRange[1].toString());
-    if (rating !== null && rating !== undefined) params.append('minQuality', rating.toString());
-    if (haveMadeOn !== null && haveMadeOn !== undefined) params.append('haveMade', haveMadeOn.toString());
-    if (handleArrayOfDifficulties()) params.append('difficulty', difficulty.join(','));
-    if (hashtags?.length > 0) params.append('hashtags', hashtags.join(','));
+    params.append("searchQuery", searchQuery);
+    if (localCookingTimeRange)
+      params.append("cookingTimeRangeMin", localCookingTimeRange[0].toString());
+    if (localCookingTimeRange)
+      params.append("cookingTimeRangeMax", localCookingTimeRange[1].toString());
+    if (rating !== null && rating !== undefined)
+      params.append("minQuality", rating.toString());
+    if (haveMadeOn !== null && haveMadeOn !== undefined)
+      params.append("haveMade", haveMadeOn.toString());
+    if (handleArrayOfDifficulties())
+      params.append("difficulty", difficulty.join(","));
+    if (hashtags?.length > 0) params.append("hashtags", hashtags.join(","));
 
     if (
       localCookingTimeRange !== cookingTimeRange ||
@@ -168,11 +173,9 @@ const RightPanel: React.FC = () => {
     setSuggestUsers(suggestUsers.filter((user: User) => user._id !== userId));
     setUser({
       ...user,
-      following: [...user?.following || [], userId],
-    } as unknown as AccountInfo
-    );
-  }
-
+      following: [...(user?.following || []), userId],
+    } as unknown as AccountInfo);
+  };
 
   return (
     <div className="hidden lg:block">
@@ -225,8 +228,6 @@ const RightPanel: React.FC = () => {
                   {children}
                 </div>
               )}
-
-
               renderThumb={({ props }) => {
                 const { key, ...otherProps } = props;
 
@@ -447,53 +448,59 @@ const RightPanel: React.FC = () => {
         </div>
       )}
 
-      <div className="mt-8 p-4 rounded-md border border-gray-300">
-        <p className="font-bold my-4">Who to follow</p>
-        <div className="flex flex-col gap-6">
-          {/* Loading State */}
-          {isLoading || !suggestUsers  && (
-            <>
-              <RightPanelSkeleton />
-              <RightPanelSkeleton />
-              <RightPanelSkeleton />
-              <RightPanelSkeleton />
-            </>
-          )}
+      {location.pathname !== "/message" && (
+        <div className="mt-8 p-4 rounded-md border border-gray-300">
+          <p className="font-bold my-4">Who to follow</p>
+          <div className="flex flex-col gap-6">
+            {/* Loading State */}
+            {isLoading ||
+              (!suggestUsers && (
+                <>
+                  <RightPanelSkeleton />
+                  <RightPanelSkeleton />
+                  <RightPanelSkeleton />
+                  <RightPanelSkeleton />
+                </>
+              ))}
 
-          {/* User List */}
-          {!isLoading && (suggestUsers.slice(0,5).map((user: User) => (
-              <div
-                className="flex items-center justify-between gap-4"
-                key={user._id}
-              >
-                <div className="flex gap-2 items-center">
-                  <div className="avatar">
-                    <div className="w-8 rounded-full">
-                      <img src={user.avatar || "/avatar-placeholder.png"} />
+            {/* User List */}
+            {!isLoading &&
+              suggestUsers.slice(0, 5).map((user: User) => (
+                <div
+                  className="flex items-center justify-between gap-4"
+                  key={user._id}
+                >
+                  <div className="flex gap-2 items-center">
+                    <div className="avatar">
+                      <div className="w-8 rounded-full">
+                        <img src={user.avatar || "/avatar-placeholder.png"} />
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <Link
+                        to={`/users/profile/${user._id}`}
+                        className="font-semibold tracking-tight truncate w-40"
+                      >
+                        {user.name}
+                      </Link>
+                      <span className="text-sm text-slate-500">
+                        @{user.username}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex flex-col">
-                    <Link
-                    to={`/users/profile/${user._id}`}
-                    className="font-semibold tracking-tight truncate w-40">
-                      {user.name}
-                    </Link>
-                    <span className="text-sm text-slate-500">
-                      @{user.username}
-                    </span>
+                  <div>
+                    <button
+                      className="btn btn-neutral text-white hover:bg-white hover:opacity-90 rounded-full btn-sm"
+                      onClick={(event) => handleFollowUser(user._id, event)}
+                    >
+                      Follow
+                    </button>
                   </div>
                 </div>
-                <div>
-                  <button
-                    className="btn btn-neutral text-white hover:bg-white hover:opacity-90 rounded-full btn-sm"
-                    onClick={(event) => handleFollowUser(user._id, event)}                  >
-                    Follow
-                  </button>
-                </div>
-              </div>
-            )))}
+              ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

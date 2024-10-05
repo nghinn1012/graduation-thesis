@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { PiShoppingCartLight } from "react-icons/pi";
-import { LuCalendarDays } from "react-icons/lu";
+import { LuCalendarDays, LuMail } from "react-icons/lu";
 import { MdOutlineExplore } from "react-icons/md";
 const Sidebar = () => {
 	const auth = useAuthContext();
@@ -59,6 +59,16 @@ const Sidebar = () => {
 						>
 							<IoNotificationsOutline className='w-6 h-6' />
 							<span className='text-lg hidden md:block mt-1 ml-1'>Notifications</span>
+						</Link>
+					</li>
+
+					<li className='flex justify-center md:justify-start'>
+						<Link
+							to='/message'
+							className='flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
+						>
+							<LuMail className='w-6 h-6' />
+							<span className='text-lg hidden md:block mt-1 ml-1'>Message</span>
 						</Link>
 					</li>
 

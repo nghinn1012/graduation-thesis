@@ -5,46 +5,60 @@ import { userSocketMap } from "../socket";
 
 export const sendMessageService = async (
   senderId: string,
-  receiverId: string,
-  messageContent: { text?: string, imageUrl?: string, emoji?: string, productLink?: string }
+  receiverIds: string[], // Treating receiverIds as an array
+  messageContent: { text?: string, imageUrl?: string, emoji?: string, productLink?: string },
+  chatGroupId?: string,  // Optional: Chat group ID might be passed
 ) => {
   try {
-    // Kiểm tra xem đã có chatGroup giữa hai người hay chưa
-    let chatGroup = await chatGroupModel.findOne({
-      members: { $all: [senderId, receiverId] },
-      isPrivate: true, // kiểm tra đây là nhóm chat riêng tư giữa 2 người
-    }).exec();
+    let chatGroup;
 
-    // Nếu không tồn tại, tạo một nhóm chat mới
-    if (!chatGroup) {
-      chatGroup = new chatGroupModel({
-        members: [senderId, receiverId],
-        isPrivate: true, // đánh dấu là nhóm chat giữa hai người
-        createdBy: senderId,
-        groupName: `${senderId}-${receiverId}`,
-      });
+    // If chatGroupId is provided, use it directly
+    if (chatGroupId) {
+      chatGroup = await chatGroupModel.findById(chatGroupId).exec();
+    } else {
+      // If no chatGroupId, find the existing chat group or create a new one
+      chatGroup = await chatGroupModel.findOne({
+        members: { $all: [senderId, ...receiverIds] }, // Ensure all members are in the group
+        isPrivate: receiverIds.length === 1,  // If there's only one receiver, it's a private chat
+      }).exec();
 
-      await chatGroup.save();
-      console.log(`New chat group created between ${senderId} and ${receiverId}`);
+      // If no existing chat group, create a new one
+      if (!chatGroup) {
+        chatGroup = new chatGroupModel({
+          members: [senderId, ...receiverIds],
+          isPrivate: receiverIds.length === 1,  // Private if 1 receiver, otherwise group chat
+          createdBy: senderId,
+          groupName: `Group: ${[senderId, ...receiverIds].join(', ')}`,
+        });
+
+        await chatGroup.save();
+        console.log(`New chat group created between ${senderId} and ${receiverIds.join(', ')}`);
+      } else {
+        console.log(`Existing chat group found for ${senderId} and ${receiverIds.join(', ')}`);
+      }
     }
 
-    // Tạo tin nhắn mới trong nhóm chat
+    if (!chatGroup) {
+      throw new Error("Chat group not found");
+    }
+
+    // Create the message
     const newMessage = await messageModel.create({
       senderId,
-      chatGroup: chatGroup._id,
+      chatGroup: chatGroup._id,  // Assign to the group
       text: messageContent.text || null,
       imageUrl: messageContent.imageUrl || null,
       emoji: messageContent.emoji || null,
       productLink: messageContent.productLink || null,
     });
 
-    // Cập nhật tin nhắn cuối cùng cho nhóm chat
+    // Update the lastMessage in the chat group
     chatGroup.lastMessage = newMessage._id;
     await chatGroup.save();
 
-    // Gửi tin nhắn cho cả hai người dùng
-    [senderId, receiverId].forEach((userId) => {
-      const receiverSocketId = userSocketMap.get(userId);
+    // Notify all involved users (sender + receivers) via WebSocket
+    [senderId, ...receiverIds].forEach((userId) => {
+      const receiverSocketId = userSocketMap.get(userId); // Find user's socket ID
 
       if (receiverSocketId) {
         io.to(receiverSocketId).emit('receiveMessage', {
@@ -63,3 +77,30 @@ export const sendMessageService = async (
     throw new Error((error as Error).message);
   }
 };
+
+
+export const getMessagesService = async (chatGroupId: string, userId: string) => {
+  try {
+    const chatGroup = await chatGroupModel.findById(chatGroupId).exec();
+    if (!chatGroup) {
+      throw new Error("Chat group not found");
+    }
+
+    const messages = await messageModel.find({ chatGroup: chatGroupId })
+      .sort({ createdAt: 1 })
+      .exec();
+
+    return messages;
+  } catch (error) {
+    throw new Error(`Error fetching messages: ${(error as Error).message}`);
+  }
+};
+
+export const getChatGroupsService = async (userId: string) => {
+  try {
+    const chatGroups = await chatGroupModel.find({ members: userId }).exec();
+    return chatGroups;
+  } catch (error) {
+    throw new Error(`Error fetching chat groups: ${(error as Error).message}`);
+  }
+}
