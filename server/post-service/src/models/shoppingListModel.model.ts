@@ -11,9 +11,9 @@ const postSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Post",
   },
-  title: { type: String, required: true },
-  imageUrl: { type: String, required: true },
-  servings: { type: Number, required: true },
+  title: { type: String, required: true, default: "" },
+  imageUrl: { type: String, required: true, default: "" },
+  servings: { type: Number, required: true, default: 0 },
   ingredients: [ingredientOfListSchema]
 });
 

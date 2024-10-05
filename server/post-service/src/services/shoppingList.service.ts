@@ -11,27 +11,35 @@ export const addIngredientToShoppingListService = async (
 ) => {
   try {
     let shoppingList = await ShoppingListModel.findOne({ userId }).exec();
-
     if (!shoppingList) {
+      const post = postId ? await PostModel.findById(postId).exec() : null;
+      if (!post) {
+        throw new Error(`Post with id ${postId} not found`);
+      }
       shoppingList = new ShoppingListModel({
         userId,
         posts: postId ? [{
           postId,
+          title: post.title || "No title available",
+          imageUrl: post.images?.[0] || "No image available",
           servings,
-          ingredients: [],
+          ingredients: post.ingredients.map(ingredient => ({
+            ...ingredient.toObject(),
+            checked: false,
+          })),
         }] : [],
         standaloneIngredients: postId ? [] : ingredients,
       });
-      await shoppingList.save();
-      return shoppingList;
     }
 
     if (postId) {
       const postIndex = shoppingList.posts.findIndex(post => post?.postId?.toString() === postId);
 
       if (postIndex !== -1) {
+        // Post đã tồn tại, cập nhật servings
         shoppingList.posts[postIndex].servings += servings;
       } else {
+        // Nếu post chưa tồn tại trong shoppingList
         const post = await PostModel.findById(postId).exec();
         if (!post) {
           throw new Error(`Post with id ${postId} not found`);
@@ -42,15 +50,24 @@ export const addIngredientToShoppingListService = async (
           checked: false,
         }));
 
+        // Kiểm tra title và imageUrl
+        const postTitle = post?.title || "No title available";
+        const postImageUrl = post?.images?.[0] || "No image available";
+
+        if (!postTitle || !postImageUrl) {
+          throw new Error(`Post title or imageUrl is missing for post with id ${postId}`);
+        }
+
         shoppingList.posts.push({
           postId,
-          title: post.title,
-          imageUrl: post.images[0],
+          title: postTitle,
+          imageUrl: postImageUrl,
           servings,
           ingredients: postIngredients,
         });
       }
     } else {
+      // Thêm các ingredient không liên kết với post
       shoppingList.standaloneIngredients.push(...ingredients);
     }
 
@@ -62,6 +79,7 @@ export const addIngredientToShoppingListService = async (
     throw new Error((error as Error).message);
   }
 };
+
 
 export const getShoppingListService = async (userId: string) => {
   try {

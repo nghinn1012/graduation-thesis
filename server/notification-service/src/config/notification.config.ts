@@ -21,3 +21,6 @@ export const EXCHANGE_NAME = process.env.EXCHANGE_NAME as string;
 export const AMQP_PATH = process.env.AMQP_PATH as string;
 export const RPC_QUEUE_NAME = process.env.RPC_QUEUE_NAME as string;
 export const RPC_REQUEST_TIME_OUT = +(process.env.RPC_REQUEST_TIME_OUT || 2000) as number;
+
+export const JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY as string;
+export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN as string;
