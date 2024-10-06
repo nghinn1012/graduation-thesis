@@ -1,34 +1,36 @@
 import { io } from "../..";
+import { createGroupChat } from "../data/interface/message_interface";
 import chatGroupModel from "../models/chatGroupModel";
 import messageModel from "../models/messageModel";
 import { userSocketMap } from "../socket";
+import { uploadImageToCloudinary } from "./imagesuploader.services";
 
 export const sendMessageService = async (
   senderId: string,
-  receiverIds: string[], // Treating receiverIds as an array
+  receiverId: string | string[], // Có thể là một string hoặc một mảng string
   messageContent: { text?: string, imageUrl?: string, emoji?: string, productLink?: string },
-  chatGroupId?: string,  // Optional: Chat group ID might be passed
+  chatGroupId?: string,
 ) => {
   try {
     let chatGroup;
+    const receiverIds = Array.isArray(receiverId) ? receiverId : [receiverId];
 
-    // If chatGroupId is provided, use it directly
     if (chatGroupId) {
       chatGroup = await chatGroupModel.findById(chatGroupId).exec();
     } else {
-      // If no chatGroupId, find the existing chat group or create a new one
+      const allMembers = [senderId, ...receiverIds];
       chatGroup = await chatGroupModel.findOne({
-        members: { $all: [senderId, ...receiverIds] }, // Ensure all members are in the group
-        isPrivate: receiverIds.length === 1,  // If there's only one receiver, it's a private chat
+        members: { $all: allMembers, $size: allMembers.length }
       }).exec();
 
-      // If no existing chat group, create a new one
       if (!chatGroup) {
         chatGroup = new chatGroupModel({
-          members: [senderId, ...receiverIds],
-          isPrivate: receiverIds.length === 1,  // Private if 1 receiver, otherwise group chat
+          members: allMembers,
+          isPrivate: receiverIds.length === 1,
           createdBy: senderId,
-          groupName: `Group: ${[senderId, ...receiverIds].join(', ')}`,
+          groupName: receiverIds.length === 1
+            ? `Private: ${senderId} and ${receiverIds[0]}`
+            : `Group: ${allMembers.join(', ')}`,
         });
 
         await chatGroup.save();
@@ -39,27 +41,30 @@ export const sendMessageService = async (
     }
 
     if (!chatGroup) {
-      throw new Error("Chat group not found");
+      throw new Error("Chat group not found or could not be created");
     }
 
-    // Create the message
+    let uploadedImageUrl;
+
+    if (messageContent.imageUrl && messageContent.imageUrl.startsWith("data:image")) {
+      uploadedImageUrl = await uploadImageToCloudinary(messageContent.imageUrl, "chat_images");
+    }
+
     const newMessage = await messageModel.create({
       senderId,
-      chatGroup: chatGroup._id,  // Assign to the group
+      chatGroup: chatGroup._id,
       text: messageContent.text || null,
-      imageUrl: messageContent.imageUrl || null,
+      imageUrl: uploadedImageUrl || messageContent.imageUrl || null,
       emoji: messageContent.emoji || null,
       productLink: messageContent.productLink || null,
     });
 
-    // Update the lastMessage in the chat group
     chatGroup.lastMessage = newMessage._id;
     await chatGroup.save();
 
-    // Notify all involved users (sender + receivers) via WebSocket
-    [senderId, ...receiverIds].forEach((userId) => {
-      const receiverSocketId = userSocketMap.get(userId); // Find user's socket ID
-
+    const allMembers = chatGroup.members;
+    allMembers.forEach((userId: string) => {
+      const receiverSocketId = userSocketMap.get(userId);
       if (receiverSocketId) {
         io.to(receiverSocketId).emit('receiveMessage', {
           chatGroupId: chatGroup._id,
@@ -68,16 +73,15 @@ export const sendMessageService = async (
       }
     });
 
-    console.log(`Message from ${senderId} to chat group ${chatGroup._id}: ${messageContent.text || 'media'}`);
 
+    console.log(`Message sent from ${senderId} to chat group ${chatGroup._id}`);
     return newMessage;
 
   } catch (error) {
     console.error("Error sending message:", error);
-    throw new Error((error as Error).message);
+    throw error;
   }
 };
-
 
 export const getMessagesService = async (chatGroupId: string, userId: string) => {
   try {
@@ -98,9 +102,30 @@ export const getMessagesService = async (chatGroupId: string, userId: string) =>
 
 export const getChatGroupsService = async (userId: string) => {
   try {
-    const chatGroups = await chatGroupModel.find({ members: userId }).exec();
+    console.log(userId);
+    const chatGroups = await chatGroupModel.find({ members: userId });
     return chatGroups;
   } catch (error) {
     throw new Error(`Error fetching chat groups: ${(error as Error).message}`);
+  }
+}
+
+export const createChatGroupService = async (groupData: createGroupChat) => {
+  try {
+    if (!groupData.members || groupData.members.length < 2) {
+      throw new Error("Group must have at least 2 members");
+    }
+    const existingGroup = await chatGroupModel.findOne({
+      members: { $all: groupData.members },
+      isPrivate: groupData.members.length === 1,
+    }).exec();
+    if (existingGroup) {
+      throw new Error("Chat group already exists");
+    }
+    const chatGroup = new chatGroupModel(groupData);
+    await chatGroup.save();
+    return chatGroup;
+  } catch (error) {
+    throw new Error(`Error creating chat group: ${(error as Error).message}`);
   }
 }

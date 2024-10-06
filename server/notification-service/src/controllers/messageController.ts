@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getChatGroupsService, getMessagesService, sendMessageService } from '../services/messageService';
+import { createChatGroupService, getChatGroupsService, getMessagesService, sendMessageService } from '../services/messageService';
 import { AuthRequest } from '../data';
 
 export const sendMessageController = async (req: AuthRequest, res: Response) => {
@@ -34,4 +34,19 @@ export const getChatGroupsController = async (req: AuthRequest, res: Response) =
   }
   const chatGroups = await getChatGroupsService(userId);
   res.json(chatGroups);
+}
+
+export const createChatGroupController = async (req: AuthRequest, res: Response) => {
+  const groupData = req.body;
+  const userId = req?.authContent?.data.userId;
+  if (!groupData || !userId) {
+    res.status(400).json({ message: 'Group data is required' });
+    return;
+  }
+  try {
+    const chatGroup = await createChatGroupService(groupData);
+    res.json(chatGroup);
+  } catch (error) {
+    res.status(400).json({ message: (error as Error).message });
+  }
 }

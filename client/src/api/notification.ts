@@ -10,6 +10,7 @@ export const notificationEndpoints = {
   getChatGroups: "/notifications/getChatGroups",
   getMessagesOfGroup: "/notifications/getMessages/:chatGroupId",
   sendMessage: "/notifications/sendMessage",
+  createChatGroup: "/notifications/createChatGroup",
 } as const;
 
 export interface NotificationResponseError
@@ -77,10 +78,18 @@ export interface createMessage {
   }
 }
 
+export interface createChatGroup {
+  groupName: string;
+  members: string[];
+  createdBy: string;
+  isPrivate: boolean;
+}
+
 export interface NotificationFetcher {
   getChatGroups: (token: string) => Promise<NotificationResponse<ChatGroupInfo[]>>;
   getMessagesOfGroup: (chatGroupId: string, token: string) => Promise<NotificationResponse<MessageInfo[]>>;
   sendMessage: (token: string, messageInfo: createMessage) => Promise<NotificationResponse<MessageInfo>>;
+  createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
 }
 
 export const notificationFetcher: NotificationFetcher = {
@@ -108,4 +117,12 @@ export const notificationFetcher: NotificationFetcher = {
     },
     );
   },
+  createChatGroup: async (token, groupData) => {
+    return notificationInstance.post(notificationEndpoints.createChatGroup, groupData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  }
 };

@@ -24,3 +24,7 @@ export const RPC_REQUEST_TIME_OUT = +(process.env.RPC_REQUEST_TIME_OUT || 2000) 
 
 export const JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY as string;
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN as string;
+
+export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME as string;
+export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY as string;
+export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET as string;

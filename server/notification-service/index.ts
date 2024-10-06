@@ -6,7 +6,7 @@ import { RabbitMQ, initBrokerConsumners, initRpcConsumers } from "./src/broker/i
 import { Server as SocketIOServer } from 'socket.io';
 import http from 'http';
 import { setupSocketIO } from "./src/socket";
-import { connectDB } from "./src/db";
+import { connectCloudinary, connectDB } from "./src/db";
 const app = express();
 const server = http.createServer(app);
 export const io = new SocketIOServer(server, {
@@ -27,7 +27,7 @@ app.use("/notifications", notiRouter);
 connectDB();
 
 setupSocketIO(io);
-// connectCloudinary();
+connectCloudinary();
 
 server.listen(NOTIFICATION_PORT, () => {
   console.log(`Notification-Service running on port ${NOTIFICATION_PORT}`);

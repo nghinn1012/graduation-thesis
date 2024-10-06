@@ -25,7 +25,7 @@ const MessageTab: React.FC<MessageTabProps> = () => {
   const { auth, account } = useAuthContext();
   const { allUsers } = useUserContext();
 
-  const handleSendMessage = (newMessage: string) => {
+  const handleSendMessage = (newMessage: string, image?: string) => {
     if (!auth?.token) return;
     const messageInfo: createMessage = {
       senderId: account?._id || "",
@@ -33,11 +33,12 @@ const MessageTab: React.FC<MessageTabProps> = () => {
       chatGroupId: chatGroupSelect?._id || "",
       messageContent: {
         text: newMessage,
-        imageUrl: "",
+        imageUrl: image || "",
         emoji: "",
         productLink: "",
       },
     };
+    console.log(messageInfo);
     const response = notificationFetcher.sendMessage(auth?.token, messageInfo);
   };
 
