@@ -83,22 +83,51 @@ export const sendMessageService = async (
   }
 };
 
-export const getMessagesService = async (chatGroupId: string, userId: string) => {
+// export const getMessagesService = async (chatGroupId: string, userId: string) => {
+//   try {
+//     const chatGroup = await chatGroupModel.findById(chatGroupId).exec();
+//     if (!chatGroup) {
+//       throw new Error("Chat group not found");
+//     }
+
+//     const messages = await messageModel.find({ chatGroup: chatGroupId })
+//       .sort({ createdAt: 1 })
+//       .exec();
+
+//     return messages;
+//   } catch (error) {
+//     throw new Error(`Error fetching messages: ${(error as Error).message}`);
+//   }
+// };
+
+export const getMessagesService = async (
+  chatGroupId: string,
+  userId: string,
+  page: number = 1,
+  limit: number = 20
+) => {
   try {
     const chatGroup = await chatGroupModel.findById(chatGroupId).exec();
     if (!chatGroup) {
       throw new Error("Chat group not found");
     }
 
-    const messages = await messageModel.find({ chatGroup: chatGroupId })
-      .sort({ createdAt: 1 })
+    const query: any = { chatGroup: chatGroupId };
+
+    const skip = (page - 1) * limit;
+
+    const messages = await messageModel.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit) 
       .exec();
 
-    return messages;
+    return messages.reverse();
   } catch (error) {
     throw new Error(`Error fetching messages: ${(error as Error).message}`);
   }
 };
+
 
 export const getChatGroupsService = async (userId: string) => {
   try {

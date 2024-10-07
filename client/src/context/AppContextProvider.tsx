@@ -23,13 +23,13 @@ export default function AppContextProviders({
           <SearchProvider>
             <UserProvider>
               <MessageProvider>
-                <PostProvider>
-                  <FollowProvider>
-                    <ProfileProvider>
-                      <SocketProvider>{children}</SocketProvider>
-                    </ProfileProvider>
-                  </FollowProvider>
-                </PostProvider>
+                <SocketProvider>
+                  <PostProvider>
+                    <FollowProvider>
+                      <ProfileProvider>{children}</ProfileProvider>
+                    </FollowProvider>
+                  </PostProvider>
+                </SocketProvider>
               </MessageProvider>
             </UserProvider>
           </SearchProvider>

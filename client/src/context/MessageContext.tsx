@@ -4,12 +4,12 @@ import React, {
   useState,
   ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import { AccountInfo } from "../api/user";
 import { ChatGroupInfo, MessageInfo, notificationFetcher } from "../api/notification";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useUserContext } from "./UserContext";
-import { useSocket } from "../hooks/useSocketContext";
 
 interface MessageContextProps {
   chatGroupSelect: ChatGroupInfo | null;
@@ -17,10 +17,13 @@ interface MessageContextProps {
   chatGroups: ChatGroupInfo[];
   setChatGroups: (groups: ChatGroupInfo[]) => void;
   getUserIfPrivate: (chatGroup: ChatGroupInfo) => AccountInfo | undefined;
-  getMessagesOfChatGroup: (chatGroupId: string) => void;
+  getMessagesOfChatGroup: (chatGroupId: string, page?: number) => void;
   chatMessages: MessageInfo[];
   setChatMessages: (messages: MessageInfo[]) => void;
   getInfoUsersOfGroup: (chatGroup: ChatGroupInfo) => AccountInfo[];
+  loadMoreMessages: () => void;
+  hasMoreMessages: boolean;
+  addMessage: (newMessage: MessageInfo) => void;
 }
 
 const MessageContext = createContext<MessageContextProps | undefined>(
@@ -35,8 +38,28 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
   );
   const [chatGroups, setChatGroups] = useState<ChatGroupInfo[]>([]);
   const [chatMessages, setChatMessages] = useState<MessageInfo[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
+  const limit = 10;
   const { auth, account } = useAuthContext();
   const { allUsers } = useUserContext();
+
+  const addMessage = useCallback((newMessage: MessageInfo) => {
+    setChatMessages(prevMessages => {
+      const isMessageAlreadyAdded = prevMessages.some(msg =>
+        msg?._id === newMessage?._id ||
+        (msg?.senderId === newMessage?.senderId &&
+         msg?.messageContent?.text === newMessage.messageContent?.text &&
+         Math.abs(new Date(msg.createdAt).getTime() - new Date(newMessage.createdAt).getTime()) < 1000)
+      );
+
+      if (isMessageAlreadyAdded) {
+        return prevMessages;
+      }
+      return [...prevMessages, newMessage];
+    });
+  }, []);
+
 
   useEffect(() => {
     const loadChatGroup = async () => {
@@ -58,23 +81,44 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
     return userInfo;
   };
 
-  const getMessagesOfChatGroup = async (chatGroupId: string) => {
+  const getMessagesOfChatGroup = async (chatGroupId: string, page: number = 1) => {
     if (!auth?.token) return;
-    const response = (await notificationFetcher.getMessagesOfGroup(
+    const response = await notificationFetcher.getMessagesOfGroup(
       chatGroupId,
-      auth.token
-    )) as unknown as MessageInfo[];
-    if (response) {
-      setChatMessages(response);
+      auth.token,
+      page,
+      limit
+    );
+    const data = response.data as unknown as MessageInfo[];
+
+    if (data.length > 0) {
+      if (page === 1) {
+        setChatMessages(data);
+      } else {
+        setChatMessages(prevMessages => [...data, ...prevMessages]);
+      }
+      setHasMoreMessages(data.length === limit);
+    } else {
+      setHasMoreMessages(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (chatGroupSelect) {
-      getMessagesOfChatGroup(chatGroupSelect._id);
+      setChatMessages([]);
+      setHasMoreMessages(true);
+      setCurrentPage(1);
+      getMessagesOfChatGroup(chatGroupSelect._id, 1);
     }
-    console.log("Chat messages: ", chatMessages);
   }, [chatGroupSelect]);
+
+  const loadMoreMessages = () => {
+    if (chatGroupSelect && hasMoreMessages) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      getMessagesOfChatGroup(chatGroupSelect._id, nextPage);
+    }
+  };
 
   const getInfoUsersOfGroup = (chatGroup: ChatGroupInfo) => {
     const userInfos = chatGroup.members
@@ -84,7 +128,6 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
 
     return userInfos;
   };
-
 
   return (
     <MessageContext.Provider
@@ -98,7 +141,9 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
         chatMessages,
         setChatMessages,
         getInfoUsersOfGroup,
-
+        loadMoreMessages,
+        hasMoreMessages,
+        addMessage
       }}
     >
       {children}

@@ -56,6 +56,7 @@ export interface ChatGroupInfo {
 }
 
 export interface MessageInfo {
+  messageContent: any;
   _id: string;
   chatGroup: string;
   senderId: string;
@@ -87,7 +88,7 @@ export interface createChatGroup {
 
 export interface NotificationFetcher {
   getChatGroups: (token: string) => Promise<NotificationResponse<ChatGroupInfo[]>>;
-  getMessagesOfGroup: (chatGroupId: string, token: string) => Promise<NotificationResponse<MessageInfo[]>>;
+  getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageInfo[]>>;
   sendMessage: (token: string, messageInfo: createMessage) => Promise<NotificationResponse<MessageInfo>>;
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
 }
@@ -101,10 +102,14 @@ export const notificationFetcher: NotificationFetcher = {
     },
     );
   },
-  getMessagesOfGroup: async (chatGroupId, token) => {
+  getMessagesOfGroup: async (chatGroupId, token, page, limit) => {
     return notificationInstance.get(notificationEndpoints.getMessagesOfGroup.replace(":chatGroupId", chatGroupId), {
       headers: {
         Authorization: `Bearer ${token}`,
+      },
+      params: {
+        page,
+        limit,
       },
     },
     );

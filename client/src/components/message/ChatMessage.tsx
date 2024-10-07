@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { AccountInfo } from '../../api/user';
 import { useUserContext } from '../../context/UserContext';
 import { MessageInfo } from '../../api/notification';
+import { useMessageContext } from '../../context/MessageContext';
 
 interface ChatMessageProps {
   message: MessageInfo;
@@ -12,16 +13,10 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
   const { account } = useAuthContext();
   const isMe = message.senderId === account?._id;
-
-  useEffect(() => {
-    console.log(sender);
-  }, [sender]);
-
   const formattedTime = new Date(message.createdAt).toLocaleTimeString();
 
   return (
     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}>
-      {/* Avatar */}
       {!isMe && (
         <div className="w-10 h-10 rounded-full bg-purple-500 flex-shrink-0">
           <img src={sender?.avatar} alt={sender?.name} className="w-full h-full rounded-full" />
@@ -29,7 +24,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
       )}
 
       <div className={`max-w-xs mx-2 ${isMe ? 'text-right' : 'text-left'}`}>
-        {/* Message Content */}
         <div className={`px-4 py-2 rounded-lg ${isMe ? 'bg-purple-500 text-white' : 'bg-gray-100 text-black'}`}>
           {message.text && <p>{message.text}</p>}
           {message.imageUrl && <img src={message.imageUrl} alt="sent image" className="mt-2 max-w-full rounded-lg" />}
@@ -40,7 +34,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
             </a>
           )}
         </div>
-        {/* Time */}
         <p className="text-xs text-gray-500 mt-1">{formattedTime}</p>
       </div>
 

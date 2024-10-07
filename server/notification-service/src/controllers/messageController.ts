@@ -14,17 +14,47 @@ export const sendMessageController = async (req: AuthRequest, res: Response) => 
   res.json(result);
 }
 
+// export const getMessagesController = async (req: AuthRequest, res: Response) => {
+//   const userId = req?.authContent?.data.userId;
+//   const { chatGroupId } = req.params;
+//   console.log(userId, chatGroupId);
+//   if (!chatGroupId || !userId) {
+//     res.status(400).json({ message: 'ChatGroupId is required' });
+//     return;
+//   }
+//   const messages = await getMessagesService(chatGroupId, userId);
+//   res.json(messages);
+// }
+
 export const getMessagesController = async (req: AuthRequest, res: Response) => {
-  const userId = req?.authContent?.data.userId;
-  const { chatGroupId } = req.params;
-  console.log(userId, chatGroupId);
-  if (!chatGroupId || !userId) {
-    res.status(400).json({ message: 'ChatGroupId is required' });
-    return;
+  try {
+    const userId = req?.authContent?.data?.userId; 
+    const { chatGroupId } = req.params;
+
+    if (!chatGroupId || !userId) {
+      return res.status(400).json({ message: 'ChatGroupId and userId are required' });
+    }
+
+    const { page, limit } = req.query;
+
+    const messageLimit = parseInt(limit as string, 10) || 20;
+
+    const messagePage = parseInt(page as string, 10) || 1;
+
+    const messages = await getMessagesService(chatGroupId, userId, messagePage, messageLimit);
+
+    return res.json({
+      success: true,
+      data: messages,
+      message: 'Messages fetched successfully',
+    });
+
+  } catch (error) {
+    console.error('Error in getMessagesController:', error);
+    return res.status(500).json({ message: 'An error occurred while fetching messages' });
   }
-  const messages = await getMessagesService(chatGroupId, userId);
-  res.json(messages);
-}
+};
+
 
 export const getChatGroupsController = async (req: AuthRequest, res: Response) => {
   const userId = req?.authContent?.data.userId;
