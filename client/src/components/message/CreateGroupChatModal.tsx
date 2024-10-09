@@ -1,48 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AccountInfo } from '../../api/user';
 import { useUserContext } from '../../context/UserContext';
 import { createChatGroup } from '../../api/notification';
 import { useAuthContext } from '../../hooks/useAuthContext';
 
-interface CreateGroupChatModalProps {
+interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateGroup: (data: createChatGroup) => void;
+  onCreateChat: (data: createChatGroup) => void;
+  initialChatType: 'private' | 'group';
 }
 
-const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({
+const CreateChatModal: React.FC<CreateChatModalProps> = ({
   isOpen,
   onClose,
-  onCreateGroup
+  onCreateChat,
+  initialChatType
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedUsers, setSelectedUsers] = useState<AccountInfo[]>([]);
   const [groupName, setGroupName] = useState<string>('');
+  const [isGroupChat, setIsGroupChat] = useState<boolean>(initialChatType === 'group');
   const {allUsers} = useUserContext();
   const {account} = useAuthContext();
+
+  const resetForm = (): void => {
+    setSelectedUsers([]);
+    setGroupName('');
+    setSearchTerm('');
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsGroupChat(initialChatType === 'group');
+      resetForm();
+    }
+  }, [isOpen, initialChatType]);
+
   const filteredUsers = allUsers.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selectedUsers.find(selected => selected._id === user._id)
+    !selectedUsers.find(selected => selected._id === user._id) &&
+    user._id !== account?._id
   );
 
   const handleUserSelect = (user: AccountInfo): void => {
-    setSelectedUsers([...selectedUsers, user]);
+    if (!isGroupChat) {
+      setSelectedUsers([user]);
+    } else {
+      setSelectedUsers([...selectedUsers, user]);
+    }
   };
 
   const handleUserRemove = (userId: string): void => {
     setSelectedUsers(selectedUsers.filter(user => user._id !== userId));
   };
 
-  const handleCreateGroup = (): void => {
-    if (selectedUsers.length > 0 && groupName.trim()) {
-      onCreateGroup({
-        groupName: groupName,
-        members: [...selectedUsers.map(user => user._id), account?._id ?? ''],
-        createdBy: account?._id || selectedUsers[0]._id,
-        isPrivate: false
-      });
-      onClose();
-    }
+  const handleCreateChat = (): void => {
+    if (selectedUsers.length === 0) return;
+
+    const chatData: createChatGroup = {
+      members: [...selectedUsers.map(user => user._id), account?._id ?? ''],
+      createdBy: account?._id || '',
+      isPrivate: !isGroupChat,
+      groupName: isGroupChat ? groupName : selectedUsers[0].name
+    };
+
+    if (isGroupChat && !groupName.trim()) return;
+
+    onCreateChat(chatData);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -50,20 +76,24 @@ const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({
   return (
     <dialog className="modal modal-open">
       <div className="modal-box w-11/12 max-w-xl">
-        <h3 className="font-bold text-lg">Create New Group Chat</h3>
+        <h3 className="font-bold text-lg">
+          Create New {isGroupChat ? 'Group Chat' : 'Private Chat'}
+        </h3>
 
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text">Group Name</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Enter group name"
-            className="input input-bordered w-full"
-            value={groupName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGroupName(e.target.value)}
-          />
-        </div>
+        {isGroupChat && (
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">Group Name</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter group name"
+              className="input input-bordered w-full"
+              value={groupName}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGroupName(e.target.value)}
+            />
+          </div>
+        )}
 
         {selectedUsers.length > 0 && (
           <div className="mt-4">
@@ -105,6 +135,7 @@ const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({
               key={user._id}
               onClick={() => handleUserSelect(user)}
               className="btn btn-ghost w-full justify-start normal-case h-auto py-2"
+              disabled={!isGroupChat && selectedUsers.length > 0}
             >
               <div className="avatar placeholder mr-2">
                 <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
@@ -120,10 +151,13 @@ const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({
           <button className="btn" onClick={onClose}>Cancel</button>
           <button
             className="btn btn-primary"
-            onClick={handleCreateGroup}
-            disabled={selectedUsers.length === 0 || !groupName.trim()}
+            onClick={handleCreateChat}
+            disabled={
+              selectedUsers.length === 0 ||
+              (isGroupChat && !groupName.trim())
+            }
           >
-            Create Group
+            Create {isGroupChat ? 'Group' : 'Chat'}
           </button>
         </div>
       </div>
@@ -134,4 +168,4 @@ const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({
   );
 };
 
-export default CreateGroupChatModal;
+export default CreateChatModal;

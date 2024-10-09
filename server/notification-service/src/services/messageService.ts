@@ -119,7 +119,7 @@ export const getMessagesService = async (
     const messages = await messageModel.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit) 
+      .limit(limit)
       .exec();
 
     return messages.reverse();
@@ -146,7 +146,7 @@ export const createChatGroupService = async (groupData: createGroupChat) => {
     }
     const existingGroup = await chatGroupModel.findOne({
       members: { $all: groupData.members },
-      isPrivate: groupData.members.length === 1,
+      isPrivate: groupData.members.length === 2,
     }).exec();
     if (existingGroup) {
       throw new Error("Chat group already exists");

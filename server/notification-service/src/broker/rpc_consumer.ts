@@ -1,7 +1,7 @@
-import { NotifiFoodUploadResponse } from "../services/foodService";
 import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { io } from "../../index";
+import { sendNotificationToUsers } from "../socket";
 export interface Ided {
   _id: string;
 }
@@ -21,6 +21,7 @@ export const brokerOperations = {
   food: {
     NOTIFY_NEW_FOOD: "NOTIFY_NEW_FOOD",
     NOTIFY_FOOD_UPLOAD_COMPLETE: "NOTIFY_FOOD_UPLOAD_COMPLETE",
+    NOTIFY_FOOD_LIKED: "NOTIFIY_FOOD_LIKED",
   },
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
@@ -34,6 +35,16 @@ export interface IRpcGetInfoPayLoad {
 export interface IRpcGetUserByIdPayload {
   _id: string;
   select?: string | string[];
+}
+
+export interface NotifiFoodUploadResponse {
+  type: string;
+  _id: string;
+}
+
+export interface NotifiFoodLikedResponse {
+  postId: string;
+  likerId: string;
 }
 
 export const initRpcConsumers = (_rabbit: RabbitMQ): void => {
@@ -61,7 +72,14 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
       io.emit(msg.data.type, msg.data._id);
     }
   );
-  
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_FOOD_LIKED,
+    (msg: IBrokerMessage<NotifiFoodUploadResponse>) => {
+      // sendNotificationToUsers(io, msg.data.type, msg.data._id);
+    }
+  );
+
   // rabbit.listenMessage(
   //   brokerOperations.mail.NEW_ACCOUNT_CREATED,
   //   (msg: IBrokerMessage<NewAccountInfo>) => {

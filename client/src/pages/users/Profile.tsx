@@ -441,7 +441,7 @@ const ProfilePage: React.FC = () => {
           {/* Integrated Profile Posts */}
           {feedType === "posts" && (
             <div className="mt-5 px-4">
-              {posts.length > 0 && !isLoading && (
+              {posts.length > 0 && (
                 <div>
                   {posts.map((post, index) => (
                     <div
@@ -453,7 +453,7 @@ const ProfilePage: React.FC = () => {
                   ))}
                 </div>
               )}
-              {isLoading && hasMoreLike && (
+              {isLoading && hasMore && (
                 <div className="flex justify-center my-4">
                   <PostSkeleton />
                 </div>

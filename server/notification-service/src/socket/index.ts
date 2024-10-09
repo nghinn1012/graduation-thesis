@@ -1,4 +1,6 @@
+import { HydratedDocument } from 'mongoose';
 import { Server, Socket } from 'socket.io';
+import { sendNotification } from './notification';
 
 export const userSocketMap = new Map<string, string>();
 
@@ -40,5 +42,21 @@ export const setupSocketIO = (io: Server) => {
       }
       io.emit('getOnlineUsers', Array.from(userSocketMap.keys()));
     });
+  });
+};
+
+export const sendNotificationToUsers = (
+  io: Server,
+  users: string[],
+  notification: HydratedDocument<Notification>
+) => {
+  users.forEach((userId) => {
+    const socketId = userSocketMap.get(userId);
+    if (socketId) {
+      io.to(socketId).emit('notification', notification);
+      console.log(`Notification sent to user ${userId} via socket ${socketId}`);
+    } else {
+      console.log(`User ${userId} is not connected, notification not sent`);
+    }
   });
 };

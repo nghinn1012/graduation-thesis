@@ -1,17 +1,33 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model} from "mongoose";
+import { NotificationType } from "../data/interface/notification_interface";
 
-interface IUser extends Document {
-  email: string;
-  name: string;
-  password: string;
-}
-
-const userSchema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  password: { type: String, required: true },
+const notiSchema = new Schema({
+  userId: {
+    type: [String],
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: NotificationType,
+    required: true,
+  },
+  link: {
+    type: String,
+    required: true,
+  },
+  reads: {
+    type: [String],
+    default: [],
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-const User = model<IUser>("User", userSchema);
+const NotificationModel = model("Notification", notiSchema);
 
-export default User;
+export default NotificationModel;

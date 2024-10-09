@@ -343,7 +343,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     if (auth?.token) {
       fetchPosts(userId || "");
     }
-  }, [auth?.token, page, userId]);
+  }, [auth?.token, page]);
 
   useEffect(() => {
     if (auth?.token) {
