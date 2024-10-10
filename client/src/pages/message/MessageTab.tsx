@@ -66,19 +66,21 @@ const MessageTab: React.FC<MessageTabProps> = () => {
   };
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="h-screen max-h-screen flex overflow-hidden">
       <MessageSidebar />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0">
         {chatGroupSelect ? (
           <>
             <ChatHeader />
-            <div className="flex-1 overflow-y-auto bg-gray-50">
-              <div className="h-full p-4">
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto bg-gray-50">
                 <ChatContainer messages={chatMessages} senders={senders} />
               </div>
+              <div className="flex-shrink-0">
+                <MessageInput onSendMessage={handleSendMessage} />
+              </div>
             </div>
-            <MessageInput onSendMessage={handleSendMessage} />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">

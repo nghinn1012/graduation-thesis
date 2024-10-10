@@ -6,13 +6,13 @@ import Explore from "../post/Explore";
 import OrderDishPage from "../post/Purchase";
 export default function Food() {
   return (
-    <>
-    <ScrollToTop/>
-    <Routes>
-      <Route path="/:id" element={<PostDetails />} />
-      <Route path="/explore" element={<Explore />} />
-      <Route path="/order-dish" element={<OrderDishPage />} />
-    </Routes>
-    </>
+    <div className="p-4">
+      <ScrollToTop />
+      <Routes>
+        <Route path="/:id" element={<PostDetails />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/order-dish" element={<OrderDishPage />} />
+      </Routes>
+    </div>
   );
 }

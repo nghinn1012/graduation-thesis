@@ -6,7 +6,7 @@ import MessageTab from "../pages/message/MessageTab";
 
 export default function AppMainCenter() {
   return (
-    <div className="flex-1 p-4 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto px-4">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/message" element={<MessageTab />} />

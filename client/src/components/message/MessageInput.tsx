@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useEffect, KeyboardEvent } from "react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { CiFaceSmile, CiImageOn } from "react-icons/ci";
 import { IoSend } from "react-icons/io5";
@@ -52,10 +52,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     }
   };
 
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <>
       {chatGroupSelect && (
-        <div className="mt-4 flex flex-col border-t border-gray-300 pt-2 px-2 bg-gray-100 rounded-lg relative">
+        <div className="p-2 flex flex-col border-t border-gray-300 pt-2 px-2 bg-gray-100 rounded-lg relative">
           {/* Xem trước ảnh nhỏ ở phía trên */}
           {imagePreview && (
             <div className="relative mb-2 flex justify-start">
@@ -99,6 +106,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
               type="text"
               placeholder="Start a new message"
               value={message}
+              onKeyDown={handleKeyPress} // Use handleKeyPress for Enter key handling
               onChange={handleChange}
               className="flex-1 px-3 py-2 border rounded-md outline-none"
             />

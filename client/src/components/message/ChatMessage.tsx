@@ -17,7 +17,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
 
   return (
     <>
-      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} pt-4`}>
         {!isMe && (
           <div className="flex-shrink-0">
             <div className="w-10 h-10 rounded-full bg-purple-500">

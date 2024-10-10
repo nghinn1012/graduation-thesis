@@ -13,7 +13,7 @@ const ChatHeader: React.FC = () => {
     : null;
 
   return (
-    <div className="flex items-center border-b border-gray-300 pb-2 mb-4">
+    <div className="flex items-center border-b border-gray-300 p-2">
       {chatGroupSelect ? (
         <>
           {chatGroupSelect.isPrivate && userIfPrivate ? (
