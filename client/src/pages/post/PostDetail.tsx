@@ -71,10 +71,10 @@ const validationSchema = yup.object({
 const PostDetails: React.FunctionComponent = () => {
   const location = useLocation();
   const [locationPath, setLocationPath] = useState<string | null>(
-    location.state.locationPath
+    location?.state?.locationPath || ""
   );
   const [activeTab, setActiveTab] = useState<"recipe" | "comments" | "made">(
-    location?.state.activeTab || "recipe"
+    location?.state?.activeTab || "recipe"
   );
   const navigate = useNavigate();
   const [post, setPost] = useState<PostInfo>([] as unknown as PostInfo);
@@ -417,7 +417,7 @@ const PostDetails: React.FunctionComponent = () => {
   const handleImageSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0]; // Remove duplicate file declaration
+    const file = event.target.files?.[0];
 
     if (file) {
       try {
@@ -573,6 +573,24 @@ const PostDetails: React.FunctionComponent = () => {
       ...user,
       followed: !postAuthor.followed,
     } as AccountInfo);
+  };
+
+  const handleOrderNow = () => {
+    navigate('/posts/order-dish', {
+      state: {
+        recipeId: post._id,
+        title: post.title,
+        description: post.about,
+        price: 100,
+        preparationTime: post.timeToTake,
+        image: post.images[0],
+        chef: {
+          name: post.author.name,
+          avatar: post.author.avatar,
+          // rating: post.author.rating,
+        }
+      }
+    });
   };
 
   return (
@@ -819,9 +837,12 @@ const PostDetails: React.FunctionComponent = () => {
                         </>
                       )}
                     </button>
-                    <button className="btn btn-md btn-success w-full md:w-auto">
-                      Get Ingredients
-                    </button>
+                    <button
+      className="btn btn-md btn-success w-full md:w-auto"
+      onClick={handleOrderNow}
+    >
+      Order Now
+    </button>
                   </div>
                 </div>
 

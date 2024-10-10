@@ -1,53 +1,45 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
-import { FaHeart } from "react-icons/fa6";
-import { FC } from "react";
-
-interface User {
-  _id: string;
-  username: string;
-  profileImg: string;
-}
-
-interface Notification {
-  _id: string;
-  from: User;
-  type: "follow" | "like";
-}
+import { FaUser, FaHeart } from "react-icons/fa6";
+import { FC, useContext, useState } from "react";
+import { useNotificationContext } from "../../context/NotificationContext";
+import { AccountInfo } from "../../api/user";
+import { usePostContext } from "../../context/PostContext";
+import NotificationItem from "../../components/notifications/NotificationItem";
 
 const NotificationPage: FC = () => {
-  const isLoading = false;
-
-  // Example notifications data
-  const notifications: Notification[] = [
-    {
-      _id: "1",
-      from: {
-        _id: "1",
-        username: "johndoe",
-        profileImg: "/avatars/boy2.png",
-      },
-      type: "follow",
-    },
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "like",
-    },
-  ];
+  const { notifications } = useNotificationContext();
+  const [isLoadingPost, setIsLoadingPost] = useState(false);
+  const navigate = useNavigate();
+  const locationPath = useLocation().pathname;
+  const { fetchPost } = usePostContext();
 
   const deleteNotifications = (): void => {
     alert("All notifications deleted");
   };
 
+  const handleNotificationClick = async (postId: string, author: AccountInfo) => {
+    console.log("Notification clicked", postId, author);
+    if (!postId || !author) return;
+
+    try {
+      setIsLoadingPost(true);
+      const post = await fetchPost(postId);
+
+      navigate(`/posts/${author._id}`, {
+        state: { post, postAuthor: author, locationPath },
+      });
+    } catch (error) {
+      console.error("Error fetching post:", error);
+    } finally {
+      setIsLoadingPost(false);
+    }
+  };
+
   return (
     <div className="flex-[4_4_0] border-l border-r border-gray-300 min-h-screen">
+      {/* Header Section */}
       <div className="flex justify-between items-center p-4 border-b border-gray-300">
         <p className="font-bold">Notifications</p>
         <div className="dropdown">
@@ -65,43 +57,29 @@ const NotificationPage: FC = () => {
         </div>
       </div>
 
-      {isLoading && (
-        <div className="flex justify-center h-full items-center">
+      {/* Loading States */}
+      {isLoadingPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <LoadingSpinner size="lg" />
         </div>
       )}
 
+      {/* No Notifications Message */}
       {notifications?.length === 0 && (
         <div className="text-center p-4 font-bold">No notifications 🤔</div>
       )}
 
+      {/* Notifications List */}
       {notifications?.map((notification) => (
-        <div className="border-b border-gray-300" key={notification._id}>
-          <div className="flex gap-2 p-4">
-            {notification.type === "follow" && (
-              <FaUser className="w-7 h-7 text-primary" />
-            )}
-            {notification.type === "like" && (
-              <FaHeart className="w-7 h-7 text-red-500" />
-            )}
-            <Link to={`/profile/${notification.from.username}`}>
-              <div className="avatar">
-                <div className="w-8 rounded-full">
-                  <img
-                    src={notification.from.profileImg || "/avatar-placeholder.png"}
-                    alt={`${notification.from.username}'s profile`}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <span className="font-bold">@{notification.from.username}</span>{" "}
-                {notification.type === "follow"
-                  ? "followed you"
-                  : "liked your post"}
-              </div>
-            </Link>
-          </div>
-        </div>
+        <NotificationItem
+          key={notification.id}
+          notification={{
+            author: notification.author,
+            postId: notification.postId,
+            type: notification.type,
+          }}
+          onClick={handleNotificationClick}
+        />
       ))}
     </div>
   );

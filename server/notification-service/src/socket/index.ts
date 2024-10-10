@@ -1,8 +1,12 @@
-import { HydratedDocument } from 'mongoose';
 import { Server, Socket } from 'socket.io';
-import { sendNotification } from './notification';
+import { NotificationToUser } from '../data/interface/notification_interface';
 
 export const userSocketMap = new Map<string, string>();
+
+const SOCKET_EVENTS = {
+  NEW_NOTIFICATION: "new-notification",
+  READ_NOTIFICATION: "read-notification",
+} as const;
 
 export const setupSocketIO = (io: Server) => {
   io.on('connection', (socket: Socket) => {
@@ -16,10 +20,7 @@ export const setupSocketIO = (io: Server) => {
 
     console.log(`User ${userId} connected with socketId: ${socket.id}`);
 
-    if (!userSocketMap.has(userId)) {
-      userSocketMap.set(userId, socket.id);
-    }
-
+    userSocketMap.set(userId, socket.id);
     io.emit('getOnlineUsers', Array.from(userSocketMap.keys()));
 
     socket.on('sendMessage', (data: { receiverId: string; message: string }) => {
@@ -36,27 +37,9 @@ export const setupSocketIO = (io: Server) => {
     });
 
     socket.on('disconnect', () => {
-      if (userSocketMap.has(userId)) {
-        userSocketMap.delete(userId);
-        console.log(`User ${userId} disconnected`);
-      }
+      userSocketMap.delete(userId);
+      console.log(`User ${userId} disconnected`);
       io.emit('getOnlineUsers', Array.from(userSocketMap.keys()));
     });
-  });
-};
-
-export const sendNotificationToUsers = (
-  io: Server,
-  users: string[],
-  notification: HydratedDocument<Notification>
-) => {
-  users.forEach((userId) => {
-    const socketId = userSocketMap.get(userId);
-    if (socketId) {
-      io.to(socketId).emit('notification', notification);
-      console.log(`Notification sent to user ${userId} via socket ${socketId}`);
-    } else {
-      console.log(`User ${userId} is not connected, notification not sent`);
-    }
   });
 };

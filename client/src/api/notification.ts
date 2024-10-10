@@ -3,7 +3,7 @@ import { NOTIFICATION_PATH, PROXY_URL } from "../config/config";
 import { ResponseErrorLike } from "../data/response_error_like";
 import { ResponseLike } from "../data/respone_like";
 import { UserErrorReason, UserErrorTarget } from "../data/user_error";
-import { UserResponseError } from "./user";
+import { AccountInfo, UserResponseError } from "./user";
 
 export const notificationEndpoints = {
   // notifications
@@ -11,6 +11,9 @@ export const notificationEndpoints = {
   getMessagesOfGroup: "/notifications/getMessages/:chatGroupId",
   sendMessage: "/notifications/sendMessage",
   createChatGroup: "/notifications/createChatGroup",
+
+  // notifications
+  getNotifications: "/notifications/getAllNotifications",
 } as const;
 
 export interface NotificationResponseError
@@ -86,11 +89,21 @@ export interface createChatGroup {
   isPrivate: boolean;
 }
 
+export interface NotificationInfo {
+  _id: string;
+  user: AccountInfo;
+  type: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+}
+
 export interface NotificationFetcher {
   getChatGroups: (token: string) => Promise<NotificationResponse<ChatGroupInfo[]>>;
   getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageInfo[]>>;
   sendMessage: (token: string, messageInfo: createMessage) => Promise<NotificationResponse<MessageInfo>>;
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
+  getNotifications: (token: string) => Promise<NotificationResponse<NotificationInfo[]>>;
 }
 
 export const notificationFetcher: NotificationFetcher = {
@@ -124,6 +137,14 @@ export const notificationFetcher: NotificationFetcher = {
   },
   createChatGroup: async (token, groupData) => {
     return notificationInstance.post(notificationEndpoints.createChatGroup, groupData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  },
+  getNotifications: async (token) => {
+    return notificationInstance.get(notificationEndpoints.getNotifications, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

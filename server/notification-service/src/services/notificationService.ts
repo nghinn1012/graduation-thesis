@@ -1,19 +1,41 @@
-import { NotificationType } from "../data/interface/notification_interface";
+import { IAuthor } from "../broker/rpc_consumer";
+import { NotificationInfo } from "../data/interface/notification_interface";
 import NotificationModel from "../models/notiModel";
-import { sendNotificationToUsers } from "../socket";
+import { sendNotificationToUsers } from "../socket/notification";
 
-export const createLikedPostNotification = async (userId: string, postId: string, likerId: string) => {
+export const createLikedFoodNotifications = async (
+  user: IAuthor,
+  foodId: string,
+  authorId: string
+) => {
+  console.log(user, foodId, authorId);
+  const notificationData: NotificationInfo = {
+    users: [authorId],
+    reads: [],
+    type: "FOOD_LIKED",
+    message: `Your food has been liked`,
+    author: user,
+    postId: foodId,
+  };
+  const notification = new NotificationModel(notificationData);
+  await notification.save();
+  sendNotificationToUsers([authorId], {
+    ...notificationData,
+    author: user,
+    read: false,
+  });
+};
+
+export const getNotificationsServices = async (userId: string) => {
   try {
-    const message = `${likerId} liked your post`;
-    const notification = new NotificationModel({
-      userId: [userId],
-      message,
-      type: NotificationType.Like,
-      link: `/posts/${postId}`,
-    });
-    await notification.save();
-    return notification;
+    const notifications = await NotificationModel.find({
+      users: { $in: [userId] },
+    })
+      .sort({ createdAt: -1 });
+
+    return notifications;
   } catch (error) {
-    throw new Error(`Error creating like notification: ${(error as Error).message}`);
+    console.error("Error fetching notifications:", error);
+    throw new Error("Failed to fetch notifications");
   }
-}
+};

@@ -18,6 +18,7 @@ export const brokerOperations = {
   },
   food: {
     NOTIFY_NEW_FOOD: "NOTIFY_NEW_FOOD",
+    NOTIFY_FOOD_LIKED: "NOTIFY_FOOD_LIKED",
     NOTIFY_FOOD_UPLOAD_COMPLETE: "NOTIFY_FOOD_UPLOAD_COMPLETE",
   },
 } as const;

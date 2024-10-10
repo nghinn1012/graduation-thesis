@@ -96,7 +96,6 @@ export class RabbitMQ {
     const content = msg.content.toString();
     try {
       const data = JSON.parse(content) as IBrokerMessage<unknown>;
-      console.log(data);
       const path = data.path;
       const consumers = this._pathToBrokerListConsumers[path];
       if (consumers != null) {

@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { AccountInfo } from '../../api/user';
-import { useUserContext } from '../../context/UserContext';
 import { MessageInfo } from '../../api/notification';
-import { useMessageContext } from '../../context/MessageContext';
+import { IoClose } from 'react-icons/io5';
 
 interface ChatMessageProps {
   message: MessageInfo;
@@ -14,35 +13,74 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
   const { account } = useAuthContext();
   const isMe = message.senderId === account?._id;
   const formattedTime = new Date(message.createdAt).toLocaleTimeString();
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   return (
-    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}>
-      {!isMe && (
-        <div className="w-10 h-10 rounded-full bg-purple-500 flex-shrink-0">
-          <img src={sender?.avatar} alt={sender?.name} className="w-full h-full rounded-full" />
-        </div>
-      )}
+    <>
+      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}>
+        {!isMe && (
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-purple-500">
+              <img src={sender?.avatar} alt={sender?.name} className="w-full h-full rounded-full" />
+            </div>
+          </div>
+        )}
 
-      <div className={`max-w-xs mx-2 ${isMe ? 'text-right' : 'text-left'}`}>
-        <div className={`px-4 py-2 rounded-lg ${isMe ? 'bg-purple-500 text-white' : 'bg-gray-100 text-black'}`}>
-          {message.text && <p>{message.text}</p>}
-          {message.imageUrl && <img src={message.imageUrl} alt="sent image" className="mt-2 max-w-full rounded-lg" />}
-          {message.emoji && <p className="text-2xl">{message.emoji}</p>}
-          {message.productLink && (
-            <a href={message.productLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
-              View Product
-            </a>
+        <div className={`max-w-xs mx-2 ${isMe ? 'text-right' : 'text-left'}`}>
+          {!isMe && (
+            <p className="text-sm font-semibold mb-1">{sender?.name || 'Unknown User'}</p>
           )}
+          <div className={`px-4 py-2 rounded-lg ${isMe ? 'bg-purple-500 text-white' : 'bg-gray-100 text-black'}`}>
+            {message.text && <p>{message.text}</p>}
+            {message.imageUrl && (
+              <img
+                src={message.imageUrl}
+                alt="sent image"
+                className="mt-2 max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setIsImageModalOpen(true)}
+              />
+            )}
+            {message.emoji && <p className="text-2xl">{message.emoji}</p>}
+            {message.productLink && (
+              <a href={message.productLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                View Product
+              </a>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">{formattedTime}</p>
         </div>
-        <p className="text-xs text-gray-500 mt-1">{formattedTime}</p>
+
+        {isMe && (
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-purple-500">
+              <img src={account.avatar} alt="You" className="w-full h-full rounded-full" />
+            </div>
+          </div>
+        )}
       </div>
 
-      {isMe && (
-        <div className="w-10 h-10 rounded-full bg-purple-500 flex-shrink-0">
-          <img src={account.avatar} alt="You" className="w-full h-full rounded-full" />
+      {/* Image Modal */}
+      {isImageModalOpen && message.imageUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={() => setIsImageModalOpen(false)}>
+          <div className="relative max-w-4xl max-h-[90vh] mx-4">
+            <button
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsImageModalOpen(false);
+              }}
+            >
+              <IoClose className="w-6 h-6" />
+            </button>
+            <img
+              src={message.imageUrl}
+              alt="enlarged image"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -9,6 +9,7 @@ import { SearchProvider } from "./SearchContext";
 import { FollowProvider } from "./FollowContext";
 import { ProfileProvider } from "./ProfileContext";
 import { MessageProvider } from "./MessageContext";
+import { NotificationProvider } from "./NotificationContext";
 interface IAppContextProvidersProps {
   children?: React.ReactNode;
 }
@@ -24,11 +25,13 @@ export default function AppContextProviders({
             <UserProvider>
               <MessageProvider>
                 <SocketProvider>
-                  <PostProvider>
-                    <FollowProvider>
-                      <ProfileProvider>{children}</ProfileProvider>
-                    </FollowProvider>
-                  </PostProvider>
+                  <NotificationProvider>
+                    <PostProvider>
+                      <FollowProvider>
+                        <ProfileProvider>{children}</ProfileProvider>
+                      </FollowProvider>
+                    </PostProvider>
+                  </NotificationProvider>
                 </SocketProvider>
               </MessageProvider>
             </UserProvider>

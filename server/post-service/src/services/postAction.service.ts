@@ -4,6 +4,7 @@ import postModel from '../models/postModel';
 import savedListModel from '../models/savedListModel.model';
 import { IAuthor, Id, rpcGetUser, rpcGetUsers } from './index.services';
 import mongoose from 'mongoose';
+import { notifyLikedFood } from './notify.services';
 
 export const likeOrUnlikePostService = async (postId: string, userId: string) => {
   try {
@@ -11,7 +12,7 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
     if (!post) {
       throw new Error('Post not found');
     }
-    const user = await rpcGetUser<Id>(userId, "_id");
+    const user = await rpcGetUser<IAuthor>(userId,[ "_id", "name", "avatar", "username" ]);
     if (!user) {
       console.log("rpc-author", "unknown like post");
       throw new InternalError({
@@ -29,6 +30,7 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
     }
     await postLikeModel.create({ userId: userId, postId: postId });
     await postModel.findByIdAndUpdate(postId, { $inc: { likeCount: 1 } });
+    await notifyLikedFood(user, postId, post.author);
     return { liked: true };
   } catch (error) {
     throw new Error(`Cannot like or unlike post: ${(error as Error).message}`);

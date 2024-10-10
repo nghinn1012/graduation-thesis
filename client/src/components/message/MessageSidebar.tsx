@@ -255,7 +255,7 @@ const MessageSidebar: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setIsCreateGroup(false); // Reset the state when closing the modal
+          setIsCreateGroup(false); 
         }}
         onCreateChat={handleCreateChat}
         initialChatType={isCreateGroup ? "group" : "private"}

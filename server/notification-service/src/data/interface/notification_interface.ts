@@ -1,20 +1,20 @@
-export enum NotificationType {
-  Mention = 'mention',
-  Follow = 'follow',
-  Like = 'like',
-  SuggestedPost = 'suggested_post'
-}
+import { IAuthor } from "../../broker/rpc_consumer";
 
 export interface NotificationInfo {
-  userIds: string[],
+  users: string[],
   message: string,
-  type: NotificationType,
-  link: string,
+  type: "FOOD_LIKED" | "NEW_FOOD" | "FOOD_UPLOAD_COMPLETE",
+  link?: string,
   reads: string[],
-  createdAt: string
+  author: IAuthor,
+  postId: string,
 }
 
-export interface NotificationToUser extends NotificationInfo {
-  userId: string,
+export interface NotificationToUser {
+  message: string,
+  type: "FOOD_LIKED" | "NEW_FOOD" | "FOOD_UPLOAD_COMPLETE",
   read: boolean,
+  link?: string,
+  author?: IAuthor,
+  postId: string,
 }

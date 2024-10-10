@@ -40,7 +40,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
   const handleRemoveImage = () => {
     setImage(null);
-    setImagePreview(null); // Xóa URL xem trước
+    setImagePreview(null);
   };
 
   const handleSendMessage = () => {
