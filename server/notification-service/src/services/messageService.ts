@@ -128,16 +128,31 @@ export const getMessagesService = async (
   }
 };
 
-
 export const getChatGroupsService = async (userId: string) => {
   try {
     console.log(userId);
+
     const chatGroups = await chatGroupModel.find({ members: userId });
-    return chatGroups;
+
+    const lastMessages = await Promise.all(
+      chatGroups.map(async (group) => {
+        const lastMessageInfo = await messageModel.findById(group.lastMessage);
+        return lastMessageInfo;
+      })
+    );
+
+    const resultData = chatGroups.map((group, index) => {
+      return {
+        ...group.toObject(),
+        lastMessageInfo: lastMessages[index],
+      };
+    });
+
+    return resultData;
   } catch (error) {
     throw new Error(`Error fetching chat groups: ${(error as Error).message}`);
   }
-}
+};
 
 export const createChatGroupService = async (groupData: createGroupChat) => {
   try {

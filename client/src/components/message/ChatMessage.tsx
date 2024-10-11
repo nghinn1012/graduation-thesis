@@ -1,22 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { AccountInfo } from '../../api/user';
 import { MessageInfo } from '../../api/notification';
 import { IoClose } from 'react-icons/io5';
+import { useMessageContext } from '../../context/MessageContext';
 
 interface ChatMessageProps {
   message: MessageInfo;
   sender?: AccountInfo;
+  showDate: boolean;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender, showDate }) => {
   const { account } = useAuthContext();
   const isMe = message.senderId === account?._id;
   const formattedTime = new Date(message.createdAt).toLocaleTimeString();
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const { chatGroupSelect } = useMessageContext();
+
+  const formattedDate = useMemo(() => {
+    return new Date(message.createdAt).toLocaleDateString();
+  }, [message.createdAt]);
 
   return (
     <>
+      {showDate && (
+        <div className="text-center my-4">
+          <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">
+            {formattedDate}
+          </span>
+        </div>
+      )}
+
       <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} pt-4`}>
         {!isMe && (
           <div className="flex-shrink-0">
@@ -27,7 +42,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, sender }) => {
         )}
 
         <div className={`max-w-xs mx-2 ${isMe ? 'text-right' : 'text-left'}`}>
-          {!isMe && (
+          {!isMe && !chatGroupSelect?.isPrivate && (
             <p className="text-sm font-semibold mb-1">{sender?.name || 'Unknown User'}</p>
           )}
           <div className={`px-4 py-2 rounded-lg ${isMe ? 'bg-purple-500 text-white' : 'bg-gray-100 text-black'}`}>

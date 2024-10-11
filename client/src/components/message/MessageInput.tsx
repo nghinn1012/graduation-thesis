@@ -28,13 +28,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedImage = e.target.files[0];
 
-      // Đọc ảnh thành base64 string
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string); // Lưu ảnh dưới dạng base64
-        setImagePreview(reader.result as string); // Hiển thị ảnh dưới dạng base64
+        setImage(reader.result as string);
+        setImagePreview(reader.result as string);
       };
-      reader.readAsDataURL(selectedImage); // Đọc file dưới dạng base64
+      reader.readAsDataURL(selectedImage);
     }
   };
 
@@ -48,7 +47,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       onSendMessage(message, image ? image : undefined);
       setMessage("");
       setImage(null);
-      setImagePreview(null); // Reset preview
+      setImagePreview(null);
     }
   };
 
@@ -63,7 +62,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     <>
       {chatGroupSelect && (
         <div className="p-2 flex flex-col border-t border-gray-300 pt-2 px-2 bg-gray-100 rounded-lg relative">
-          {/* Xem trước ảnh nhỏ ở phía trên */}
           {imagePreview && (
             <div className="relative mb-2 flex justify-start">
               <img
@@ -71,7 +69,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
                 alt="Preview"
                 className="w-[50%] rounded-md object-cover"
               />
-              {/* Nút xóa ảnh */}
               <button
                 className="absolute top-0 right-0 -mt-1 -mr-1"
                 onClick={handleRemoveImage}
@@ -82,7 +79,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           )}
 
           <div className="flex items-center">
-            {/* Nút tải ảnh */}
             <label className="cursor-pointer">
               <CiImageOn className="w-6 h-6 mr-2" />
               <input
@@ -93,7 +89,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
               />
             </label>
 
-            {/* Nút chọn emoji */}
             <button
               className="mr-2"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -101,17 +96,15 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
               <CiFaceSmile className="w-6 h-6" />
             </button>
 
-            {/* Ô nhập liệu */}
             <input
               type="text"
               placeholder="Start a new message"
               value={message}
-              onKeyDown={handleKeyPress} // Use handleKeyPress for Enter key handling
+              onKeyDown={handleKeyPress}
               onChange={handleChange}
               className="flex-1 px-3 py-2 border rounded-md outline-none"
             />
 
-            {/* Nút gửi */}
             <button
               className="ml-2"
               onClick={handleSendMessage}
@@ -121,7 +114,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
             </button>
           </div>
 
-          {/* Hiển thị trình chọn emoji */}
           {showEmojiPicker && (
             <div className="absolute bottom-16">
               <EmojiPicker onEmojiClick={handleEmojiClick} />

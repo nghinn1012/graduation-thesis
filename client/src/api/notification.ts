@@ -58,6 +58,19 @@ export interface ChatGroupInfo {
   lastMessage: string;
 }
 
+export interface EnhancedChatGroupInfo extends ChatGroupInfo {
+  updatedAt: any;
+  createdAt: any;
+  lastMessageInfo?: {
+    _id: string;
+    text?: string;
+    imageUrl?: string;
+    emoji?: string;
+    createdAt: string;
+    senderId: string;
+  };
+}
+
 export interface MessageInfo {
   messageContent: any;
   _id: string;

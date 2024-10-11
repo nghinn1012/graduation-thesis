@@ -4,6 +4,7 @@ import { io, Socket } from "socket.io-client";
 import { VITE_SOCKET_POST_URL } from "../config/config";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useMessageContext } from "./MessageContext";
+import { EnhancedChatGroupInfo } from "../api/notification";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -16,7 +17,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket | null>(null);
   const {account, auth} = useAuthContext();
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const {setChatMessages, chatMessages} = useMessageContext();
+  const {setChatMessages, chatMessages, setChatGroups, chatGroups} = useMessageContext();
 
   useEffect(() => {
     const socketInstance: Socket = io(VITE_SOCKET_POST_URL, {
@@ -44,6 +45,24 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log(chatMessages);
       console.log(`Message from ${data.chatGroupId}: ${data.message.text}`);
       setChatMessages([...chatMessages, data.message]);
+      setChatGroups(chatGroups.map((group) => {
+        if (group._id === data.chatGroupId) {
+          return {
+            ...group,
+            lastMessage: data.message,
+            lastMessageInfo: {
+              text: data.message.text || "",
+              imageUrl: data.message.imageUrl || "",
+              emoji: data.message.emoji || "",
+              productLink: data.message.productLink || "",
+              createdAt: data.message.createdAt,
+              senderId: data.message.senderId,
+              _id: data.message._id
+            },
+          };
+        }
+        return group as unknown as EnhancedChatGroupInfo;
+      }));
     });
 
     socketInstance.on("getOnlineUsers", (onlineUsers) => {

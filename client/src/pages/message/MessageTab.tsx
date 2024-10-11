@@ -7,6 +7,7 @@ import { useMessageContext } from "../../context/MessageContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import {
   createMessage,
+  EnhancedChatGroupInfo,
   MessageInfo,
   notificationFetcher,
 } from "../../api/notification";
@@ -21,8 +22,11 @@ const MessageTab: React.FC<MessageTabProps> = () => {
     chatMessages,
     setChatMessages,
     chatGroupSelect,
+    chatGroups,
     getMessagesOfChatGroup,
     addMessage,
+    setChatGroupSelect,
+    setChatGroups,
   } = useMessageContext();
   const { auth, account } = useAuthContext();
   const { allUsers } = useUserContext();
@@ -44,9 +48,10 @@ const MessageTab: React.FC<MessageTabProps> = () => {
   }, [chatMessages, allUsers]);
 
   const handleSendMessage = async (newMessage: string, image?: string) => {
-    if (!auth?.token || !chatGroupSelect) return;
+    if (!auth?.token || !chatGroupSelect || !account) return;
+
     const messageInfo: createMessage = {
-      senderId: account?._id || "",
+      senderId: account._id || "",
       receiverId: chatGroupSelect.members || [],
       chatGroupId: chatGroupSelect._id || "",
       messageContent: {
@@ -59,11 +64,34 @@ const MessageTab: React.FC<MessageTabProps> = () => {
 
     try {
       const response = await notificationFetcher.sendMessage(auth.token, messageInfo);
-      addMessage(response as unknown as MessageInfo);
+      const newMessageInfo = response as unknown as MessageInfo;
+
+      const { text = "", imageUrl = "", emoji = "" } = newMessageInfo;
+
+      addMessage(newMessageInfo);
+
+      setChatGroups(chatGroups.map((chatGroup) => {
+        if (chatGroup._id === chatGroupSelect._id) {
+          return {
+            ...chatGroup,
+            lastMessageInfo: {
+              _id: newMessageInfo._id,
+              text,
+              imageUrl,
+              emoji,
+              createdAt: newMessageInfo.createdAt,
+              senderId: newMessageInfo.senderId,
+            },
+          };
+        }
+        return chatGroup;
+      }));
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
+
+
 
   return (
     <div className="h-screen max-h-screen flex overflow-hidden">

@@ -28,7 +28,7 @@ export const sendMessageController = async (req: AuthRequest, res: Response) => 
 
 export const getMessagesController = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req?.authContent?.data?.userId; 
+    const userId = req?.authContent?.data?.userId;
     const { chatGroupId } = req.params;
 
     if (!chatGroupId || !userId) {
@@ -55,15 +55,18 @@ export const getMessagesController = async (req: AuthRequest, res: Response) => 
   }
 };
 
-
 export const getChatGroupsController = async (req: AuthRequest, res: Response) => {
   const userId = req?.authContent?.data.userId;
   if (!userId) {
     res.status(400).json({ message: 'UserId is required' });
     return;
   }
-  const chatGroups = await getChatGroupsService(userId);
-  res.json(chatGroups);
+  try {
+    const chatGroups = await getChatGroupsService(userId);
+    res.json(chatGroups);
+  } catch (error) {
+    res.status(400).json({ message: (error as Error).message });
+  }
 }
 
 export const createChatGroupController = async (req: AuthRequest, res: Response) => {

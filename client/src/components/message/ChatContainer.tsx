@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { MessageInfo } from '../../api/notification';
 import { AccountInfo } from '../../api/user';
 import { useMessageContext } from '../../context/MessageContext';
@@ -15,6 +15,18 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, senders }) => {
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number>(0);
+
+  const groupedMessages = useMemo(() => {
+    return messages.reduce((groups, message) => {
+      const date = new Date(message.createdAt).toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+      return groups;
+    }, {} as Record<string, MessageInfo[]>);
+  }, [messages]);
+
 
   // Scroll to bottom on initial load and new messages
   const scrollToBottom = () => {
@@ -36,7 +48,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, senders }) => {
     }
   }, [messages]);
 
-  // Intersection Observer for infinite scrolling
   const handleIntersect = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
@@ -67,19 +78,28 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, senders }) => {
       ref={containerRef}
       className="flex flex-col overflow-y-auto h-full"
     >
-      {/* Loading trigger */}
       <div ref={observerTarget} className="h-1" />
 
-      {/* Messages */}
-      {messages.map((message) => (
+      {/* {messages.map((message) => (
         <ChatMessage
           key={message._id}
           message={message}
           sender={senders[message.senderId]}
         />
+      ))} */}
+      {Object.entries(groupedMessages).map(([date, messagesForDate]) => (
+        <React.Fragment key={date}>
+          {messagesForDate.map((message, index) => (
+            <ChatMessage
+              key={message._id}
+              message={message}
+              sender={senders[message.senderId]}
+              showDate={index === 0}
+            />
+          ))}
+        </React.Fragment>
       ))}
 
-      {/* Scroll anchor */}
       <div ref={messagesEndRef} />
     </div>
   );

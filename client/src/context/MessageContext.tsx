@@ -7,20 +7,20 @@ import React, {
   useCallback,
 } from "react";
 import { AccountInfo } from "../api/user";
-import { ChatGroupInfo, MessageInfo, notificationFetcher } from "../api/notification";
+import { ChatGroupInfo, EnhancedChatGroupInfo, MessageInfo, notificationFetcher } from "../api/notification";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useUserContext } from "./UserContext";
 
 interface MessageContextProps {
-  chatGroupSelect: ChatGroupInfo | null;
-  setChatGroupSelect: (user: ChatGroupInfo | null) => void;
-  chatGroups: ChatGroupInfo[];
-  setChatGroups: (groups: ChatGroupInfo[]) => void;
-  getUserIfPrivate: (chatGroup: ChatGroupInfo) => AccountInfo | undefined;
+  chatGroupSelect: EnhancedChatGroupInfo | null;
+  setChatGroupSelect: (user: EnhancedChatGroupInfo | null) => void;
+  chatGroups: EnhancedChatGroupInfo[];
+  setChatGroups: (groups: EnhancedChatGroupInfo[]) => void;
+  getUserIfPrivate: (chatGroup: EnhancedChatGroupInfo) => AccountInfo | undefined;
   getMessagesOfChatGroup: (chatGroupId: string, page?: number) => void;
   chatMessages: MessageInfo[];
   setChatMessages: (messages: MessageInfo[]) => void;
-  getInfoUsersOfGroup: (chatGroup: ChatGroupInfo) => AccountInfo[];
+  getInfoUsersOfGroup: (chatGroup: EnhancedChatGroupInfo) => AccountInfo[];
   loadMoreMessages: () => void;
   hasMoreMessages: boolean;
   addMessage: (newMessage: MessageInfo) => void;
@@ -33,10 +33,10 @@ const MessageContext = createContext<MessageContextProps | undefined>(
 export const MessageProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [chatGroupSelect, setChatGroupSelect] = useState<ChatGroupInfo | null>(
+  const [chatGroupSelect, setChatGroupSelect] = useState<EnhancedChatGroupInfo | null>(
     null
   );
-  const [chatGroups, setChatGroups] = useState<ChatGroupInfo[]>([]);
+  const [chatGroups, setChatGroups] = useState<EnhancedChatGroupInfo[]>([]);
   const [chatMessages, setChatMessages] = useState<MessageInfo[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
@@ -66,7 +66,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       const response = (await notificationFetcher.getChatGroups(
         auth.token
-      )) as unknown as ChatGroupInfo[];
+      )) as unknown as EnhancedChatGroupInfo[];
       if (response) {
         setChatGroups(response);
       }
@@ -75,7 +75,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
     loadChatGroup();
   }, [auth]);
 
-  const getUserIfPrivate = (chatGroup: ChatGroupInfo) => {
+  const getUserIfPrivate = (chatGroup: EnhancedChatGroupInfo) => {
     const userId = chatGroup.members.find((member) => member !== account?._id);
     const userInfo = allUsers.find((user) => user._id === userId);
     return userInfo;
@@ -120,7 +120,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const getInfoUsersOfGroup = (chatGroup: ChatGroupInfo) => {
+  const getInfoUsersOfGroup = (chatGroup: EnhancedChatGroupInfo) => {
     const userInfos = chatGroup.members
       .filter((memberId) => memberId !== account?._id)
       .map((memberId) => allUsers.find((user) => user._id === memberId))
