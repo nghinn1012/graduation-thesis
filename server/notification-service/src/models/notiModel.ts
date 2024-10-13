@@ -6,20 +6,22 @@ const NotificationSchema = new mongoose.Schema({
   message: { type: String, required: true },
   type: {
     type: String,
-    enum: ["FOOD_LIKED"],
+    enum: ["FOOD_LIKED", "NEW_FOOD"],
     required: true
   },
   link: { type: String },
   reads: [{ type: String }],
-  postId: { type: String },
-  author: {
+  post: {
     type: {
       _id: { type: String, required: true },
-      username: { type: String },
-      avatar: { type: String },
-      name: { type: String, required: true }
+      title: { type: String, required: true },
     },
-  } } , { timestamps: true });
+  },
+  author: {
+    type: String,
+    required: true,
+  }
+}, { timestamps: true });
 
 const NotificationModel = mongoose.model('Notification', NotificationSchema);
 

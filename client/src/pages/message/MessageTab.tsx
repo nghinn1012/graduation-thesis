@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MessageSidebar from "../../components/message/MessageSidebar";
 import ChatHeader from "../../components/message/ChatHeader";
-import ChatMessage from "../../components/message/ChatMessage";
 import MessageInput from "../../components/message/MessageInput";
 import { useMessageContext } from "../../context/MessageContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
@@ -36,7 +35,7 @@ const MessageTab: React.FC<MessageTabProps> = () => {
   useEffect(() => {
     const sendersMap = chatMessages.reduce((acc, message) => {
       if (!acc[message.senderId]) {
-        const sender = allUsers.find(user => user._id === message.senderId);
+        const sender = allUsers.find((user) => user._id === message.senderId);
         if (sender) {
           acc[message.senderId] = sender;
         }
@@ -63,35 +62,39 @@ const MessageTab: React.FC<MessageTabProps> = () => {
     };
 
     try {
-      const response = await notificationFetcher.sendMessage(auth.token, messageInfo);
+      const response = await notificationFetcher.sendMessage(
+        auth.token,
+        messageInfo
+      );
       const newMessageInfo = response as unknown as MessageInfo;
 
       const { text = "", imageUrl = "", emoji = "" } = newMessageInfo;
 
       addMessage(newMessageInfo);
 
-      setChatGroups(chatGroups.map((chatGroup) => {
-        if (chatGroup._id === chatGroupSelect._id) {
-          return {
-            ...chatGroup,
-            lastMessageInfo: {
-              _id: newMessageInfo._id,
-              text,
-              imageUrl,
-              emoji,
-              createdAt: newMessageInfo.createdAt,
-              senderId: newMessageInfo.senderId,
-            },
-          };
-        }
-        return chatGroup;
-      }));
+      setChatGroups(
+        chatGroups.map((chatGroup) => {
+          if (chatGroup._id === chatGroupSelect._id) {
+            return {
+              ...chatGroup,
+              lastMessage: newMessageInfo._id,
+              lastMessageInfo: {
+                _id: newMessageInfo._id,
+                text,
+                imageUrl,
+                emoji,
+                createdAt: newMessageInfo.createdAt,
+                senderId: newMessageInfo.senderId,
+              },
+            };
+          }
+          return chatGroup;
+        })
+      );
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
-
-
 
   return (
     <div className="h-screen max-h-screen flex overflow-hidden">
@@ -100,10 +103,13 @@ const MessageTab: React.FC<MessageTabProps> = () => {
       <div className="flex-1 flex flex-col min-h-0">
         {chatGroupSelect ? (
           <>
-            <ChatHeader />
+            <ChatHeader/>
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
               <div className="flex-1 overflow-y-auto bg-gray-50">
-                <ChatContainer messages={chatMessages} senders={senders} />
+                <ChatContainer
+                  messages={chatMessages}
+                  senders={senders}
+                />
               </div>
               <div className="flex-shrink-0">
                 <MessageInput onSendMessage={handleSendMessage} />

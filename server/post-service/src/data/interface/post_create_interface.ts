@@ -23,3 +23,18 @@ export interface IPost {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IPostNotification {
+  _id: string;
+  title: string;
+  image: string;
+}
+
+export interface AccountInfo {
+  _id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  username: string;
+  followers: string[];
+}

@@ -28,6 +28,10 @@ const chatGroupSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  avatarUrl: {
+    type: String,
+    default: null,
+  },
 });
 
 const chatGroupModel = model("ChatGroup", chatGroupSchema);

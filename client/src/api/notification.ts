@@ -6,11 +6,12 @@ import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 import { AccountInfo, UserResponseError } from "./user";
 
 export const notificationEndpoints = {
-  // notifications
+  // messages
   getChatGroups: "/notifications/getChatGroups",
   getMessagesOfGroup: "/notifications/getMessages/:chatGroupId",
   sendMessage: "/notifications/sendMessage",
   createChatGroup: "/notifications/createChatGroup",
+  updateChatGroupAvatar: "/notifications/updateChatGroupAvatar",
 
   // notifications
   getNotifications: "/notifications/getAllNotifications",
@@ -59,8 +60,9 @@ export interface ChatGroupInfo {
 }
 
 export interface EnhancedChatGroupInfo extends ChatGroupInfo {
-  updatedAt: any;
-  createdAt: any;
+  updatedAt?: any;
+  createdAt?: any;
+  avatarUrl?: string | undefined;
   lastMessageInfo?: {
     _id: string;
     text?: string;
@@ -109,6 +111,16 @@ export interface NotificationInfo {
   message: string;
   createdAt: string;
   read: boolean;
+  post: {
+    _id: string;
+    title: string;
+    image: string;
+  };
+}
+
+export interface updateChatGroupAvatar {
+  chatGroupId: string;
+  avatarUrl: string;
 }
 
 export interface NotificationFetcher {
@@ -117,6 +129,7 @@ export interface NotificationFetcher {
   sendMessage: (token: string, messageInfo: createMessage) => Promise<NotificationResponse<MessageInfo>>;
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
   getNotifications: (token: string) => Promise<NotificationResponse<NotificationInfo[]>>;
+  updateChatGroupAvatar: (token: string, updateData: updateChatGroupAvatar) => Promise<NotificationResponse<ChatGroupInfo>>;
 }
 
 export const notificationFetcher: NotificationFetcher = {
@@ -158,6 +171,14 @@ export const notificationFetcher: NotificationFetcher = {
   },
   getNotifications: async (token) => {
     return notificationInstance.get(notificationEndpoints.getNotifications, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  },
+  updateChatGroupAvatar: async (token: string, updateData: updateChatGroupAvatar) => {
+    return notificationInstance.patch(notificationEndpoints.updateChatGroupAvatar, updateData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

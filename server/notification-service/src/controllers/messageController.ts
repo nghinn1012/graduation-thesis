@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createChatGroupService, getChatGroupsService, getMessagesService, sendMessageService } from '../services/messageService';
+import { createChatGroupService, getChatGroupsService, getMessagesService, sendMessageService, updateChatGroupAvatarService } from '../services/messageService';
 import { AuthRequest } from '../data';
 
 export const sendMessageController = async (req: AuthRequest, res: Response) => {
@@ -78,6 +78,20 @@ export const createChatGroupController = async (req: AuthRequest, res: Response)
   }
   try {
     const chatGroup = await createChatGroupService(groupData);
+    res.json(chatGroup);
+  } catch (error) {
+    res.status(400).json({ message: (error as Error).message });
+  }
+}
+
+export const updateChatGroupAvatarController = async (req: AuthRequest, res: Response) => {
+  const { chatGroupId, avatarUrl } = req.body;
+  if (!chatGroupId || !avatarUrl) {
+    res.status(400).json({ message: 'ChatGroupId and avatarUrl are required' });
+    return;
+  }
+  try {
+    const chatGroup = await updateChatGroupAvatarService(chatGroupId, avatarUrl);
     res.json(chatGroup);
   } catch (error) {
     res.status(400).json({ message: (error as Error).message });

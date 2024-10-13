@@ -45,7 +45,6 @@ export const searchAndFilterUserService = async (
 
 export const updateUserService = async (userId: string, updateData: UpdateDataInfo) => {
   try {
-    console.log("chay qua");
     const { avatar, coverImage, ...textData } = updateData;
 
     let user = await UserModel.findByIdAndUpdate(

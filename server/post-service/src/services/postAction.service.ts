@@ -30,7 +30,11 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
     }
     await postLikeModel.create({ userId: userId, postId: postId });
     await postModel.findByIdAndUpdate(postId, { $inc: { likeCount: 1 } });
-    await notifyLikedFood(user, postId, post.author);
+    await notifyLikedFood(user, {
+      _id: post._id.toString(),
+      title: post.title,
+      image: post.images[0],
+    }, post.author);
     return { liked: true };
   } catch (error) {
     throw new Error(`Cannot like or unlike post: ${(error as Error).message}`);
@@ -161,6 +165,7 @@ export const isSavedPostByUserService = async (postId: string, userId: string) =
 export const getPostByUserFollowingService = async (userId: string, page?: number, limit?: number) => {
   try {
     console.log(userId);
+    if (!userId) return [];
     const user = await rpcGetUser<IAuthor>(userId, ["_id", "following", "followers"]);
     console.log(user);
     if (!user) {

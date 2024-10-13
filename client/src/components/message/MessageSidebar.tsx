@@ -134,9 +134,8 @@ const MessageSidebar: React.FC = () => {
     }
 
     return (
-      <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-        <FiUsers className="w-6 h-6 text-white" />
-      </div>
+      <img src={chatGroup.avatarUrl} className="w-12 h-12 rounded-full flex items-center justify-center"/>
+
     );
   };
 
@@ -150,8 +149,30 @@ const MessageSidebar: React.FC = () => {
       if (!response) return;
 
       const newChat = response as unknown as EnhancedChatGroupInfo;
-      setChatGroups([...chatGroups, newChat]);
-      setChatGroupSelect(newChat);
+      setChatGroups([...chatGroups, {
+        ...newChat,
+        lastMessage: "",
+        lastMessageInfo: {
+          _id: "",
+          text: "",
+          imageUrl: "",
+          emoji: "",
+          createdAt: new Date().toISOString(),
+          senderId: account?._id || "",
+        },
+      }]);
+      setChatGroupSelect({
+        ...newChat,
+        lastMessage: "",
+        lastMessageInfo: {
+          _id: "",
+          text: "",
+          imageUrl: "",
+          emoji: "",
+          createdAt: new Date().toISOString(),
+          senderId: account?._id || "",
+        },
+      });
       setIsModalOpen(false);
     } catch (err) {
       console.error("Failed to create chat:", err);

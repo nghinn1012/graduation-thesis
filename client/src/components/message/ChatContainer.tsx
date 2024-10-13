@@ -28,7 +28,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, senders }) => {
   }, [messages]);
 
 
-  // Scroll to bottom on initial load and new messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -39,7 +38,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, senders }) => {
     }
   }, []);
 
-  // Preserve scroll position when loading older messages
   useEffect(() => {
     if (containerRef.current) {
       const scrollDifference = containerRef.current.scrollHeight - prevScrollHeightRef.current;
@@ -80,13 +78,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, senders }) => {
     >
       <div ref={observerTarget} className="h-1" />
 
-      {/* {messages.map((message) => (
-        <ChatMessage
-          key={message._id}
-          message={message}
-          sender={senders[message.senderId]}
-        />
-      ))} */}
       {Object.entries(groupedMessages).map(([date, messagesForDate]) => (
         <React.Fragment key={date}>
           {messagesForDate.map((message, index) => (

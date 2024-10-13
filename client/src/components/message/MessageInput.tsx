@@ -12,8 +12,8 @@ interface MessageInputProps {
 const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const [message, setMessage] = useState<string>("");
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
-  const [image, setImage] = useState<string | null>(null); // Thay vì File, ta lưu base64 string
-  const [imagePreview, setImagePreview] = useState<string | null>(null); // URL xem trước ảnh
+  const [image, setImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { chatGroupSelect } = useMessageContext();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

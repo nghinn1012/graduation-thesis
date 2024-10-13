@@ -1,7 +1,7 @@
 import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { io } from "../../index";
-import { createLikedFoodNotifications } from "../services/notificationService";
+import { createLikedFoodNotifications, createNewFoodNotifications } from "../services/notificationService";
 export interface Ided {
   _id: string;
 }
@@ -9,6 +9,7 @@ export interface Ided {
 export const RpcAction = {
   USER_RPC_GET_INFO: "rpcGetUserInfo",
   USER_RPC_GET_USER_BY_ID: "rpcGetUserById",
+  USER_RPC_GET_AUTHORS: "rpcGetAuthors",
 } as const;
 
 export type RpcAction = (typeof RpcAction)[keyof typeof RpcAction];
@@ -22,6 +23,7 @@ export const brokerOperations = {
     NOTIFY_NEW_FOOD: "NOTIFY_NEW_FOOD",
     NOTIFY_FOOD_UPLOAD_COMPLETE: "NOTIFY_FOOD_UPLOAD_COMPLETE",
     NOTIFY_FOOD_LIKED: "NOTIFY_FOOD_LIKED",
+    NOTIFY_FOOD_COMMENTED: "NOTIFY_FOOD_COMMENTED",
   },
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
@@ -51,8 +53,38 @@ export interface NotifiFoodUploadResponse {
 
 export interface IBrokerNotifyLikedFoodPayload {
   user: IAuthor;
-  foodId: string;
+  food: {
+    _id: string;
+    title: string;
+    image: string;
+  };
   authorId: string;
+}
+
+export interface IBrokerNotifyNewFoodPayload {
+  food: {
+    _id: string;
+    title: string;
+    image: string;
+  };
+  followers: string[];
+  user: IAuthor;
+}
+
+export interface IBrokerNotifyCommentedFoodPayload {
+  user: IAuthor,
+  parentCommentId: string,
+  food: {
+    _id: string;
+    title: string;
+    image: string;
+  },
+  notiUsers: string[],
+}
+
+export interface IRpcGetAuthorsPayload {
+  _ids: string[];
+  select?: string | string[];
 }
 
 export const initRpcConsumers = (_rabbit: RabbitMQ): void => {
@@ -85,14 +117,22 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
     brokerOperations.food.NOTIFY_FOOD_LIKED,
     (msg: IBrokerMessage<IBrokerNotifyLikedFoodPayload>) => {
 
-      console.log("chay qua");
       if (msg.data) {
-      const { foodId, user, authorId } = msg.data;
-      console.log("Message data:", foodId, user, authorId);
-        createLikedFoodNotifications(user, foodId, authorId);
+        const { food, user, authorId } = msg.data;
+        console.log("Message data:", food, user, authorId);
+        createLikedFoodNotifications(user, food, authorId);
       } else {
         console.error("Message data is undefined or missing expected properties.");
       }
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_NEW_FOOD,
+    (msg: IBrokerMessage<IBrokerNotifyNewFoodPayload>) => {
+      const { user, food, followers } = msg.data;
+      console.log("Message data:", user, food, followers);
+      createNewFoodNotifications(user, food, followers);
     }
   );
 

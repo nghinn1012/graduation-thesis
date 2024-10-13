@@ -5,10 +5,12 @@ import { io } from '../../index';
 import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
 import { PostSearchBuilder } from "../data/interface/queryBuilder";
 import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
+import { notifyNewFood } from "./notify.services";
+import { AccountInfo } from "../data/interface/post_create_interface";
 
 export const createPostService = async (data: IPost) => {
   try {
-    const author = await rpcGetUser<Id>(data.author, "_id");
+    const author = await rpcGetUser<AccountInfo>(data.author, ["_id", "name", "avatar", "username", "followers"]);
     if (!author) {
       console.log("rpc-author", "unknown create post");
       throw new InternalError({
@@ -112,7 +114,11 @@ export const createPostService = async (data: IPost) => {
     };
 
     handleUploads();
-
+    await notifyNewFood(author, {
+      _id: post._id.toString(),
+      title: post.title,
+      image: post.images[0],
+    }, author.followers);
     return post;
   } catch (error) {
     throw new InternalError({

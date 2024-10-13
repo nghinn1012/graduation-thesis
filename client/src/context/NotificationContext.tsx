@@ -9,7 +9,11 @@ interface Notification {
   id: string;
   user: string;
   author: AccountInfo;
-  postId: string;
+  post: {
+    _id: string;
+    title: string;
+    image: string;
+  };
   message: string;
   type: string;
   createdAt: string;

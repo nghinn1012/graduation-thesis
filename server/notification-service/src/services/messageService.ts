@@ -3,7 +3,7 @@ import { createGroupChat } from "../data/interface/message_interface";
 import chatGroupModel from "../models/chatGroupModel";
 import messageModel from "../models/messageModel";
 import { userSocketMap } from "../socket";
-import { uploadImageToCloudinary } from "./imagesuploader.services";
+import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
 
 export const sendMessageService = async (
   senderId: string,
@@ -172,4 +172,49 @@ export const createChatGroupService = async (groupData: createGroupChat) => {
   } catch (error) {
     throw new Error(`Error creating chat group: ${(error as Error).message}`);
   }
-}
+};
+
+export const updateChatGroupAvatarService = async (chatGroupId: string, newImage: string) => {
+  try {
+    let chatGroup = await chatGroupModel.findById(chatGroupId).exec();
+    if (!chatGroup) {
+      throw new Error("Chat group not found");
+    }
+
+    const oldImagePublicId = chatGroup.avatarUrl
+      ? extractPublicIdFromUrl(chatGroup.avatarUrl)
+      : null;
+
+    if (newImage && newImage !== chatGroup.avatarUrl) {
+      if (oldImagePublicId) {
+        deleteImageFromCloudinary(oldImagePublicId).catch((error) => {
+          console.error("Failed to delete old image:", error);
+        });
+      }
+
+      uploadImageToCloudinary(newImage, 'chat_group_avatars')
+        .then((newAvatarUrl) => {
+          return chatGroupModel.findByIdAndUpdate(
+            chatGroupId,
+            { avatarUrl: newAvatarUrl },
+            { new: true }
+          );
+        })
+        .then((updatedChatGroup) => {
+          if (updatedChatGroup) {
+            io.emit('chatGroupAvatarUpdated', {
+              chatGroupId: chatGroupId,
+              newAvatarUrl: updatedChatGroup.avatarUrl,
+            });
+          }
+        })
+        .catch((uploadError) => {
+          console.error("Error uploading new avatar:", uploadError);
+        });
+    }
+
+    return chatGroup;
+  } catch (error) {
+    throw new Error(`Error updating chat group avatar: ${(error as Error).message}`);
+  }
+};
