@@ -22,6 +22,7 @@ export const createLikedFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers([authorId], {
     ...notificationData,
+    createdAt: notification.createdAt,
     author: user,
     read: false,
   });
@@ -44,6 +45,7 @@ export const createNewFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers(followers, {
     ...notificationData,
+    createdAt: notification.createdAt,
     author: user,
     read: false,
   });
@@ -75,6 +77,7 @@ export const createCommentedFoodNotifications = async (
   if (author !== user._id && !mentions?.includes(author)) {
     sendNotification(author, {
       ...notificationData,
+      createdAt: notification.createdAt,
       author: user,
       read: false,
       message: `commented on your post`,
@@ -82,7 +85,7 @@ export const createCommentedFoodNotifications = async (
   }
 }
 
-export const createSavedFoodNotifications = async(
+export const createSavedFoodNotifications = async (
   user: IAuthor,
   food: PostNotification,
   authorId: string
@@ -99,6 +102,7 @@ export const createSavedFoodNotifications = async(
   await notification.save();
   sendNotificationToUsers([authorId], {
     ...notificationData,
+    createdAt: notification.createdAt,
     author: user,
     read: false,
   });
@@ -122,12 +126,13 @@ export const createMadeFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers([authorId], {
     ...notificationData,
+    createdAt: notification.createdAt,
     author: user,
     read: false,
   });
 }
 
-export const createFollowNotifications = async(
+export const createFollowNotifications = async (
   user: string,
   follower: IAuthor
 ) => {
@@ -142,6 +147,7 @@ export const createFollowNotifications = async(
   await notification.save();
   sendNotification(user, {
     ...notificationData,
+    createdAt: notification.createdAt,
     author: follower,
     read: false,
   });
@@ -174,7 +180,8 @@ export const getNotificationsServices = async (userId: string) => {
         type: n.type,
         post: n.post ? { _id: n.post._id, title: n.post.title } : null,
         createdAt: n.createdAt,
-        author: author
+        author: author,
+        read: n.reads.includes(userId),
       };
 
       return cleanedNotification;
@@ -184,5 +191,47 @@ export const getNotificationsServices = async (userId: string) => {
   } catch (error) {
     console.error("Error fetching notifications:", error);
     throw new Error("Failed to fetch notifications");
+  }
+};
+
+export const markNotificationAsRead = async (notificationId: string, userId: string) => {
+  try {
+    const notification = await NotificationModel.findById(notificationId);
+    if (!notification) {
+      throw new Error("Notification not found");
+    }
+    if (!notification.reads.includes(userId)) {
+      notification.reads.push(userId);
+      await notification.save();
+    }
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    throw new Error("Failed to mark notification as read");
+  }
+}
+
+export const markAllNotificationsAsRead = async (userId: string) => {
+  try {
+    const notifications = await NotificationModel.find({
+      users: { $in: [userId] },
+      reads: { $nin: [userId] },
+    });
+
+    if (!notifications || notifications.length === 0) {
+      throw new Error("Notifications not found");
+    }
+
+    await Promise.all(
+      notifications.map(async (notification: typeof NotificationModel) => {
+        if (!notification.reads.includes(userId)) {
+          notification.reads.push(userId);
+          await notification.save();
+        }
+      })
+    );
+
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+    throw new Error("Failed to mark all notifications as read");
   }
 };

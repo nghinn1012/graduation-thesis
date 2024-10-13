@@ -28,4 +28,5 @@ export interface NotificationToUser {
   link?: string,
   author?: IAuthor,
   post?: PostNotification,
+  createdAt?: Date,
 }

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect, useContext, useMemo } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { SocketContext } from "./SocketContext";
 import { useSocket } from "../hooks/useSocketContext";
@@ -6,7 +6,7 @@ import { notificationFetcher } from "../api/notification";
 import { AccountInfo } from "../api/user";
 
 interface Notification {
-  id: string;
+  _id: string;
   user: string;
   author: AccountInfo;
   post: {
@@ -22,8 +22,11 @@ interface Notification {
 
 interface NotificationContextType {
   notifications: Notification[];
+  unreadNotifications: Notification[];
   markNotificationAsRead: (notificationId: string) => void;
   loading: boolean;
+  unreadCount: number;
+  markAllNotificationsAsRead: () => void;
 }
 
 export const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -33,6 +36,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [loading, setLoading] = useState(true);
   const { account, auth } = useAuthContext();
   const { socket } = useSocket();
+
+  const unreadNotifications = useMemo(() => {
+    return notifications.filter(notification => !notification.read);
+  }, [notifications]);
+
+  const unreadCount = unreadNotifications.length;
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -52,7 +61,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     fetchNotifications();
-  }, [account]);
+  }, [account, auth?.token]);
 
   useEffect(() => {
     if (!socket || !account) return;
@@ -70,23 +79,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [socket, account]);
 
   const markNotificationAsRead = async (notificationId: string) => {
-    if (!account) return;
+    if (!account || !auth?.token) return;
 
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/mark-read`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await notificationFetcher.markNotificationAsRead(auth?.token, { notificationId: notificationId });
 
-      if (!response.ok) {
+      if (!response) {
         throw new Error('Failed to mark notification as read');
       }
 
       setNotifications((prevNotifications) =>
         prevNotifications.map((notification) =>
-          notification.id === notificationId
+          notification._id === notificationId
             ? { ...notification, read: true }
             : notification
         )
@@ -96,8 +100,35 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const markAllNotificationsAsRead = async () => {
+    if (!account || !auth?.token) return;
+
+    try {
+      const response = await notificationFetcher.markAllNotificationsAsRead(auth?.token);
+
+      if (!response) {
+        throw new Error('Failed to mark all notifications as read');
+      }
+
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
+          ({ ...notification, read: true })
+        )
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  }
+
   return (
-    <NotificationContext.Provider value={{ notifications, markNotificationAsRead, loading }}>
+    <NotificationContext.Provider value={{
+      notifications,
+      unreadNotifications,
+      markNotificationAsRead,
+      loading,
+      unreadCount,
+      markAllNotificationsAsRead
+    }}>
       {children}
     </NotificationContext.Provider>
   );

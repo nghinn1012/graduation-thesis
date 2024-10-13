@@ -41,7 +41,6 @@ const OrderDishPage: React.FC = () => {
   };
 
   const handleOrder = () => {
-    // Implement order logic here
     console.log('Order placed', {
       recipeId,
       quantity,

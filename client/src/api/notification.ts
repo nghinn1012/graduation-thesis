@@ -15,6 +15,8 @@ export const notificationEndpoints = {
 
   // notifications
   getNotifications: "/notifications/getAllNotifications",
+  markNotificationAsRead: "/notifications/markNotificationAsRead/:notificationId",
+  markAllNotificationsAsRead: "/notifications/markAllNotificationsAsRead",
 } as const;
 
 export interface NotificationResponseError
@@ -123,6 +125,9 @@ export interface updateChatGroupAvatar {
   avatarUrl: string;
 }
 
+export interface MarkAsReadInfo {
+  notificationId: string;
+}
 export interface NotificationFetcher {
   getChatGroups: (token: string) => Promise<NotificationResponse<ChatGroupInfo[]>>;
   getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageInfo[]>>;
@@ -130,6 +135,8 @@ export interface NotificationFetcher {
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
   getNotifications: (token: string) => Promise<NotificationResponse<NotificationInfo[]>>;
   updateChatGroupAvatar: (token: string, updateData: updateChatGroupAvatar) => Promise<NotificationResponse<ChatGroupInfo>>;
+  markNotificationAsRead: (token: string, markAsReadInfo: MarkAsReadInfo) => Promise<NotificationResponse<NotificationInfo>>;
+  markAllNotificationsAsRead: (token: string) => Promise<NotificationResponse<NotificationInfo>>;
 }
 
 export const notificationFetcher: NotificationFetcher = {
@@ -179,6 +186,22 @@ export const notificationFetcher: NotificationFetcher = {
   },
   updateChatGroupAvatar: async (token: string, updateData: updateChatGroupAvatar) => {
     return notificationInstance.patch(notificationEndpoints.updateChatGroupAvatar, updateData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  },
+  markNotificationAsRead: async (token, markAsReadInfo) => {
+    return notificationInstance.patch(notificationEndpoints.markNotificationAsRead.replace(":notificationId", markAsReadInfo.notificationId), markAsReadInfo, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  },
+  markAllNotificationsAsRead: async (token) => {
+    return notificationInstance.patch(notificationEndpoints.markAllNotificationsAsRead, null, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
