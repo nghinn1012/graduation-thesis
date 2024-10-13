@@ -26,6 +26,7 @@ export const brokerOperations = {
   },
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
+    NOTIFY_NEW_FOLLOWER: "NOTIFY_NEW_FOLLOWER",
   }
 } as const;
 

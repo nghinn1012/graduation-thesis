@@ -1,7 +1,7 @@
 import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { io } from "../../index";
-import { createLikedFoodNotifications, createNewFoodNotifications } from "../services/notificationService";
+import { createCommentedFoodNotifications, createFollowNotifications, createLikedFoodNotifications, createMadeFoodNotifications, createNewFoodNotifications, createSavedFoodNotifications } from "../services/notificationService";
 export interface Ided {
   _id: string;
 }
@@ -24,9 +24,12 @@ export const brokerOperations = {
     NOTIFY_FOOD_UPLOAD_COMPLETE: "NOTIFY_FOOD_UPLOAD_COMPLETE",
     NOTIFY_FOOD_LIKED: "NOTIFY_FOOD_LIKED",
     NOTIFY_FOOD_COMMENTED: "NOTIFY_FOOD_COMMENTED",
+    NOTIFY_FOOD_SAVED: "NOTIFY_FOOD_SAVED",
+    NOTIFY_FOOD_MADE: "NOTIFY_FOOD_MADE",
   },
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
+    NOTIFY_NEW_FOLLOWER: "NOTIFY_NEW_FOLLOWER",
   },
 } as const;
 
@@ -73,18 +76,23 @@ export interface IBrokerNotifyNewFoodPayload {
 
 export interface IBrokerNotifyCommentedFoodPayload {
   user: IAuthor,
-  parentCommentId: string,
   food: {
     _id: string;
     title: string;
     image: string;
   },
-  notiUsers: string[],
+  author: string,
+  mentions: string
 }
 
 export interface IRpcGetAuthorsPayload {
   _ids: string[];
   select?: string | string[];
+}
+
+export interface IBrokerNotifyNewFollowerPayload {
+  user: string;
+  follower: IAuthor;
 }
 
 export const initRpcConsumers = (_rabbit: RabbitMQ): void => {
@@ -133,6 +141,41 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
       const { user, food, followers } = msg.data;
       console.log("Message data:", user, food, followers);
       createNewFoodNotifications(user, food, followers);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_FOOD_COMMENTED,
+    (msg: IBrokerMessage<IBrokerNotifyCommentedFoodPayload>) => {
+      const { user, food, author, mentions } = msg.data;
+      console.log("Message data:", user, food, author, mentions);
+      createCommentedFoodNotifications(user, food, author, mentions);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_FOOD_SAVED,
+    (msg: IBrokerMessage<IBrokerNotifyLikedFoodPayload>) => {
+      const { food, user, authorId } = msg.data;
+      createSavedFoodNotifications(user, food, authorId);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_FOOD_MADE,
+    (msg: IBrokerMessage<IBrokerNotifyLikedFoodPayload>) => {
+      const { food, user, authorId } = msg.data;
+      console.log("Message data:", food, user, authorId);
+      createMadeFoodNotifications(user, food, authorId);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.user.NOTIFY_NEW_FOLLOWER,
+    (msg: IBrokerMessage<IBrokerNotifyNewFollowerPayload>) => {
+      console.log("Message data:", msg.data);
+      const { user, follower } = msg.data;
+      createFollowNotifications(user, follower);
     }
   );
 

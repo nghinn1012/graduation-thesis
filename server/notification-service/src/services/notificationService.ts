@@ -1,7 +1,7 @@
 import { IAuthor } from "../broker/rpc_consumer";
 import { NotificationInfo, NotificationToUser, PostNotification } from "../data/interface/notification_interface";
 import NotificationModel from "../models/notiModel";
-import { sendNotificationToUsers } from "../socket/notification";
+import { sendNotification, sendNotificationToUsers } from "../socket/notification";
 import { rpcGetUsers } from "./rpc.services";
 
 export const createLikedFoodNotifications = async (
@@ -14,7 +14,7 @@ export const createLikedFoodNotifications = async (
     users: [authorId],
     reads: [],
     type: "FOOD_LIKED",
-    message: `Your food has been liked`,
+    message: `liked your food`,
     author: user._id,
     post: food,
   };
@@ -27,7 +27,7 @@ export const createLikedFoodNotifications = async (
   });
 };
 
-export const createNewFoodNotifications = async(
+export const createNewFoodNotifications = async (
   user: IAuthor,
   food: PostNotification,
   followers: string[]
@@ -36,7 +36,7 @@ export const createNewFoodNotifications = async(
     users: followers,
     reads: [],
     type: "NEW_FOOD",
-    message: `Your food has been created`,
+    message: `created a new food`,
     author: user._id,
     post: food,
   }
@@ -45,6 +45,104 @@ export const createNewFoodNotifications = async(
   sendNotificationToUsers(followers, {
     ...notificationData,
     author: user,
+    read: false,
+  });
+}
+
+export const createCommentedFoodNotifications = async (
+  user: IAuthor,
+  food: PostNotification,
+  author: string,
+  mentions: string
+) => {
+  const notificationData: NotificationInfo = {
+    users: [author, ...(mentions || [])],
+    reads: [],
+    type: "FOOD_COMMENTED",
+    message: `commented on your post`,
+    author: user._id,
+    post: food,
+  }
+  const notification = new NotificationModel(notificationData);
+  await notification.save();
+  console.log(mentions);
+  sendNotification(mentions, {
+    ...notificationData,
+    author: user,
+    read: false,
+    message: `mentioned you in a comment`,
+  });
+  if (author !== user._id && !mentions?.includes(author)) {
+    sendNotification(author, {
+      ...notificationData,
+      author: user,
+      read: false,
+      message: `commented on your post`,
+    });
+  }
+}
+
+export const createSavedFoodNotifications = async(
+  user: IAuthor,
+  food: PostNotification,
+  authorId: string
+) => {
+  const notificationData: NotificationInfo = {
+    users: [authorId],
+    reads: [],
+    type: "FOOD_SAVED",
+    author: user._id,
+    message: `saved your food`,
+    post: food,
+  }
+  const notification = new NotificationModel(notificationData);
+  await notification.save();
+  sendNotificationToUsers([authorId], {
+    ...notificationData,
+    author: user,
+    read: false,
+  });
+}
+
+export const createMadeFoodNotifications = async (
+  user: IAuthor,
+  food: PostNotification,
+  authorId: string
+) => {
+  console.log(user);
+  const notificationData: NotificationInfo = {
+    users: [authorId],
+    reads: [],
+    type: "FOOD_MADE",
+    message: `made your food`,
+    author: user._id,
+    post: food,
+  }
+  const notification = new NotificationModel(notificationData);
+  await notification.save();
+  sendNotificationToUsers([authorId], {
+    ...notificationData,
+    author: user,
+    read: false,
+  });
+}
+
+export const createFollowNotifications = async(
+  user: string,
+  follower: IAuthor
+) => {
+  const notificationData: NotificationInfo = {
+    users: [user],
+    reads: [],
+    type: "NEW_FOLLOWER",
+    author: follower._id,
+    message: `started following you`,
+  }
+  const notification = new NotificationModel(notificationData)
+  await notification.save();
+  sendNotification(user, {
+    ...notificationData,
+    author: follower,
     read: false,
   });
 }

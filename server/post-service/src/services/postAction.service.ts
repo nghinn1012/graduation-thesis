@@ -4,7 +4,7 @@ import postModel from '../models/postModel';
 import savedListModel from '../models/savedListModel.model';
 import { IAuthor, Id, rpcGetUser, rpcGetUsers } from './index.services';
 import mongoose from 'mongoose';
-import { notifyLikedFood } from './notify.services';
+import { notifyLikedFood, notifySavedFood } from './notify.services';
 
 export const likeOrUnlikePostService = async (postId: string, userId: string) => {
   try {
@@ -89,7 +89,7 @@ export const saveOrUnsavedPostService = async (postId: string, userId: string) =
       throw new Error('Post not found');
     }
 
-    const user = await rpcGetUser<Id>(userId, "_id");
+    const user = await rpcGetUser<IAuthor>(userId, ["_id", "name", "avatar", "username"]);
     if (!user) {
       console.log("rpc-author", "unknown savepost");
       throw new InternalError({
@@ -114,6 +114,11 @@ export const saveOrUnsavedPostService = async (postId: string, userId: string) =
         savedList.postIds.push(postObjectId);
         await savedList.save();
         await postModel.findByIdAndUpdate(postObjectId, { $inc: { savedCount: 1 } });
+        await notifySavedFood(user, {
+          _id: post._id.toString(),
+          title: post.title,
+          image: post.images[0],
+        }, post.author);
         return { saved: true };
       }
     } else {

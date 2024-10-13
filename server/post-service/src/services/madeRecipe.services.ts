@@ -1,10 +1,18 @@
 import { IMadeRecipe } from "../data/interface/made_recipe_interface";
 import MadeRecipeModel from "../models/madeRepiceModel";
 import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
-import { IAuthor, rpcGetUsers } from "./rpc.services";
+import { IAuthor, rpcGetUser, rpcGetUsers } from "./rpc.services";
 import { io } from '../../index';
 import postModel from "../models/postModel";
+import { notifyMadeFood } from "./notify.services";
 export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
+  if (!madeRecipeData.userId) {
+    throw new Error("User not found");
+  }
+  const user = await rpcGetUser<IAuthor>(madeRecipeData.userId, ["_id", "name", "avatar", "username"]);
+  if (!user) {
+    throw new Error("User not found");
+  }
   try {
     const madeRecipe = await MadeRecipeModel.create({
       ...madeRecipeData,
@@ -34,7 +42,15 @@ export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
     });
     console.log("ratingOfPost", totalRating);
     const rating = totalRating / ratingOfPost.length;
-    await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating });
+    const post = await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating });
+    if (!post) {
+      throw new Error("Post not found");
+    }
+    await notifyMadeFood(user, {
+      _id: post._id.toString(),
+      title: post.title,
+      image: post.images[0],
+    }, post.author);
     return madeRecipe;
   } catch (error) {
     console.error("Error in createMadeRecipeService:", error);

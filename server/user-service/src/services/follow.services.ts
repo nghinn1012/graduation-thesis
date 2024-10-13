@@ -1,5 +1,6 @@
 import { InvalidDataError } from "../data/invalid_data.data";
 import UserModel from "../db/models/User.models"
+import { notifyFollowUser } from "./rpc.services";
 
 export const followAndUnFollowUserService = async (currentUserId: string, userId: string) => {
   if (userId == currentUserId) {
@@ -41,6 +42,13 @@ export const followAndUnFollowUserService = async (currentUserId: string, userId
     (currentUserId, {
       $push: { following: userId }
     });
+    await notifyFollowUser(userId, {
+      _id: currentUser._id.toString(),
+      name: currentUser.name,
+      avatar: currentUser.avatar,
+      username: currentUser.username
+    }
+    )
     return "User followed successfully!"
   }
 }

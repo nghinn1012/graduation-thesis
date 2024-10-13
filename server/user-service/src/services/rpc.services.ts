@@ -1,3 +1,5 @@
+import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
+import { UserInfo } from "../data/user_interface";
 import UserModel from "../db/models/User.models";
 
 export const rpcGetUserById = async (
@@ -32,3 +34,15 @@ export const rpcGetUserByIds = async (
     throw error;
   }
 };
+
+
+export const notifyFollowUser = async (user: string, follower: UserInfo) => {
+  RabbitMQ.instance.publicMessage(
+    BrokerSource.NOTIFICATION,
+    brokerOperations.user.NOTIFY_NEW_FOLLOWER,
+    {
+      user: user,
+      follower: follower,
+    }
+  );
+}

@@ -99,6 +99,7 @@ const NotificationPage: FC = () => {
               author: notification.author,
               post: notification.post,
               type: notification.type,
+              message: notification.message,
             }}
             onClick={handleNotificationClick}
           />

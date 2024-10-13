@@ -14,6 +14,30 @@ export const notifyLikedFood = async (user: IAuthor, food: IPostNotification, au
   );
 };
 
+export const notifySavedFood = async (user: IAuthor, food: IPostNotification, authorId: string) => {
+  RabbitMQ.instance.publicMessage(
+    BrokerSource.NOTIFICATION,
+    brokerOperations.food.NOTIFY_FOOD_SAVED,
+    {
+      user: user,
+      food: food,
+      authorId: authorId,
+    }
+  );
+}
+
+export const notifyMadeFood = async (user: IAuthor, food: IPostNotification, authorId: string) => {
+  RabbitMQ.instance.publicMessage(
+    BrokerSource.NOTIFICATION,
+    brokerOperations.food.NOTIFY_FOOD_MADE,
+    {
+      user: user,
+      food: food,
+      authorId: authorId,
+    }
+  );
+}
+
 export const notifyNewFood = async (user: IAuthor, food: IPostNotification, followers: string[]) => {
   RabbitMQ.instance.publicMessage(
     BrokerSource.NOTIFICATION,
@@ -25,3 +49,17 @@ export const notifyNewFood = async (user: IAuthor, food: IPostNotification, foll
     }
   );
 };
+
+export const notifyCommentedFood = async (user: IAuthor, food:
+  IPostNotification, author: string, mentions: string[]) => {
+  RabbitMQ.instance.publicMessage(
+    BrokerSource.NOTIFICATION,
+    brokerOperations.food.NOTIFY_FOOD_COMMENTED,
+    {
+      user: user,
+      food: food,
+      author: author,
+      mentions: mentions,
+    }
+  );
+}

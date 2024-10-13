@@ -3,8 +3,9 @@ import { createComment } from "../data/interface/comment_interface";
 import CommentModel from "../models/commentModel";
 import { IAuthor, Id, rpcGetUser, rpcGetUsers } from "./rpc.services";
 import PostModel from "../models/postModel";
+import { notifyCommentedFood } from "./notify.services";
 export const createCommentService = async (postId: string, userId: string, commentData: createComment) => {
-    const author = await rpcGetUser<Id>(userId, "_id");
+    const author = await rpcGetUser<IAuthor>(userId, ["_id", "name", "username", "avatar"]);
     if (!author) {
         console.log("rpc-author", "unknown");
         throw new InternalError({
@@ -20,7 +21,21 @@ export const createCommentService = async (postId: string, userId: string, comme
             postId,
             userId,
         });
-        await PostModel.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
+        const postData = await PostModel.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
+        if (!postData) {
+            throw new InternalError({
+                data: {
+                    target: "post",
+                    reason: "not-found",
+                },
+            });
+        }
+        await notifyCommentedFood(author,
+        {
+            _id: postId,
+            title: postData.title,
+            image: postData.images[0],
+        }, postData.author, commentData.userMention);
         return comment;
     }
     catch (error) {

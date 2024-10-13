@@ -6,7 +6,8 @@ const NotificationSchema = new mongoose.Schema({
   message: { type: String, required: true },
   type: {
     type: String,
-    enum: ["FOOD_LIKED", "NEW_FOOD"],
+    enum: ["FOOD_LIKED", "NEW_FOOD", "FOOD_COMMENTED",
+      "FOOD_SAVED", "FOOD_MADE", "NEW_FOLLOWER"],
     required: true
   },
   link: { type: String },
