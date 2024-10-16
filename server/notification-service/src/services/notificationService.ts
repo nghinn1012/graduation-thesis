@@ -22,6 +22,7 @@ export const createLikedFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers([authorId], {
     ...notificationData,
+    _id: notification._id,
     createdAt: notification.createdAt,
     author: user,
     read: false,
@@ -45,6 +46,7 @@ export const createNewFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers(followers, {
     ...notificationData,
+    _id: notification._id,
     createdAt: notification.createdAt,
     author: user,
     read: false,
@@ -70,6 +72,7 @@ export const createCommentedFoodNotifications = async (
   console.log(mentions);
   sendNotification(mentions, {
     ...notificationData,
+    _id: notification._id,
     author: user,
     read: false,
     message: `mentioned you in a comment`,
@@ -77,6 +80,7 @@ export const createCommentedFoodNotifications = async (
   if (author !== user._id && !mentions?.includes(author)) {
     sendNotification(author, {
       ...notificationData,
+      _id: notification._id,
       createdAt: notification.createdAt,
       author: user,
       read: false,
@@ -102,6 +106,7 @@ export const createSavedFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers([authorId], {
     ...notificationData,
+    _id: notification._id,
     createdAt: notification.createdAt,
     author: user,
     read: false,
@@ -126,6 +131,7 @@ export const createMadeFoodNotifications = async (
   await notification.save();
   sendNotificationToUsers([authorId], {
     ...notificationData,
+    _id: notification._id,
     createdAt: notification.createdAt,
     author: user,
     read: false,
@@ -147,20 +153,38 @@ export const createFollowNotifications = async (
   await notification.save();
   sendNotification(user, {
     ...notificationData,
+    _id: notification._id,
     createdAt: notification.createdAt,
     author: follower,
     read: false,
   });
 }
 
-export const getNotificationsServices = async (userId: string) => {
+export const getNotificationsServices = async (
+  userId: string,
+  page: number,
+  limit: number = 10
+) => {
   try {
+    const skip = (page - 1) * limit;
+
     const notifications = await NotificationModel.find({
       users: { $in: [userId] },
     })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean()
       .exec() as NotificationInfo[];
+
+    const totalCount = await NotificationModel.countDocuments({
+      users: { $in: [userId] },
+    });
+
+    const totalUnread = await NotificationModel.countDocuments({
+      users: { $in: [userId] },
+      reads: { $nin: [userId] },
+    });
 
     const authorIds = notifications.map((n) => n.author);
     const authors = await rpcGetUsers<IAuthor[]>(authorIds, ["_id", "name", "avatar"]);
@@ -183,11 +207,15 @@ export const getNotificationsServices = async (userId: string) => {
         author: author,
         read: n.reads.includes(userId),
       };
-
       return cleanedNotification;
     });
 
-    return notificationsToUser;
+    return {
+      notifications: notificationsToUser,
+      unreadCount: totalUnread,
+      totalCount,
+      hasMore: totalCount > skip + notifications.length,
+    };
   } catch (error) {
     console.error("Error fetching notifications:", error);
     throw new Error("Failed to fetch notifications");

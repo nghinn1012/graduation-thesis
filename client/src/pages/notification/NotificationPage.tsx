@@ -1,4 +1,4 @@
-import React, { FC, useState, useMemo } from "react";
+import React, { FC, useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IoSettingsOutline } from "react-icons/io5";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -8,8 +8,28 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import NotificationItem from "../../components/notifications/NotificationItem";
 import { AccountInfo } from "../../api/user";
 
+interface Notification {
+  _id: string;
+  author: AccountInfo;
+  post: {
+    _id: string;
+    title: string;
+  } | null;
+  type: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
 const NotificationPage: FC = () => {
-  const { notifications, markNotificationAsRead, markAllNotificationsAsRead } = useNotificationContext();
+  const {
+    notifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    loadMoreNotifications,
+    loading,
+    hasMore
+  } = useNotificationContext();
   const [isLoadingPost, setIsLoadingPost] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const navigate = useNavigate();
@@ -17,10 +37,29 @@ const NotificationPage: FC = () => {
   const { fetchPost } = usePostContext();
   const { auth } = useAuthContext();
 
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastNotificationRef = useCallback((node: HTMLDivElement) => {
+    if (loading) return;
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreNotifications();
+      }
+    });
+    if (node) observerRef.current.observe(node);
+  }, [loading, hasMore, loadMoreNotifications]);
+
+  useEffect(() => {
+    const notificationContainer = document.querySelector('.overflow-y-auto');
+    if (notificationContainer) {
+      notificationContainer.scrollTop = 0;
+    }
+  }, [activeTab]);
+
   const markAllAsRead = async (): Promise<void> => {
     if (window.confirm("Are you sure you want to mark all notifications as read?")) {
       try {
-        await markAllNotificationsAsRead(); 
+        await markAllNotificationsAsRead();
         alert("All notifications marked as read");
       } catch (error) {
         console.error("Error marking notifications as read:", error);
@@ -58,12 +97,12 @@ const NotificationPage: FC = () => {
 
   const filteredNotifications = useMemo(() => {
     return activeTab === "unread"
-      ? notifications.filter((notification) => !notification.read)
+      ? notifications?.filter((notification) => !notification.read)
       : notifications;
   }, [activeTab, notifications]);
 
   return (
-    <div className="flex flex-col h-full max-w-full overflow-hidden ">
+    <div className="flex flex-col h-full max-w-full overflow-hidden">
       <div className="flex-shrink-0 w-full">
         <div className="flex justify-between items-center p-4">
           <p className="font-bold">Notifications</p>
@@ -108,22 +147,28 @@ const NotificationPage: FC = () => {
         {filteredNotifications.length === 0 ? (
           <div className="text-center p-4 font-bold">No notifications 🤔</div>
         ) : (
-          filteredNotifications.map((notification) => (
-            <NotificationItem
-              key={notification._id}
-              notification={{
-                _id: notification._id,
-                author: notification.author,
-                post: notification.post,
-                type: notification.type,
-                message: notification.message,
-                read: notification.read,
-                createdAt: notification.createdAt,
-              }}
-              onClick={handleNotificationClick}
-            />
+          filteredNotifications.map((notification, index) => (
+            <div
+              key={`${notification._id}-${index}`}
+              ref={index === filteredNotifications.length - 1 ? lastNotificationRef : null}
+            >
+               <NotificationItem
+                notification={{
+                  _id: notification._id,
+                  author: notification.author as AccountInfo,
+                  post: notification.post,
+                  type: notification.type,
+                  message: notification.message,
+                  read: notification.read,
+                  createdAt: notification.createdAt,
+                }}
+                onClick={handleNotificationClick}
+              />
+            </div>
           ))
         )}
+        {loading && <div className="text-center p-4"><LoadingSpinner size="md" /></div>}
+        {!loading && !hasMore && <div className="text-center p-4">No more notifications</div>}
       </div>
 
       {isLoadingPost && (

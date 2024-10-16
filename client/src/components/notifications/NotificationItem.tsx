@@ -4,6 +4,7 @@ import { AccountInfo } from '../../api/user';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { BsPostcard } from 'react-icons/bs';
 
 interface NotificationItemProps {
   notification: {
@@ -39,11 +40,15 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
   const getIcon = () => {
     switch (notification.type) {
       case 'NEW_FOOD':
-        return <FaUser className="w-5 h-5 text-blue-500" />;
+        return <BsPostcard className="w-5 h-5 text-blue-500" />;
       case 'FOOD_LIKED':
         return <FaHeart className="w-5 h-5 text-red-500" />;
       case 'FOOD_SAVED':
         return <FaBookmark className="w-5 h-5 text-red-500" />;
+      case 'FOOD_COMMENTED':
+        return <FaComment className="w-5 h-5 text-green-500" />;
+      case "NEW_FOLLOWER":
+        return <FaUser className="w-5 h-5 text-blue-500" />;
       default:
         return <FaComment className="w-5 h-5 text-green-500" />;
     }

@@ -1,153 +1,249 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { IoArrowBack } from 'react-icons/io5';
+import React, { useState } from "react";
+import {
+  AiOutlineHeart,
+  AiOutlineClockCircle,
+  AiFillStar,
+} from "react-icons/ai";
+import { IoChevronBackOutline } from "react-icons/io5";
+import { FiMinus, FiPlus } from "react-icons/fi";
+import { useLocation, useNavigate } from "react-router-dom";
 
-interface OrderDishPageProps {
+interface Ingredient {
+  name: string;
+  amount: string;
+}
+
+interface ProductPageProps {
   recipeId: string;
   title: string;
   description: string;
   price: number;
-  preparationTime: string;
-  image?: string;
+  preparationTime: number;
+  images: string[];
   chef: {
     name: string;
-    avatar?: string;
-    rating: number;
+    avatar: string;
   };
+  ingredients: Ingredient[];
+  hashtags: string[];
 }
 
-const OrderDishPage: React.FC = () => {
+interface Topping {
+  name: string;
+  emoji: string;
+}
+
+interface Review {
+  id: number;
+  userName: string;
+  userAvatar: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+const toppings: Topping[] = [
+  { name: "Tomato", emoji: "🍅" },
+  { name: "Lettuce", emoji: "🥬" },
+  { name: "Onion", emoji: "🧅" },
+  { name: "Strawberry", emoji: "🍓" },
+];
+
+const reviews: Review[] = [
+  {
+    id: 1,
+    userName: "John Doe",
+    userAvatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    rating: 5,
+    comment: "Absolutely delicious! Will order again.",
+    date: "2023-05-15",
+  },
+  {
+    id: 2,
+    userName: "Jane Smith",
+    userAvatar: "https://randomuser.me/api/portraits/women/2.jpg",
+    rating: 4,
+    comment: "Great flavor, but a bit spicy for my taste.",
+    date: "2023-05-10",
+  },
+];
+
+const ProductPage: React.FC = () => {
+  const [quantity, setQuantity] = useState<number>(2);
+  const [selectedToppings, setSelectedToppings] = useState<number[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+
   const {
     recipeId,
     title,
     description,
     price,
     preparationTime,
-    image,
-    chef
-  } = location.state as OrderDishPageProps;
+    images,
+    chef,
+    ingredients,
+    hashtags,
+  } = location.state as ProductPageProps;
 
-  const [quantity, setQuantity] = useState(1);
-  const [specialRequests, setSpecialRequests] = useState('');
-
-  const totalPrice = price * quantity;
-
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity >= 1 && newQuantity <= 10) {
-      setQuantity(newQuantity);
-    }
+  const handleToppingToggle = (index: number): void => {
+    setSelectedToppings((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
   };
 
-  const handleOrder = () => {
-    console.log('Order placed', {
-      recipeId,
-      quantity,
-      specialRequests,
-      totalPrice
-    });
+  const decreaseQuantity = (): void => {
+    setQuantity((prev) => Math.max(1, prev - 1));
+  };
+
+  const increaseQuantity = (): void => {
+    setQuantity((prev) => prev + 1);
+  };
+
+  const handleClickBack = (): void => {
+    navigate(-1);
+  };
+
+  const renderStars = (rating: number) => {
+    return [...Array(5)]?.map((_, index) => (
+      <AiFillStar
+        key={index}
+        className={index < rating ? "text-yellow-400" : "text-gray-300"}
+      />
+    ));
   };
 
   return (
-    <div className="flex-[4_4_0] border-l border-r border-gray-300 min-h-screen">
-      <div className="p-4 border-b border-gray-300 flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="btn btn-ghost btn-circle">
-          <IoArrowBack className="w-6 h-6" />
-        </button>
-        <h1 className="text-xl font-bold">Order Dish</h1>
-      </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg overflow-hidden h-screen overflow-y-auto">
+        <div className="relative">
+          <img
+            src={images[0]}
+            alt={title}
+            className="w-full h-64 object-cover"
+          />
+          <button
+            className="absolute top-2 left-2 bg-white rounded-full p-2"
+            onClick={handleClickBack}
+          >
+            <IoChevronBackOutline className="w-6 h-6 text-gray-600" />
+          </button>
+          <button className="absolute top-2 right-2 bg-white rounded-full p-2">
+            <AiOutlineHeart className="w-6 h-6 text-red-500" />
+          </button>
+        </div>
 
-      <div className="p-4">
-        <div className="card bg-base-100 shadow-xl">
-          {image && (
-            <figure>
-              <img src={image} alt={title} className="w-full h-48 object-cover" />
-            </figure>
-          )}
-          <div className="card-body">
-            <h2 className="card-title">{title}</h2>
-            <p className="text-gray-600">{description}</p>
-
-            <div className="flex items-center mt-4">
-              <div className="avatar">
-                <div className="w-10 rounded-full">
-                  <img src={chef.avatar || "/avatar-placeholder.png"} alt={chef.name} />
-                </div>
-              </div>
-              <div className="ml-3">
-                <p className="font-semibold">{chef.name}</p>
-                <div className="rating rating-sm">
-                  {[...Array(5)].map((_, i) => (
-                    <input
-                      key={i}
-                      type="radio"
-                      name="rating-2"
-                      className={`mask mask-star-2 ${i < chef.rating ? 'bg-orange-400' : 'bg-gray-300'}`}
-                      disabled
-                    />
-                  ))}
-                </div>
-              </div>
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center">
+              <span className="text-yellow-400 mr-1">★</span>
+              <span className="font-bold">5.0</span>
             </div>
-
-            <div className="divider"></div>
-
-            <div className="flex justify-between items-center">
-              <span className="font-bold">Price per serving:</span>
-              <span className="text-success font-bold">${price.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between items-center mt-2">
-              <span className="font-bold">Preparation time:</span>
-              <span>{preparationTime}</span>
-            </div>
-
-            <div className="form-control mt-4">
-              <label className="label">
-                <span className="label-text font-bold">Quantity</span>
-              </label>
-              <div className="flex items-center">
-                <button
-                  className="btn btn-square btn-sm"
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                >
-                  -
-                </button>
-                <span className="mx-4 font-bold">{quantity}</span>
-                <button
-                  className="btn btn-square btn-sm"
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="form-control mt-4">
-              <label className="label">
-                <span className="label-text font-bold">Special requests</span>
-              </label>
-              <textarea
-                className="textarea textarea-bordered h-24"
-                placeholder="Any special requests? (allergies, preferences, etc.)"
-                value={specialRequests}
-                onChange={(e) => setSpecialRequests(e.target.value)}
-              ></textarea>
-            </div>
-
-            <div className="divider"></div>
-
-            <div className="flex justify-between items-center font-bold text-lg">
-              <span>Total:</span>
-              <span className="text-success">${totalPrice.toFixed(2)}</span>
-            </div>
-
-            <div className="card-actions justify-end mt-4">
-              <button className="btn btn-primary" onClick={handleOrder}>
-                Place Order
+            <div className="flex items-center space-x-2">
+              <button
+                className="bg-yellow-400 rounded-full w-8 h-8 flex items-center justify-center"
+                onClick={decreaseQuantity}
+              >
+                <FiMinus className="w-4 h-4 text-white" />
+              </button>
+              <span className="font-bold">
+                {quantity.toString().padStart(2, "0")}
+              </span>
+              <button
+                className="bg-yellow-400 rounded-full w-8 h-8 flex items-center justify-center"
+                onClick={increaseQuantity}
+              >
+                <FiPlus className="w-4 h-4 text-white" />
               </button>
             </div>
+          </div>
+
+          <h2 className="text-xl font-bold mb-1">{title}</h2>
+          <div className="flex items-center text-gray-500 mb-4">
+            <AiOutlineClockCircle className="w-4 h-4 mr-1" />
+            <span>{preparationTime} mins</span>
+          </div>
+          <p className="text-gray-600 my-4">{description}</p>
+
+          <div className="my-4">
+            <h3 className="font-bold mb-2">
+              Ingredients:
+              <span className="text-gray-600 font-normal">
+                {" " + ingredients.map((ingredient) => ingredient.name).join(", ")}
+              </span>
+            </h3>
+          </div>
+
+          <div className="my-4">
+            <div className="flex flex-wrap gap-2">
+              {hashtags?.map((tag, index) => (
+                <span
+                  key={index}
+                  className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="my-4">
+            <h3 className="font-bold mb-2">Toping for you</h3>
+            <div className="flex justify-between">
+              {toppings.map((topping, index) => (
+                <button
+                  key={index}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
+                    selectedToppings.includes(index)
+                      ? "bg-yellow-400"
+                      : "bg-gray-200"
+                  }`}
+                  onClick={() => handleToppingToggle(index)}
+                >
+                  {topping.emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-4">
+              <span className="font-bold">Total Price</span>
+              <span className="font-bold text-xl">
+                ${(price * quantity).toFixed(2)}
+              </span>
+            </div>
+
+            <div className="flex justify-center">
+              <button className="w-48 bg-black text-white py-3 rounded-lg font-bold">
+                Go To Cart
+              </button>
+            </div>
+          </div>
+
+          <div className="my-6">
+            <h3 className="font-bold text-xl mb-4">Reviews</h3>
+            {reviews.map((review) => (
+              <div key={review.id} className="mb-4 border-b pb-4">
+                <div className="flex items-center mb-2">
+                  <img
+                    src={review.userAvatar}
+                    alt={review.userName}
+                    className="w-10 h-10 rounded-full mr-3"
+                  />
+                  <div>
+                    <p className="font-semibold">{review.userName}</p>
+                    <div className="flex items-center">
+                      {renderStars(review.rating)}
+                      <span className="ml-2 text-sm text-gray-500">
+                        {review.date}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-gray-700">{review.comment}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -155,4 +251,4 @@ const OrderDishPage: React.FC = () => {
   );
 };
 
-export default OrderDishPage;
+export default ProductPage;

@@ -73,7 +73,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (err) {
       console.error("Failed to load users:", err);
-      error("Failed to load users: " + (err as Error));
     } finally {
       setLoading(false);
     }
@@ -102,7 +101,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       });
     } catch (err) {
       console.error("Failed to load suggestions:", err);
-      error("Failed to load suggestions: " + (err as Error).message);
     } finally {
       setLoading(false);
     }

@@ -118,6 +118,18 @@ export interface NotificationInfo {
     title: string;
     image: string;
   };
+  author: {
+    _id: string;
+    username: string;
+    avatar: string;
+    name: string;
+  }
+}
+
+export interface NotificationLoad {
+  notifications: NotificationInfo[];
+  hasMore: boolean;
+  unreadCount: number;
 }
 
 export interface updateChatGroupAvatar {
@@ -133,7 +145,7 @@ export interface NotificationFetcher {
   getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageInfo[]>>;
   sendMessage: (token: string, messageInfo: createMessage) => Promise<NotificationResponse<MessageInfo>>;
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
-  getNotifications: (token: string) => Promise<NotificationResponse<NotificationInfo[]>>;
+  getNotifications: (token: string, page?: number) => Promise<NotificationResponse<NotificationLoad>>;
   updateChatGroupAvatar: (token: string, updateData: updateChatGroupAvatar) => Promise<NotificationResponse<ChatGroupInfo>>;
   markNotificationAsRead: (token: string, markAsReadInfo: MarkAsReadInfo) => Promise<NotificationResponse<NotificationInfo>>;
   markAllNotificationsAsRead: (token: string) => Promise<NotificationResponse<NotificationInfo>>;
@@ -176,10 +188,13 @@ export const notificationFetcher: NotificationFetcher = {
     },
     );
   },
-  getNotifications: async (token) => {
+  getNotifications: async (token, page) => {
     return notificationInstance.get(notificationEndpoints.getNotifications, {
       headers: {
         Authorization: `Bearer ${token}`,
+      },
+      params: {
+        page: page,
       },
     },
     );

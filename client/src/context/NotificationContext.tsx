@@ -1,8 +1,7 @@
-import React, { createContext, useState, useEffect, useContext, useMemo } from "react";
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
-import { SocketContext } from "./SocketContext";
 import { useSocket } from "../hooks/useSocketContext";
-import { notificationFetcher } from "../api/notification";
+import { notificationFetcher, NotificationInfo, NotificationLoad } from "../api/notification";
 import { AccountInfo } from "../api/user";
 
 interface Notification {
@@ -21,19 +20,24 @@ interface Notification {
 }
 
 interface NotificationContextType {
-  notifications: Notification[];
-  unreadNotifications: Notification[];
+  notifications: NotificationInfo[];
+  unreadNotifications: NotificationInfo[];
   markNotificationAsRead: (notificationId: string) => void;
   loading: boolean;
   unreadCount: number;
   markAllNotificationsAsRead: () => void;
+  loadMoreNotifications: () => Promise<void>;
+  hasMore: boolean;
 }
 
 export const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { account, auth } = useAuthContext();
   const { socket } = useSocket();
 
@@ -41,34 +45,42 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return notifications.filter(notification => !notification.read);
   }, [notifications]);
 
-  const unreadCount = unreadNotifications.length;
+  const fetchNotifications = useCallback(async (pageNumber: number) => {
+    if (!account || !auth?.token) return;
+
+    try {
+      setLoading(true);
+      const response = await notificationFetcher.getNotifications(auth.token, pageNumber) as unknown as NotificationLoad;
+      if (!response) {
+        throw new Error('Failed to fetch notifications');
+      }
+
+      console.log(response);
+      const { notifications: newNotifications, hasMore: moreNotifications, unreadCount } = response;
+      console.log(unreadCount);
+
+      setNotifications((notifications) => [...notifications, ...newNotifications]);
+      setHasMore(moreNotifications);
+      setUnreadCount(unreadCount);
+      setPage(pageNumber);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [account, auth?.token]);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!account || !auth?.token) return;
-
-      try {
-        const response = await notificationFetcher.getNotifications(auth.token);
-        if (!response) {
-          throw new Error('Failed to fetch notifications');
-        }
-        setNotifications(response as unknown as Notification[]);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [account, auth?.token]);
+    fetchNotifications(1);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     if (!socket || !account) return;
 
-    socket.on("new-notification", (data: Notification) => {
+    socket.on("new-notification", (data: NotificationInfo) => {
       console.log("New notification:", data);
       setNotifications((prevNotifications) => [data, ...prevNotifications]);
+      setUnreadCount(prevCount => prevCount + 1);  // Increase unread count when a new notification arrives
     });
 
     return () => {
@@ -95,6 +107,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             : notification
         )
       );
+      setUnreadCount(prevCount => Math.max(0, prevCount - 1));  // Decrease unread count
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -115,10 +128,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           ({ ...notification, read: true })
         )
       );
+      setUnreadCount(0);  // Reset unread count to 0
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
   }
+
+  const loadMoreNotifications = async () => {
+    if (loading || !hasMore) return;
+    await fetchNotifications(page + 1);
+  };
 
   return (
     <NotificationContext.Provider value={{
@@ -126,8 +145,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       unreadNotifications,
       markNotificationAsRead,
       loading,
-      unreadCount,
-      markAllNotificationsAsRead
+      unreadCount,  // Use API-provided unread count
+      markAllNotificationsAsRead,
+      loadMoreNotifications,
+      hasMore
     }}>
       {children}
     </NotificationContext.Provider>

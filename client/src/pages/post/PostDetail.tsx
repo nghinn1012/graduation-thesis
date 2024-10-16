@@ -179,13 +179,14 @@ const PostDetails: React.FunctionComponent = () => {
     };
 
     if (socket) {
-      socket.on("food-uploads-updated", async () => {
+      socket.on("food-updated-complete", async () => {
+        console.log("Post updated");
         await fetchUpdatedPostLike();
         setIsLoading(false);
       });
 
       return () => {
-        socket.off("food-uploads-updated");
+        socket.off("food-updated-complete");
       };
     }
   }, [socket, post._id, auth?.token]);
@@ -212,7 +213,7 @@ const PostDetails: React.FunctionComponent = () => {
       if (location.state?.post) {
         try {
           const foundPost = await userFetcher.getUserById(
-            location.state.post.author._id,
+            location.state.post.author._id || location.state.postAuthor._id,
             auth?.token || ""
           );
           if (foundPost) {
@@ -583,12 +584,13 @@ const PostDetails: React.FunctionComponent = () => {
         description: post.about,
         price: 100,
         preparationTime: post.timeToTake,
-        image: post.images[0],
+        images: post.images,
         chef: {
           name: post.author.name,
           avatar: post.author.avatar,
-          // rating: post.author.rating,
-        }
+        },
+        ingredients: post.ingredients,
+        hashtags: post.hashtags,
       }
     });
   };
@@ -838,11 +840,11 @@ const PostDetails: React.FunctionComponent = () => {
                       )}
                     </button>
                     <button
-      className="btn btn-md btn-success w-full md:w-auto"
-      onClick={handleOrderNow}
-    >
-      Order Now
-    </button>
+                      className="btn btn-md btn-success w-full md:w-auto"
+                      onClick={handleOrderNow}
+                    >
+                      Order Now
+                    </button>
                   </div>
                 </div>
 
