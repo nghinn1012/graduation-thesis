@@ -3,6 +3,7 @@ import {
   AiOutlineHeart,
   AiOutlineClockCircle,
   AiFillStar,
+  AiOutlineLink,
 } from "react-icons/ai";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { FiMinus, FiPlus } from "react-icons/fi";
@@ -74,8 +75,7 @@ const ProductPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Attempt to get data from location.state, fallback to URL parameters
-  const recipeData = location.state as ProductPageProps || {};
+  const recipeData = (location.state as ProductPageProps) || {};
   const {
     recipeId = "", // default value
     title = "Default Recipe", // default value
@@ -115,6 +115,10 @@ const ProductPage: React.FC = () => {
     ));
   };
 
+  const handleRecipeLinkClick = () => {
+    navigate(`/posts/${recipeId}`);
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg overflow-hidden h-screen overflow-y-auto">
@@ -136,6 +140,15 @@ const ProductPage: React.FC = () => {
         </div>
 
         <div className="p-4">
+          <a
+            onClick={handleRecipeLinkClick}
+            className="flex items-center text-blue-600 hover:underline mt-4 cursor-pointer"
+          >
+            <AiOutlineLink className="w-5 h-5 mr-2" /> 
+
+            <span className="font-bold">{` ${title}`}</span>.
+          </a>
+
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center">
               <span className="text-yellow-400 mr-1">★</span>
@@ -171,7 +184,8 @@ const ProductPage: React.FC = () => {
             <h3 className="font-bold mb-2">
               Ingredients:
               <span className="text-gray-600 font-normal">
-                {" " + ingredients.map((ingredient) => ingredient.name).join(", ")}
+                {" " +
+                  ingredients.map((ingredient) => ingredient.name).join(", ")}
               </span>
             </h3>
           </div>
@@ -192,9 +206,7 @@ const ProductPage: React.FC = () => {
           <div className="mt-4">
             <div className="flex justify-between items-center mb-4">
               <span className="font-bold">Total Price</span>
-              <span className="font-bold text-xl">
-                ${(price * quantity)}
-              </span>
+              <span className="font-bold text-xl">${price * quantity}</span>
             </div>
 
             <div className="flex justify-center">

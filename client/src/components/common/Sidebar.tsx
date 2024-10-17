@@ -2,13 +2,14 @@ import XSvg from "../svgs/X";
 
 import { GoHome } from "react-icons/go";
 import { IoNotificationsOutline, IoSearchOutline } from "react-icons/io5";
-import { FaRegUser } from "react-icons/fa6";
+import { FaCartArrowDown, FaRegUser } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { BiDish, BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { PiShoppingCartLight } from "react-icons/pi";
 import { LuCalendarDays, LuMail } from "react-icons/lu";
 import { MdOutlineExplore } from "react-icons/md";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { useNotificationContext } from "../../context/NotificationContext";
 const Sidebar = () => {
   const auth = useAuthContext();
@@ -26,7 +27,7 @@ const Sidebar = () => {
         <Link to="/" className="flex justify-center md:justify-start">
           <XSvg className="px-2 w-12 h-12 rounded-full fill-white" />
         </Link>
-        <ul className="flex flex-col gap-4 mt-6">
+        <ul className="flex flex-col gap-3 mt-6">
           <li className="flex justify-center md:justify-start">
             <Link
               to="/"
@@ -98,7 +99,7 @@ const Sidebar = () => {
               to="users/shoppingList"
               className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >
-              <PiShoppingCartLight className="w-6 h-6" />
+              <HiOutlineShoppingBag className="w-6 h-6" />
               <span className="text-lg hidden md:block mt-1">
                 Shopping List
               </span>
@@ -122,6 +123,17 @@ const Sidebar = () => {
             >
               <BiDish className="w-6 h-6" />
               <span className="text-lg hidden md:block mt-1">Product</span>
+            </Link>
+          </li>
+
+
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to="cart"
+              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <PiShoppingCartLight className="w-6 h-6" />
+              <span className="text-lg hidden md:block mt-1">Cart</span>
             </Link>
           </li>
         </ul>

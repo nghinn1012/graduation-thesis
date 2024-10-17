@@ -152,7 +152,9 @@ const PostDetails: React.FunctionComponent = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const postId = location.state?.post._id;
+        console.log(location.pathname.split("/")[2]);
+        const postId =
+          location.state?.post._id || location.pathname.split("/")[2];
         if (!postId || !auth?.token) return;
 
         const result = (await postFetcher.getPostById(
@@ -191,6 +193,9 @@ const PostDetails: React.FunctionComponent = () => {
     };
 
     if (location.state?.post && auth?.token) {
+      fetchPost();
+    }
+    if (!location.state && location.pathname) {
       fetchPost();
     }
   }, [location.state?.post, auth?.token, isLiked, isSaved]);
@@ -252,10 +257,13 @@ const PostDetails: React.FunctionComponent = () => {
 
   useEffect(() => {
     const fetchPostAuthor = async () => {
-      if (location.state?.post) {
+      if (location.state?.post || post.author) {
+        console.log(post.author);
         try {
           const foundPost = await userFetcher.getUserById(
-            location.state.post.author._id || location.state.postAuthor._id,
+            location?.state?.post?.author?._id ||
+              location?.state?.postAuthor?._id ||
+              post.author,
             auth?.token || ""
           );
           if (foundPost) {
@@ -268,7 +276,7 @@ const PostDetails: React.FunctionComponent = () => {
     };
 
     fetchPostAuthor();
-  }, [location.state?.post, auth?.token]);
+  }, [location.state?.post, post, auth?.token]);
 
   const handleEditClick = () => {
     setIsModalOpen(true);
@@ -383,6 +391,7 @@ const PostDetails: React.FunctionComponent = () => {
       setIsSubmitting(true);
 
       if (isEditing && editPost) {
+        console.log(editPost);
         const changes: Partial<PostInfoUpdate> = {};
         if (editPost.title !== title) changes.title = title;
         if (editPost.about !== about) changes.about = about;
@@ -409,24 +418,24 @@ const PostDetails: React.FunctionComponent = () => {
         if (JSON.stringify(editPost.dietary) !== JSON.stringify(dietary)) {
           changes.dietary = dietary;
         }
+        console.log(editPost.hasProduct, hasProduct);
         if (editPost.hasProduct !== hasProduct) changes.hasProduct = hasProduct;
-        if (!changes.product) {
-          changes.product = {
-          };
-        }
+        if (!changes.product && price || quantity || timeToPrepare) {
+          if (editPost.product?.price !== Number(price)) {
+            if (!changes.product) changes.product = {};
+            changes.product.price = Number(price);
+          }
 
-        if (editPost.product?.price !== Number(price)) {
-          changes.product.price = Number(price);
-        }
+          if (editPost.product?.quantity !== Number(quantity)) {
+            if (!changes.product) changes.product = {};
+            changes.product.quantity = Number(quantity);
+          }
 
-        if (editPost.product?.quantity !== Number(quantity)) {
-          changes.product.quantity = Number(quantity);
+          if (editPost.product?.timeToPrepare !== Number(timeToPrepare)) {
+            if (!changes.product) changes.product = {};
+            changes.product.timeToPrepare = Number(timeToPrepare);
+          }
         }
-
-        if (editPost.product?.timeToPrepare !== Number(timeToPrepare)) {
-          changes.product.timeToPrepare = Number(timeToPrepare);
-        }
-
         console.log(changes);
 
         await postFetcher.updatePost(editPost._id, changes, token);

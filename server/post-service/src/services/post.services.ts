@@ -310,7 +310,7 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
           });
         }
       }
-    } else if (product) {
+    } else if (product && data.hasProduct === false) {
       await productModel.deleteOne({
         postId
       });

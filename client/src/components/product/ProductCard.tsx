@@ -38,7 +38,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="card w-full shadow-md rounded-lg relative overflow-hidden">
+    <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-full">
       {/* Image Section */}
       <figure className="relative">
         <img
@@ -55,7 +55,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </figure>
 
       {/* Product Info */}
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-grow">
         {/* Product Title */}
         <h2 className="text-md font-semibold mb-2">{product.postInfo.title}</h2>
 
@@ -71,8 +71,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </span>
         </div>
 
+        {/* Spacer to push button to bottom */}
+        <div className="flex-grow"></div>
+
         {/* Button Group */}
-        <div className="flex space-x-2">
+        <div className="mt-4">
           {/* Add to Cart Button */}
           <button className="btn btn-neutral flex items-center justify-center w-full">
             <svg
