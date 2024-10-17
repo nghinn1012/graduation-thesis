@@ -5,25 +5,35 @@ import { AuthRequest, validatePostFoodBody } from "../data";
 export const createPostController = async (request: AuthRequest, response: Response) => {
   try {
     const postData = {
-      ...request.body,
+      ...request.body.post,
       author: request.authContent?.data.userId
     };
+    let productData = null;
+    if (postData.hasProduct) {
+      productData = {
+        ...request.body.product,
+        postId: postData._id
+      };
+    }
 
     validatePostFoodBody(postData);
+    console.log("postData:", postData);
+    console.log("productData:", productData);
 
-    const post = await createPostService(postData);
-
-    if (post == null) {
+    const result = await createPostService(postData, productData);
+    console.log("result:", result);
+    if (result.post == null) {
       return response.status(400).json({
-        message: "Cannot create post"
+        message: "Cannot create post",
+        error: "Post is null"
       });
     }
 
-    return response.status(200).json(post);
+    return response.status(200).json(result);
   } catch (error) {
     return response.status(400).json({
       message: "Cannot create post",
-      error: (error as Error).message
+      error: (error as Error)
     });
   }
 };

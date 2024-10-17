@@ -6,9 +6,10 @@ import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploa
 import { PostSearchBuilder } from "../data/interface/queryBuilder";
 import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 import { notifyNewFood } from "./notify.services";
-import { AccountInfo } from "../data/interface/post_create_interface";
+import { AccountInfo, IProduct } from "../data/interface/post_create_interface";
+import productModel from "../models/productModel";
 
-export const createPostService = async (data: IPost) => {
+export const createPostService = async (data: IPost, productData?: IProduct) => {
   try {
     const author = await rpcGetUser<AccountInfo>(data.author, ["_id", "name", "avatar", "username", "followers"]);
     if (!author) {
@@ -31,6 +32,11 @@ export const createPostService = async (data: IPost) => {
       instructions: [],
     });
 
+    const product = productData ? await productModel.create({
+      ...productData,
+      postId: post._id,
+    }) : null;
+    console.log("product", product);
     const handleUploads = async () => {
       try {
         const uploadImages = async (imageUrls: string[]) => {
@@ -119,7 +125,10 @@ export const createPostService = async (data: IPost) => {
       title: post.title,
       image: post.images[0],
     }, author.followers);
-    return post;
+    return {
+      post,
+      product,
+    };
   } catch (error) {
     throw new InternalError({
       data: {
@@ -133,7 +142,22 @@ export const createPostService = async (data: IPost) => {
 export const getPostService = async (postId: string) => {
   try {
     const post = await postModel.findById(postId);
-    return post;
+    const hasProduct = await productModel.findOne({ postId: postId });
+
+    if (!post) {
+      throw new InternalError({
+        data: {
+          target: "post-food",
+          reason: "not found",
+        },
+      });
+    }
+
+    return {
+      ...post.toObject(),
+      hasProduct: hasProduct ? true : false,
+      product: hasProduct,
+    };
   } catch (error) {
     throw new InternalError({
       data: {
@@ -151,7 +175,7 @@ export const getAllPostsService = async (page: number, limit: number, userId?: s
     const posts = userId ? await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit)
       : await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
     const authors = userId ? await rpcGetUser<IAuthor[]>(userId,
-      ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]):
+      ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]) :
       await rpcGetUsers<IAuthor[]>(posts.map(post => post.author),
         ["_id", "email", "name", "avatar", "username", "following", "followers"]);
 
@@ -242,6 +266,55 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       new: true,
       runValidators: true,
     });
+    if (!postUpdate) {
+      throw new InternalError({
+        data: {
+          target: "post-food",
+          reason: "not found",
+        },
+      });
+    };
+    let product = await productModel.findOne({
+      postId
+    });
+    let result = null;
+    console.log("data", data);
+    if (data.hasProduct && data.product) {
+      const updateData: any = {};
+
+      if (data.product.price !== null && data.product.price !== undefined) {
+        updateData.price = data.product.price;
+      }
+
+      if (data.product.quantity !== null && data.product.quantity !== undefined) {
+        updateData.quantity = data.product.quantity;
+      }
+
+      if (data.product.timeToPrepare !== null && data.product.timeToPrepare !== undefined) {
+        updateData.timeToPrepare = data.product.timeToPrepare;
+      }
+
+      console.log("updateData", updateData);
+      if (Object.keys(updateData).length > 0) {
+        if (product) {
+          result = await productModel.updateOne({
+            postId
+          }, {
+            $set: updateData
+          });
+        }
+        else {
+          result = await productModel.create({
+            ...data.product,
+            postId: post._id
+          });
+        }
+      }
+    } else if (product) {
+      await productModel.deleteOne({
+        postId
+      });
+    }
 
     const handleUploads = async () => {
       try {
@@ -337,17 +410,25 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
           }
         );
 
-        if (oldImages.length > 0) {
-          await deleteOldImages();
-        }
+        // if (oldImages.length > 0) {
+        //   await deleteOldImages();
+        // }
       } catch (error) {
         console.error("Error handling uploads:", error);
       }
     };
 
     handleUploads();
-
-    return postUpdate;
+    console.log({
+      ...postUpdate.toObject(),
+      hasProduct: data.hasProduct,
+      product: result,
+    });
+    return {
+      ...postUpdate.toObject(),
+      hasProduct: data.hasProduct,
+      product: result,
+    };
 
   } catch (error) {
     throw new InternalError({

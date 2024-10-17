@@ -1,4 +1,3 @@
-// usePostContext.ts
 import { useContext } from "react";
 import PostContext from "../context/PostContext";
 

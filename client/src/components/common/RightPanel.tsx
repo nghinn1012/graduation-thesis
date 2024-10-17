@@ -448,7 +448,7 @@ const RightPanel: React.FC = () => {
         </div>
       )}
 
-      {location.pathname !== "/message" && (
+      {location.pathname !== "/message" && location.pathname !== "/products" && (
         <div className="mt-8 p-4 rounded-md border border-gray-300">
           <p className="font-bold my-4">Who to follow</p>
           <div className="flex flex-col gap-6">

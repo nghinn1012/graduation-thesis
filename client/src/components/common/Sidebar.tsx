@@ -4,7 +4,7 @@ import { GoHome } from "react-icons/go";
 import { IoNotificationsOutline, IoSearchOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa6";
 import { Link } from "react-router-dom";
-import { BiLogOut } from "react-icons/bi";
+import { BiDish, BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { PiShoppingCartLight } from "react-icons/pi";
 import { LuCalendarDays, LuMail } from "react-icons/lu";
@@ -112,6 +112,16 @@ const Sidebar = () => {
             >
               <LuCalendarDays className="w-6 h-6" />
               <span className="text-lg hidden md:block mt-1">Meal Planner</span>
+            </Link>
+          </li>
+
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to="products"
+              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <BiDish className="w-6 h-6" />
+              <span className="text-lg hidden md:block mt-1">Product</span>
             </Link>
           </li>
         </ul>

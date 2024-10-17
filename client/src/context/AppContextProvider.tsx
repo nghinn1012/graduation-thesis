@@ -10,6 +10,7 @@ import { FollowProvider } from "./FollowContext";
 import { ProfileProvider } from "./ProfileContext";
 import { MessageProvider } from "./MessageContext";
 import { NotificationProvider } from "./NotificationContext";
+import ProductContext, { ProductProvider } from "./ProductContext";
 interface IAppContextProvidersProps {
   children?: React.ReactNode;
 }
@@ -27,9 +28,11 @@ export default function AppContextProviders({
                 <SocketProvider>
                   <NotificationProvider>
                     <PostProvider>
+                      <ProductProvider>
                       <FollowProvider>
                         <ProfileProvider>{children}</ProfileProvider>
                       </FollowProvider>
+                      </ProductProvider>
                     </PostProvider>
                   </NotificationProvider>
                 </SocketProvider>

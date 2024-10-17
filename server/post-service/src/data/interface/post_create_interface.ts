@@ -22,6 +22,15 @@ export interface IPost {
   instructions: IInstruction[];
   createdAt: Date;
   updatedAt: Date;
+  hasProduct: boolean;
+  product?: IProduct;
+}
+
+export interface IProduct {
+  postId: string;
+  price: number;
+  quantity: number;
+  timeToPrepare: number;
 }
 
 export interface IPostNotification {

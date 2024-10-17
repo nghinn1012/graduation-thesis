@@ -5,6 +5,7 @@ import {
   PostInfo,
   PostInfoUpdate,
   PostLikeResponse,
+  ProductInfo,
 } from "../../api/post";
 import {
   AiOutlineHeart,
@@ -66,6 +67,41 @@ const validationSchema = yup.object({
       })
     )
     .min(1, "At least one instruction is required"),
+  hasProduct: yup.boolean().required("Product is required"),
+  price: yup.string().when("hasProduct", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Price is required")
+        .test("is-positive", "Price must be a positive number", (value) =>
+          value ? parseFloat(value) > 0 : false
+        ),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
+
+  quantity: yup.string().when("hasProduct", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Quantity is required")
+        .test("is-positive", "Quantity must be at least 1", (value) =>
+          value ? parseInt(value, 10) >= 1 : false
+        ),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
+
+  timeToPrepare: yup.string().when("hasProduct", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Time to prepare is required")
+        .test(
+          "is-positive",
+          "Time to prepare must be at least 1 minute",
+          (value) => (value ? parseInt(value, 10) >= 1 : false)
+        ),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
 });
 
 const PostDetails: React.FunctionComponent = () => {
@@ -109,6 +145,9 @@ const PostDetails: React.FunctionComponent = () => {
   const { followUser } = useFollowContext();
   const { posts, setPosts } = usePostContext();
   const { user, setUser } = useProfileContext();
+  const [product, setProduct] = useState<ProductInfo>(
+    [] as unknown as ProductInfo
+  );
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -116,11 +155,13 @@ const PostDetails: React.FunctionComponent = () => {
         const postId = location.state?.post._id;
         if (!postId || !auth?.token) return;
 
-        const currentPost = (await postFetcher.getPostById(
+        const result = (await postFetcher.getPostById(
           postId,
           auth.token
         )) as unknown as PostInfo;
 
+        if (!result) return;
+        const currentPost = result as PostInfo;
         const isLikedPost = await postFetcher.isLikedPostByUser(
           postId,
           auth.token
@@ -140,7 +181,6 @@ const PostDetails: React.FunctionComponent = () => {
         currentPost.saved = isSaved as unknown as boolean;
         currentPost.isInShoppingList =
           isSavedPostToShoppingList as unknown as boolean;
-
         setPost(currentPost as unknown as PostInfo);
         setServings(currentPost.servings || 1);
       } catch (error) {
@@ -162,6 +202,7 @@ const PostDetails: React.FunctionComponent = () => {
           post._id,
           auth?.token || ""
         );
+        console.log(updatedPost);
         const isLikedPost = await postFetcher.isLikedPostByUser(
           post._id,
           auth?.token || ""
@@ -173,6 +214,7 @@ const PostDetails: React.FunctionComponent = () => {
         setIsLiked(isLikedPost as unknown as boolean);
         setIsSaved(isSavedPost as unknown as boolean);
         setPost(updatedPost as unknown as PostInfo);
+        console.log(post);
       } catch (error) {
         console.error("Failed to fetch the updated post:", error);
       }
@@ -228,7 +270,6 @@ const PostDetails: React.FunctionComponent = () => {
     fetchPostAuthor();
   }, [location.state?.post, auth?.token]);
 
-
   const handleEditClick = () => {
     setIsModalOpen(true);
     setEditPost(post);
@@ -249,6 +290,10 @@ const PostDetails: React.FunctionComponent = () => {
     servings,
     ingredients,
     instructions,
+    hasProduct,
+    price,
+    quantity,
+    timeToPrepare,
   }: {
     title: string;
     about: string;
@@ -258,6 +303,10 @@ const PostDetails: React.FunctionComponent = () => {
     servings: string | number;
     ingredients: { name: string; quantity: string }[];
     instructions: { description: string; image?: string }[];
+    hasProduct: boolean;
+    price: string | number;
+    quantity: string | number;
+    timeToPrepare: string | number;
   }) => {
     try {
       await validationSchema.validate(
@@ -270,6 +319,10 @@ const PostDetails: React.FunctionComponent = () => {
           servings,
           ingredients,
           instructions,
+          hasProduct,
+          price,
+          quantity,
+          timeToPrepare,
         },
         { abortEarly: false }
       );
@@ -301,6 +354,10 @@ const PostDetails: React.FunctionComponent = () => {
     difficulty: string,
     course: string[],
     dietary: string[],
+    hasProduct: boolean,
+    price: string | number,
+    quantity: string | number,
+    timeToPrepare: string | number,
     isEditing: boolean
   ) => {
     const token = auth?.token;
@@ -317,6 +374,10 @@ const PostDetails: React.FunctionComponent = () => {
         servings,
         ingredients,
         instructions,
+        hasProduct,
+        price,
+        quantity,
+        timeToPrepare,
       });
       if (!isValid) return;
       setIsSubmitting(true);
@@ -348,6 +409,25 @@ const PostDetails: React.FunctionComponent = () => {
         if (JSON.stringify(editPost.dietary) !== JSON.stringify(dietary)) {
           changes.dietary = dietary;
         }
+        if (editPost.hasProduct !== hasProduct) changes.hasProduct = hasProduct;
+        if (!changes.product) {
+          changes.product = {
+          };
+        }
+
+        if (editPost.product?.price !== Number(price)) {
+          changes.product.price = Number(price);
+        }
+
+        if (editPost.product?.quantity !== Number(quantity)) {
+          changes.product.quantity = Number(quantity);
+        }
+
+        if (editPost.product?.timeToPrepare !== Number(timeToPrepare)) {
+          changes.product.timeToPrepare = Number(timeToPrepare);
+        }
+
+        console.log(changes);
 
         await postFetcher.updatePost(editPost._id, changes, token);
         await setPostUpdated(editPost._id);
@@ -577,13 +657,16 @@ const PostDetails: React.FunctionComponent = () => {
   };
 
   const handleOrderNow = () => {
-    navigate('/posts/order-dish', {
+    if (!post.hasProduct) return;
+    navigate(`/posts/productDetails/${post?.product?._id}`, {
       state: {
         recipeId: post._id,
+        _id: post?.product?._id,
         title: post.title,
         description: post.about,
-        price: 100,
-        preparationTime: post.timeToTake,
+        quantity: post?.product?.quantity,
+        price: post?.product?.price,
+        preparationTime: post?.product?.timeToPrepare,
         images: post.images,
         chef: {
           name: post.author.name,
@@ -591,7 +674,7 @@ const PostDetails: React.FunctionComponent = () => {
         },
         ingredients: post.ingredients,
         hashtags: post.hashtags,
-      }
+      },
     });
   };
 
@@ -839,12 +922,14 @@ const PostDetails: React.FunctionComponent = () => {
                         </>
                       )}
                     </button>
-                    <button
-                      className="btn btn-md btn-success w-full md:w-auto"
-                      onClick={handleOrderNow}
-                    >
-                      Order Now
-                    </button>
+                    {post.hasProduct && (
+                      <button
+                        className="btn btn-md btn-success w-full md:w-auto"
+                        onClick={handleOrderNow}
+                      >
+                        Order Now
+                      </button>
+                    )}
                   </div>
                 </div>
 

@@ -6,8 +6,12 @@ import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeBy
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
 import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
 import { addMealController, checkPostInUnscheduledMealController, getMealPlannerController, removeMealController, scheduleMealController } from "../controllers/mealPlanner.controllers";
+import { addProductToCartController, getAllProductsController } from "../controllers/product.controller";
 
 const postRouter = express.Router();
+// product
+postRouter.patch("/product/addToCart", tokenValidate, addProductToCartController);
+postRouter.get("/product/getAll", tokenValidate, getAllProductsController);
 // mealPlanner
 postRouter.post("/mealPlanner/create", tokenValidate, addMealController);
 postRouter.get("/mealPlanner/checkPost/:postId", tokenValidate, checkPostInUnscheduledMealController);

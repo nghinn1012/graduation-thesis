@@ -4,6 +4,7 @@ import PostDetails from "../post/PostDetail";
 import ScrollToTop from "../../components/common/ScrollToTop";
 import Explore from "../post/Explore";
 import ProductPage from "../post/Purchase";
+import ProductListPage from "../product/ProductList";
 export default function Food() {
   return (
     <div className="p-4">
@@ -11,7 +12,7 @@ export default function Food() {
       <Routes>
         <Route path="/:id" element={<PostDetails />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/order-dish" element={<ProductPage />} />
+        <Route path="/productDetails/:productId" element={<ProductPage />} />
       </Routes>
     </div>
   );

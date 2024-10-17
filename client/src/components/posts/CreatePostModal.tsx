@@ -56,6 +56,10 @@ interface PostModalProps {
     difficulty: string,
     course: string[],
     dietary: string[],
+    hasProduct: boolean,
+    price: number | string,
+    quantity: number | string,
+    timeToPrepare: number | string,
     isEditing: boolean,
     postId?: string
   ) => void;
@@ -103,8 +107,13 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [validationErrors, setValidationErrors] = useState<{
     [key: string]: string;
   }>({});
+  const [hasProduct, setHasProduct] = useState(false);
+  const [price, setPrice] = useState<number | string>("");
+  const [quantity, setQuantity] = useState<number | string>("");
+  const [timeToPrepare, setTimeToPrepare] = useState<number | string>("");
   const [isBasicTabValid, setIsBasicTabValid] = useState(false);
   const [isRecipeTabValid, setIsRecipeTabValid] = useState(false);
+  const [isHashtagTabValid, setIsHashtagTabValid] = useState(false);
   useEffect(() => {
     fileInputRef.current = fileInputRef.current.slice(0, instructions.length);
   }, [instructions]);
@@ -347,8 +356,13 @@ const CreatePostModal: React.FC<PostModalProps> = ({
       setDifficulty(post.difficulty);
       setCourse(post.course);
       setDietary(post.dietary);
+      setHasProduct(post.hasProduct);
+      setPrice(post?.product?.price);
+      setQuantity(post?.product?.quantity);
+      setTimeToPrepare(post?.product?.timeToPrepare);
       setIsBasicTabValid(true);
       setIsRecipeTabValid(true);
+      setIsHashtagTabValid(true);
     }
   }, [post]);
 
@@ -371,6 +385,10 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           difficulty.toLocaleLowerCase(),
           course.map((c) => c.toLocaleLowerCase()),
           dietary.map((d) => d.toLocaleLowerCase()),
+          hasProduct,
+          price,
+          quantity,
+          timeToPrepare,
           isEditing,
           post?.id
         );
@@ -387,6 +405,10 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         setCourse([]);
         setDietary([]);
         setNewHashtag("");
+        setHasProduct(false);
+        setPrice("");
+        setQuantity("");
+        setTimeToPrepare("");
         setActiveTab(0);
       } catch (err) {
         error(
@@ -469,17 +491,19 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               handleClick={handleClick}
               handleImgChange={handleImgChange}
               removeImage={removeImage}
-              hashtags={hashtags}
-              newHashtag={newHashtag}
-              isSubmitting={isSubmitting}
-              addHashtag={addHashtag}
-              setNewHashtag={setNewHashtag}
-              setHashtags={setHashtags}
-              removeHashtag={removeHashtag}
               currentIndex={currentIndex}
               goToPrevious={goToPrevious}
               goToNext={goToNext}
+              hasProduct={hasProduct}
+              setHasProduct={setHasProduct}
+              price={price}
+              setPrice={setPrice}
+              quantity={quantity}
+              setQuantity={setQuantity}
+              timeToPrepare={timeToPrepare}
+              setTimeToPrepare={setTimeToPrepare}
               post={post}
+              isSubmitting={isSubmitting}
               setIsBasicTabValid={setIsBasicTabValid}
             />
           )}
@@ -519,6 +543,14 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               toggleCourse={toggleCourse}
               selectDifficulty={selectDifficulty}
               toggleDietary={toggleDietary}
+              hashtags={hashtags}
+              newHashtag={newHashtag}
+              isSubmitting={isSubmitting}
+              addHashtag={addHashtag}
+              setNewHashtag={setNewHashtag}
+              setHashtags={setHashtags}
+              removeHashtag={removeHashtag}
+              setIsHashtagTabValid={setIsHashtagTabValid}
             />
           )}
           <div className="flex justify-between mt-4">
@@ -544,7 +576,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || !isBasicTabValid ||
-                !isRecipeTabValid || Object.keys(validationErrors).length !== 0}
+                !isRecipeTabValid || !isHashtagTabValid || Object.keys(validationErrors).length !== 0}
               className="btn bg-red-500 w-full text-white mt-6 font-semibold"
             >
               {post ? "EDIT POST" : "POST NOW"}

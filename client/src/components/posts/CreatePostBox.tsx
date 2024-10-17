@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from "react";
 import PostModal from "./CreatePostModal";
 import { postFetcher, PostInfo } from "../../api/post";
-import toast, { Toaster } from "react-hot-toast";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import usePostContext from "../../hooks/usePostContext";
 import PostSkeleton from "../skeleton/PostSkeleton";
 import { useSocket } from "../../hooks/useSocketContext";
 import { useToastContext } from "../../hooks/useToastContext";
+import { FaVideo, FaImage, FaSmile } from "react-icons/fa";
+import { Toaster } from "react-hot-toast";
+import { BsPostcardHeart } from "react-icons/bs";
+import { BiDish } from "react-icons/bi";
+import ProductModal from "../product/CreateProductFromPost";
 
 const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
   const [editPost, setEditPost] = useState<any>(null);
   const auth = useAuthContext();
-  const { fetchPost, setPosts} = usePostContext();
+  const { fetchPost, setPosts } = usePostContext();
   const { socket } = useSocket();
   const { success, error } = useToastContext();
 
@@ -28,7 +33,7 @@ const CreatePostBox: React.FC = () => {
 
       try {
         const newPostId = message;
-        const newPost = await fetchPost(newPostId) as PostInfo;
+        const newPost = (await fetchPost(newPostId)) as PostInfo;
 
         if (newPost && setPosts) {
           newPost.author = auth.account as unknown as PostInfo["author"];
@@ -45,10 +50,8 @@ const CreatePostBox: React.FC = () => {
 
     return () => {
       socket.off("food-uploads-complete", handleUploadsComplete);
-      socket.off("food-uploads-complete", handleUploadsComplete);
     };
   }, [socket, fetchPost, setPosts, auth?.account]);
-
 
   useEffect(() => {
     const accountData = localStorage.getItem("account");
@@ -69,6 +72,10 @@ const CreatePostBox: React.FC = () => {
     difficulty: string,
     course: string[],
     dietary: string[],
+    hasProduct: boolean,
+    price: string | number,
+    quantity: string | number,
+    timeToPrepare: string | number,
     isEditing: boolean,
     postId?: string
   ) => {
@@ -79,6 +86,25 @@ const CreatePostBox: React.FC = () => {
     }
 
     try {
+      console.log(
+        title,
+        about,
+        images,
+        hashtags,
+        timeToTake,
+        servings,
+        ingredients,
+        instructions,
+        difficulty,
+        course,
+        dietary,
+        price,
+        quantity,
+        hasProduct,
+        timeToPrepare,
+        isEditing,
+        postId
+      );
       setIsSubmitting(true);
       await postFetcher.createPost(
         {
@@ -97,7 +123,13 @@ const CreatePostBox: React.FC = () => {
           likeCount: 0,
           savedCount: 0,
           commentCount: 0,
-          isInShoppingList: false
+          isInShoppingList: false,
+          hasProduct,
+        },
+        {
+          price: Number(price),
+          quantity: Number(quantity),
+          timeToPrepare: Number(timeToPrepare),
         },
         JSON.parse(token).token
       );
@@ -118,7 +150,7 @@ const CreatePostBox: React.FC = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative border-b border-gray-300">
       <Toaster />
       <div className="flex p-4 items-start gap-4 border-b border-gray-300">
         <div className="avatar">
@@ -129,17 +161,37 @@ const CreatePostBox: React.FC = () => {
             />
           </div>
         </div>
-        <textarea
-          className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
-          placeholder="What is happening?!"
-          onClick={() => {
-            setEditPost(null);
-            setIsModalOpen(true);
-          }}
+        <input
+          type="text"
+          className="flex-grow text-white rounded-full px-4 py-2 focus:outline-none"
+          placeholder={`${data?.name} ơi, bạn đang nghĩ gì?`}
+          readOnly
         />
       </div>
+      <div className="flex my-3">
+        <div className="flex-1 flex justify-center">
+          <button
+            className="flex items-center gap-2"
+            onClick={() => {
+              setEditPost(null);
+              setIsModalOpen(true);
+            }}
+          >
+            <BsPostcardHeart size={20} className="text-red-400" />
+            <span>New post</span>
+          </button>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <button
+            className="flex items-center gap-2"
+            onClick={() => setIsProductModalOpen(true)}
+          >
+            <BiDish size={20} className="text-yellow-500" />
+            <span>Product from post</span>
+          </button>
+        </div>
+      </div>
 
-      {/* Modal */}
       <PostModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -148,11 +200,19 @@ const CreatePostBox: React.FC = () => {
         post={editPost}
         isEditing={!!editPost}
       />
-      {isLoading ? (
-        <div className="border-b border-gray-300">
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSubmit={() => {}}
+        isSubmitting={isSubmitting}
+        // selectedPost={selectedPost}
+        // setSelectedPost={setSelectedPost}
+      />
+      {isLoading && (
+        <div className="mt-4">
           <PostSkeleton />
         </div>
-      ) : null}
+      )}
     </div>
   );
 };

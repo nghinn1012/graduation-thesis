@@ -15,9 +15,9 @@ const productSchema = new Schema({
   },
   toppings: {
     type: [String],
-    required: true,
+    default: [],
   },
-  timeToDeliver: {
+  timeToPrepare: {
     type: Number,
     required: true,
   },
@@ -38,7 +38,7 @@ const productSchema = new Schema({
         },
       },
     ],
-    required: true,
+    default: [],
   },
 });
 

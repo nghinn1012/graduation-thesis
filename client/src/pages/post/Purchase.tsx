@@ -69,22 +69,24 @@ const reviews: Review[] = [
 ];
 
 const ProductPage: React.FC = () => {
-  const [quantity, setQuantity] = useState<number>(2);
+  const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<number[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Attempt to get data from location.state, fallback to URL parameters
+  const recipeData = location.state as ProductPageProps || {};
   const {
-    recipeId,
-    title,
-    description,
-    price,
-    preparationTime,
-    images,
-    chef,
-    ingredients,
-    hashtags,
-  } = location.state as ProductPageProps;
+    recipeId = "", // default value
+    title = "Default Recipe", // default value
+    description = "No description available.", // default value
+    price = 0, // default value
+    preparationTime = 0, // default value
+    images = ["default.jpg"], // default value
+    chef = { name: "Unknown Chef", avatar: "default-avatar.jpg" }, // default value
+    ingredients = [],
+    hashtags = [],
+  } = recipeData;
 
   const handleToppingToggle = (index: number): void => {
     setSelectedToppings((prev) =>
@@ -187,30 +189,11 @@ const ProductPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="my-4">
-            <h3 className="font-bold mb-2">Toping for you</h3>
-            <div className="flex justify-between">
-              {toppings.map((topping, index) => (
-                <button
-                  key={index}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                    selectedToppings.includes(index)
-                      ? "bg-yellow-400"
-                      : "bg-gray-200"
-                  }`}
-                  onClick={() => handleToppingToggle(index)}
-                >
-                  {topping.emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="mt-4">
             <div className="flex justify-between items-center mb-4">
               <span className="font-bold">Total Price</span>
               <span className="font-bold text-xl">
-                ${(price * quantity).toFixed(2)}
+                ${(price * quantity)}
               </span>
             </div>
 

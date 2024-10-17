@@ -6,6 +6,8 @@ import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 import { AccountInfo } from "./user";
 
 export const postEndpoints = {
+  // product
+  getAllProducts: "/posts/product/getAll",
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -121,6 +123,8 @@ export interface PostInfo {
   difficulty: string;
   course: string[];
   dietary: string[];
+  hasProduct: boolean;
+  product?: ProductInfo;
 }
 
 export interface PostInfoUpdate {
@@ -135,6 +139,12 @@ export interface PostInfoUpdate {
   difficulty?: string;
   course?: string[];
   dietary?: string[];
+  hasProduct?: boolean;
+  product?: {
+    price?: number;
+    quantity?: number;
+    timeToPrepare?: number;
+  }
 }
 
 export interface InstructionInfoUpdate {
@@ -153,6 +163,7 @@ export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author
     description: string;
     image?: string;
   }[];
+  hasProduct: boolean;
 }
 
 export interface Ingredient {
@@ -313,11 +324,29 @@ export interface PostProfile {
   authors: AccountInfo;
 }
 
+export interface ProductData {
+  quantity: number;
+  price: number;
+  timeToPrepare: number;
+}
+
+export interface ProductInfo {
+  _id: string;
+  postId: string;
+  quantity: number;
+  price: number;
+  timeToPrepare: number;
+  postInfo: PostInfo;
+}
+
+
 export interface PostFetcher {
+  // product
+  getAllProducts: (token: string) => Promise<PostResponse<ProductInfo[]>>;
   // posts
   getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
-  createPost: (data: createPostInfo, token: string) => Promise<PostResponse<createPostInfo>>;
+  createPost: (data: createPostInfo, productData: ProductData, token: string) => Promise<PostResponse<createPostInfo>>;
   getAllPosts: (token: string, page: number, limit: number, userId?: string) => Promise<PostResponse<PostInfo[]>>;
   updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
   getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
@@ -389,8 +418,11 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  createPost: async (data: createPostInfo, token: string): Promise<PostResponse<createPostInfo>> => {
-    return postInstance.post(postEndpoints.createPost, data,
+  createPost: async (data: createPostInfo, productData: ProductData, token: string): Promise<PostResponse<createPostInfo>> => {
+    return postInstance.post(postEndpoints.createPost, {
+      post: data,
+      product: productData,
+    },
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -731,5 +763,12 @@ export const postFetcher: PostFetcher = {
         },
       }
     );
+  },
+  getAllProducts: async (token: string): Promise<PostResponse<ProductInfo[]>> => {
+    return postInstance.get(postEndpoints.getAllProducts, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
   },
 }

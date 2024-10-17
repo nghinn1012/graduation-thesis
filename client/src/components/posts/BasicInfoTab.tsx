@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import * as Yup from "yup";
 import { PostInfo } from "../../api/post";
@@ -13,13 +13,15 @@ interface BasicInfoTabProps {
   removeImage: (index: number) => void;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   setAbout: React.Dispatch<React.SetStateAction<string>>;
+  hasProduct: boolean;
+  setHasProduct: React.Dispatch<React.SetStateAction<boolean>>;
+  price: number | string;
+  setPrice: React.Dispatch<React.SetStateAction<number | string>>;
+  quantity: number | string;
+  setQuantity: React.Dispatch<React.SetStateAction<number | string>>;
+  timeToPrepare: number | string;
+  setTimeToPrepare: React.Dispatch<React.SetStateAction<number | string>>;
   isSubmitting: boolean;
-  hashtags: string[];
-  newHashtag: string;
-  setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-  setNewHashtag: React.Dispatch<React.SetStateAction<string>>;
-  addHashtag: () => void;
-  removeHashtag: (index: number) => void;
   currentIndex: number;
   goToPrevious: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   goToNext: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -30,14 +32,42 @@ interface BasicInfoTabProps {
 const validationSchema = Yup.object().shape({
   title: Yup.string().required("Title is required"),
   about: Yup.string().required("About is required"),
-  newHashtag: Yup.string()
-    .test(
-      "is-valid-hashtag",
-      "Hashtags must contain only letters and numbers",
-      (value) => !value || /^[a-zA-Z0-9]*$/.test(value)
-    )
-    .nullable(),
   images: Yup.array().min(1, "At least one image is required"),
+
+  price: Yup.string().when("hasProduct", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Price is required")
+        .test("is-positive", "Price must be a positive number", (value) =>
+          value ? parseFloat(value) > 0 : false
+        ),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
+
+  quantity: Yup.string().when("hasProduct", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Quantity is required")
+        .test("is-positive", "Quantity must be at least 1", (value) =>
+          value ? parseInt(value, 10) >= 1 : false
+        ),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
+
+  timeToPrepare: Yup.string().when("hasProduct", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Time to prepare is required")
+        .test(
+          "is-positive",
+          "Time to prepare must be at least 1 minute",
+          (value) => (value ? parseInt(value, 10) >= 1 : false)
+        ),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
 });
 
 const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
@@ -45,18 +75,20 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   about,
   images,
   imgRef,
-  hashtags,
-  newHashtag,
   handleClick,
   handleImgChange,
   removeImage,
   setTitle,
   setAbout,
-  setHashtags,
-  setNewHashtag,
+  hasProduct,
+  setHasProduct,
+  price,
+  setPrice,
+  quantity,
+  setQuantity,
+  timeToPrepare,
+  setTimeToPrepare,
   isSubmitting,
-  addHashtag,
-  removeHashtag,
   currentIndex,
   goToPrevious,
   goToNext,
@@ -69,7 +101,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
     const validate = async () => {
       try {
         await validationSchema.validate(
-          { title, about, newHashtag, images },
+          { title, about, images, price, quantity, timeToPrepare, hasProduct },
           { abortEarly: false }
         );
         setErrors({});
@@ -83,12 +115,22 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
             }
           });
           setErrors(validationErrors);
+          console.log(validationErrors);
         }
       }
     };
 
     validate();
-  }, [title, about, newHashtag, images]);
+  }, [
+    title,
+    about,
+    images,
+    price,
+    quantity,
+    timeToPrepare,
+    setIsBasicTabValid,
+    hasProduct,
+  ]);
 
   return (
     <div>
@@ -188,42 +230,66 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
         {errors.about && <p className="text-red-500">{errors.about}</p>}
       </div>
       <div className="mt-4">
-        <label className="block mb-2 text-sm">Hashtags</label>
-        <div className="flex items-center space-x-2 mb-2">
+        <div className="flex items-center space-x-6 py-2">
+          <span className="font-semibold">Is this recipe sold by you?</span>
           <input
-            type="text"
-            className="input input-bordered w-full"
-            placeholder="Enter a hashtag"
-            value={newHashtag}
-            onChange={(e) => setNewHashtag(e.target.value)}
-            disabled={isSubmitting}
+            type="checkbox"
+            className="toggle toggle-accent"
+            checked={hasProduct}
+            onChange={() => setHasProduct(!hasProduct)}
           />
-          <button
-            type="button"
-            className="btn btn-neutral"
-            onClick={addHashtag}
-            disabled={isSubmitting}
-          >
-            Add
-          </button>
         </div>
-        {errors.newHashtag && (
-          <p className="text-red-500">{errors.newHashtag}</p>
-        )}
-        <div className="flex flex-wrap gap-2">
-          {hashtags.map((hashtag, index) => (
-            <div
-              key={index}
-              className="badge badge-lg badge-default badge-outline py-4 px-2 font-bold"
-            >
-              {hashtag}
-              <IoCloseSharp
-                className="ml-1 cursor-pointer"
-                onClick={() => removeHashtag(index)}
+
+        {hasProduct && (
+          <div className="mt-4 space-y-4">
+            <div>
+              <h2 className="font-bold text-lg">PRODUCT DETAILS.</h2>
+              <label className="block text-sm font-medium text-gray-700">
+                Price
+              </label>
+              <input
+                type="number"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={Number(price)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/^0+/, "");
+                  setPrice(Number(value));
+                }}
               />
+              {errors.price && <p className="text-red-500">{errors.price}</p>}
             </div>
-          ))}
-        </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Quantity
+              </label>
+              <input
+                type="number"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+              />
+              {errors.quantity && (
+                <p className="text-red-500">{errors.quantity}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Time to Prepare (mins)
+              </label>
+              <input
+                type="number"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={timeToPrepare}
+                onChange={(e) => setTimeToPrepare(Number(e.target.value))}
+              />
+              {errors.timeToPrepare && (
+                <p className="text-red-500">{errors.timeToPrepare}</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
