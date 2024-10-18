@@ -1,94 +1,237 @@
-import React, { useState } from 'react';
-import { FaMinus, FaPlus } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import CartItem from "../../components/product/CartItem";
+import { useProductContext } from "../../context/ProductContext";
+import { ProductCart } from "../../api/post";
 
-interface CartItemType {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
+const CartPage: React.FC = () => {
+  const { cart, addProductToCart, removeProductFromCart } = useProductContext();
+  const [items, setItems] = useState<ProductCart[]>(cart);
+  const [promoCode, setPromoCode] = useState<string>("");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState<boolean>(false);
+  const [authorSelections, setAuthorSelections] = useState<{
+    [authorId: string]: boolean;
+  }>({});
 
-const CartItem: React.FC<CartItemType & {
-  onIncrement: (id: string) => void;
-  onDecrement: (id: string) => void;
-}> = ({ id, name, price, quantity, image, onIncrement, onDecrement }) => (
-  <div className="flex items-center justify-between mb-4">
-    <img src={image} alt={name} className="w-24 h-24 rounded-full object-cover" />
-    <div className="flex-grow ml-4">
-      <h3 className="font-semibold">{name}</h3>
-      <p className="text-gray-600">${price.toFixed(2)}</p>
-    </div>
-    <div className="flex items-center">
-      <button className="p-1 bg-gray-200 rounded-full" onClick={() => onDecrement(id)}>
-        <FaMinus size={12} />
-      </button>
-      <span className="mx-2">{quantity.toString().padStart(2, '0')}</span>
-      <button className="p-1 bg-gray-200 rounded-full" onClick={() => onIncrement(id)}>
-        <FaPlus size={12} />
-      </button>
-    </div>
-    <p className="ml-4 font-semibold">${(price * quantity).toFixed(2)}</p>
-  </div>
-);
+  useEffect(() => {
+    setItems(cart);
+    setSelectedItems([]);
+    setSelectAll(false);
+    setAuthorSelections({});
+  }, [cart]);
 
-const Cart: React.FC = () => {
-  const initialItems: CartItemType[] = [
-    { id: '1', name: 'Áo thun', price: 19.99, quantity: 2, image: 'https://example.com/tshirt.jpg' },
-    { id: '2', name: 'Quần jeans', price: 49.99, quantity: 1, image: 'https://example.com/jeans.jpg' },
-    { id: '3', name: 'Giày sneaker', price: 79.99, quantity: 1, image: 'https://example.com/sneakers.jpg' },
-  ];
-
-  const [items, setItems] = useState<CartItemType[]>(initialItems);
-  const [promoCode, setPromoCode] = useState<string>('');
-
-  const handleIncrement = (id: string) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
+  const handleIncrement = (item: ProductCart) => {
+    addProductToCart(item.productId, 1);
   };
 
-  const handleDecrement = (id: string) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
-      ).filter(item => item.quantity > 0)
-    );
+  const handleDecrement = (item: ProductCart) => {
+    if (item.quantity === 1) {
+      const confirmRemove = window.confirm(
+        "Quantity is 1. Do you want to remove this item from the cart?"
+      );
+      if (confirmRemove) {
+        removeProductFromCart(item.productId);
+      }
+    } else {
+      addProductToCart(item.productId, -1);
+    }
   };
 
   const handleCheckout = () => {
-    console.log('Proceeding to checkout');
-    // Implement checkout logic here
+    console.log("Proceeding to checkout");
   };
 
   const handleApplyPromo = () => {
     console.log(`Applying promo code: ${promoCode}`);
-    // Implement promo code logic here
   };
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const delivery = 3.50;
+  const handleRemove = (productId: string) => {
+    removeProductFromCart(productId);
+  };
+
+  const handleSelectAll = () => {
+    setSelectAll(!selectAll);
+    if (!selectAll) {
+      const allItemIds = items.map((item) => item._id);
+      setSelectedItems(allItemIds);
+      const newAuthorSelections: { [authorId: string]: boolean } = {};
+      Object.keys(groupItemsByAuthor(items)).forEach((authorId) => {
+        newAuthorSelections[authorId] = true;
+      });
+      setAuthorSelections(newAuthorSelections);
+    } else {
+      setSelectedItems([]);
+      setAuthorSelections({});
+    }
+  };
+
+  const handleSelectAuthor = (authorId: string, isSelected: boolean) => {
+    const newAuthorSelections = {
+      ...authorSelections,
+      [authorId]: !isSelected,
+    };
+    setAuthorSelections(newAuthorSelections);
+
+    const authorItems = groupedItems[authorId].map((item) => item._id);
+    if (!isSelected) {
+      setSelectedItems([...selectedItems, ...authorItems]);
+    } else {
+      setSelectedItems(
+        selectedItems.filter((itemId) => !authorItems.includes(itemId))
+      );
+    }
+  };
+
+  const handleSelectItem = (itemId: string) => {
+    if (selectedItems.includes(itemId)) {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    } else {
+      setSelectedItems([...selectedItems, itemId]);
+    }
+  };
+
+  const formatPrice = (price: string | number) => {
+    const num = parseFloat(price.toString());
+    if (isNaN(num)) return "N/A";
+
+    if (Number.isInteger(num)) {
+      return num.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 0,
+      });
+    } else {
+      return num.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+  };
+
+  const groupItemsByAuthor = (items: ProductCart[]) => {
+    const groupedItems: { [authorId: string]: ProductCart[] } = {};
+    items.forEach((item) => {
+      const authorId = item?.author?._id || "unknown";
+      if (!groupedItems[authorId]) {
+        groupedItems[authorId] = [];
+      }
+      groupedItems[authorId].push(item);
+    });
+    return groupedItems;
+  };
+
+  const groupedItems = groupItemsByAuthor(items);
+
+  const subtotal = items
+    .filter((item) => selectedItems.includes(item._id))
+    .reduce(
+      (sum, item) => sum + (item.productInfo?.price || 0) * item.quantity,
+      0
+    );
+
+  const delivery = selectedItems.length > 0 ? 3.5 : 0;
   const total = subtotal + delivery;
+
+  useEffect(() => {
+    setSelectAll(
+      items.length > 0 && selectedItems.length === items.length
+    );
+
+    const newAuthorSelections: { [authorId: string]: boolean } = {};
+    Object.keys(groupItemsByAuthor(items)).forEach((authorId) => {
+      const authorItems = groupedItems[authorId];
+      const allSelected = authorItems.every((item) =>
+        selectedItems.includes(item._id)
+      );
+      newAuthorSelections[authorId] = allSelected;
+    });
+    setAuthorSelections(newAuthorSelections);
+  }, [selectedItems, items]);
+
 
   return (
     <div className="bg-white p-6 rounded-3xl shadow-lg w-full mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <button className="text-2xl">&lt;</button>
         <h2 className="text-2xl font-bold">Cart</h2>
-        <button className="text-2xl">&times;</button>
+        <input
+          type="checkbox"
+          className="checkbox checkbox-info"
+          checked={selectAll}
+          onChange={handleSelectAll}
+        />
       </div>
 
       <div className="space-y-4 mb-6">
-        {items.map((item) => (
-          <CartItem
-            key={item.id}
-            {...item}
-            onIncrement={handleIncrement}
-            onDecrement={handleDecrement}
-          />
-        ))}
+        {Object.keys(groupedItems).length > 0 ? (
+          Object.keys(groupedItems).map((authorId) => (
+            <div key={authorId} className="mb-8">
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  className="mr-4 checkbox checkbox-info"
+                  checked={authorSelections[authorId] || false}
+                  onChange={() =>
+                    handleSelectAuthor(
+                      authorId,
+                      authorSelections[authorId] || false
+                    )
+                  }
+                />
+                <h3 className="text-lg font-semibold">
+                  {groupedItems[authorId][0]?.author?.name || "Unknown Author"}
+                </h3>
+              </div>
+
+              {groupedItems[authorId].map((item) => (
+                <div
+                  key={item._id}
+                  className={`p-4 border rounded-lg my-2 ${
+                    !item.productInfo ? "opacity-50" : ""
+                  }`}
+                >
+                  {item.productInfo ? (
+                    <div className="flex items-center justify-between mb-4">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-info mr-4"
+                        checked={selectedItems.includes(item._id)}
+                        onChange={() => handleSelectItem(item._id)}
+                      />
+                      <CartItem
+                        key={item._id}
+                        productInfo={item}
+                        onIncrement={() => handleIncrement(item)}
+                        onDecrement={() => handleDecrement(item)}
+                        onRemove={() => handleRemove(item.productId)}
+                        formatPrice={formatPrice}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-red-500 text-sm mb-2">
+                        This product no longer exists.
+                      </div>
+                      <div className="flex items-center justify-between mb-4">
+                        <CartItem
+                          key={item._id}
+                          productInfo={item}
+                          onIncrement={() => handleIncrement(item)}
+                          onDecrement={() => handleDecrement(item)}
+                          onRemove={() => handleRemove(item.productId)}
+                          formatPrice={formatPrice}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))
+        ) : (
+          <p>Your cart is empty.</p>
+        )}
       </div>
 
       <div className="flex items-center mb-4">
@@ -110,15 +253,15 @@ const Cart: React.FC = () => {
       <div className="space-y-2 mb-6">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
           <span>Delivery</span>
-          <span>${delivery.toFixed(2)}</span>
+          <span>{formatPrice(delivery)}</span>
         </div>
         <div className="flex justify-between font-bold">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>{formatPrice(total)}</span>
         </div>
       </div>
 
@@ -132,4 +275,4 @@ const Cart: React.FC = () => {
   );
 };
 
-export default Cart;
+export default CartPage;

@@ -8,6 +8,10 @@ import { AccountInfo } from "./user";
 export const postEndpoints = {
   // product
   getAllProducts: "/posts/product/getAll",
+  getCart: "/posts/product/getCart",
+  getProductByPostId: "/posts/product/getProductByPostId/:postId",
+  addProductToCart: "/posts/product/addToCart",
+  removeProductFromCart: "/posts/product/removeProductFromCart/:productId",
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -339,10 +343,28 @@ export interface ProductInfo {
   postInfo: PostInfo;
 }
 
+export interface ProductCart {
+  _id: string;
+  productId: string;
+  quantity: number;
+  productInfo: ProductInfo;
+  postInfo: PostInfo;
+  author: AccountInfo;
+}
+
+export interface Cart {
+  _id: string;
+  userId: string;
+  products: ProductCart[];
+}
 
 export interface PostFetcher {
   // product
   getAllProducts: (token: string) => Promise<PostResponse<ProductInfo[]>>;
+  getCart: (token: string) => Promise<PostResponse<Cart>>;
+  getProductByPostId: (postId: string, token: string) => Promise<PostResponse<ProductInfo>>;
+  addProductToCart: (productId: string, quantity: number, token: string) => Promise<PostResponse<ProductInfo[]>>;
+  removeProductFromCart: (productId: string, token: string) => Promise<PostResponse<ProductInfo[]>>;
   // posts
   getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
@@ -766,6 +788,37 @@ export const postFetcher: PostFetcher = {
   },
   getAllProducts: async (token: string): Promise<PostResponse<ProductInfo[]>> => {
     return postInstance.get(postEndpoints.getAllProducts, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+  getCart: async (token: string): Promise<PostResponse<Cart>> => {
+    return postInstance.get(postEndpoints.getCart, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+  getProductByPostId: async (postId: string, token: string): Promise<PostResponse<ProductInfo>> => {
+    return postInstance.get(postEndpoints.getProductByPostId.replace(":postId", postId), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+  addProductToCart: async (productId: string, quantity: number, token: string): Promise<PostResponse<ProductInfo[]>> => {
+    return postInstance.patch(postEndpoints.addProductToCart, {
+      productId,
+      quantity,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+  removeProductFromCart: async (productId: string, token: string): Promise<PostResponse<ProductInfo[]>> => {
+    return postInstance.patch(postEndpoints.removeProductFromCart.replace(":productId", productId), {}, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

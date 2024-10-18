@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { addProductToCartService, getAllProductsService } from "../services/product.services";
+import { addProductToCartService, getAllProductsService, getCartService, getProductByPostIdService, removeProductFromCartService } from "../services/product.services";
 import { Response } from "express";
 export const addProductToCartController = async (req: AuthRequest, res: Response) => {
   try {
@@ -11,10 +11,8 @@ export const addProductToCartController = async (req: AuthRequest, res: Response
       });
     }
     const { productId, quantity } = req.body;
-    await addProductToCartService(userId, productId, quantity);
-    return res.status(200).json({
-      message: "Product added to cart successfully",
-    });
+    const cart = await addProductToCartService(userId, productId, quantity);
+    return res.status(200).json(cart);
   } catch (error) {
     return res.status(400).json({
       message: "Failed to add product to cart",
@@ -37,6 +35,65 @@ export const getAllProductsController = async (req: AuthRequest, res: Response) 
   } catch (error) {
     return res.status(400).json({
       message: "Failed to get all products",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getCartController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to get cart",
+      error: "User not found",
+    });
+  }
+  try {
+    const cart = await getCartService(userId);
+    return res.status(200).json(cart);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to get cart",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getProductByPostIdController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to get product",
+      error: "User not found",
+    });
+  }
+  const { postId } = req.params;
+  try {
+    const product = await getProductByPostIdService(postId);
+    return res.status(200).json(product);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to get product",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const removeProductFromCartController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to remove product from cart",
+      error: "User not found",
+    });
+  }
+  const { productId } = req.params;
+  try {
+    const cart = await removeProductFromCartService(userId, productId);
+    return res.status(200).json(cart);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to remove product from cart",
       error: (error as Error).message,
     });
   }

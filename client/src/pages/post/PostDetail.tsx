@@ -38,6 +38,7 @@ import * as yup from "yup";
 import { useProfileContext } from "../../context/ProfileContext";
 import { useFollowContext } from "../../context/FollowContext";
 import { AccountInfo, PostAuthor, userFetcher } from "../../api/user";
+import { useProductContext } from "../../context/ProductContext";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -145,6 +146,7 @@ const PostDetails: React.FunctionComponent = () => {
   const { followUser } = useFollowContext();
   const { posts, setPosts } = usePostContext();
   const { user, setUser } = useProfileContext();
+  const { fetchProductByPostId, removeProduct } = useProductContext();
   const [product, setProduct] = useState<ProductInfo>(
     [] as unknown as ProductInfo
   );
@@ -219,7 +221,11 @@ const PostDetails: React.FunctionComponent = () => {
         setIsLiked(isLikedPost as unknown as boolean);
         setIsSaved(isSavedPost as unknown as boolean);
         setPost(updatedPost as unknown as PostInfo);
-        console.log(post);
+        if ((updatedPost as unknown as PostInfo).hasProduct === true) {
+          fetchProductByPostId(post._id);
+        } else {
+          removeProduct(post._id);
+        }
       } catch (error) {
         console.error("Failed to fetch the updated post:", error);
       }
@@ -236,7 +242,7 @@ const PostDetails: React.FunctionComponent = () => {
         socket.off("food-updated-complete");
       };
     }
-  }, [socket, post._id, auth?.token]);
+  }, [socket, post._id, auth?.token, fetchProductByPostId, removeProduct]);
 
   useEffect(() => {
     const isPostScheduled = async () => {
@@ -420,7 +426,7 @@ const PostDetails: React.FunctionComponent = () => {
         }
         console.log(editPost.hasProduct, hasProduct);
         if (editPost.hasProduct !== hasProduct) changes.hasProduct = hasProduct;
-        if (!changes.product && price || quantity || timeToPrepare) {
+        if ((!changes.product && price) || quantity || timeToPrepare) {
           if (editPost.product?.price !== Number(price)) {
             if (!changes.product) changes.product = {};
             changes.product.price = Number(price);

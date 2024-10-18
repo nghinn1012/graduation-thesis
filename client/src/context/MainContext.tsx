@@ -4,7 +4,7 @@ import PostIndex from "../pages/index/PostIndex";
 import UserIndex from "../pages/index/UserIndex";
 import MessageTab from "../pages/message/MessageTab";
 import ProductListPage from "../pages/product/ProductList";
-import Cart from "../pages/product/Cart";
+import CartPage from "../pages/product/Cart";
 
 export default function AppMainCenter() {
   return (
@@ -13,7 +13,7 @@ export default function AppMainCenter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/message" element={<MessageTab />} />
         <Route path="/products" element={<ProductListPage />} />
-        <Route path="/cart" element={<Cart />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/posts/*" element={<PostIndex />} />
         <Route path="/users/*" element={<UserIndex />} />
       </Routes>

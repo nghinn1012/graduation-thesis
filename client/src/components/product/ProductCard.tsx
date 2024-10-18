@@ -1,19 +1,37 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductInfo } from "../../api/post";
+import { AiOutlineShoppingCart } from "react-icons/ai";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { useProductContext } from "../../context/ProductContext";
 
 interface ProductCardProps {
   product: ProductInfo;
+  rating: number;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   const navigate = useNavigate();
-  const formatPrice = (price: string) => {
-    const num = parseFloat(price);
-    return num.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
+  const {addProductToCart} = useProductContext();
+
+  const formatPrice = (price: string | number) => {
+    const num = parseFloat(price.toString());
+    if (isNaN(num)) return "N/A";
+
+    if (Number.isInteger(num)) {
+      return num.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 0,
+      });
+    } else {
+      return num.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
   };
 
   const handleClickImage = () => {
@@ -37,6 +55,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     });
   };
 
+  const renderStars = (rating: number) => {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    return (
+      <div className="flex items-center">
+        {Array(fullStars).fill(<FaStar className="text-yellow-500" />)} {/* Full Stars */}
+        {halfStar && <FaStarHalfAlt className="text-yellow-500" />} {/* Half Star */}
+        {Array(emptyStars).fill(<FaRegStar className="text-yellow-500" />)} {/* Empty Stars */}
+      </div>
+    );
+  };
+
+  const handleAddToCart = (productId: string) => {
+    addProductToCart(productId, 1);
+  };
+
   return (
     <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-full">
       {/* Image Section */}
@@ -45,13 +81,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           src={product.postInfo.images[0]}
           alt={product.postInfo.title}
           onClick={handleClickImage}
-          className="w-full h-48 object-cover"
+          className="w-full h-48 object-cover cursor-pointer"
         />
-        {/* {discount && (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-            {discount} OFF
-          </span>
-        )} */}
       </figure>
 
       {/* Product Info */}
@@ -59,15 +90,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Product Title */}
         <h2 className="text-md font-semibold mb-2">{product.postInfo.title}</h2>
 
+        {/* Rating */}
+        <div className="flex items-center mb-2">
+          {renderStars(rating)}
+          <span className="ml-2 text-sm text-gray-600">({rating.toFixed(1)})</span> {/* Show rating number */}
+        </div>
+
         {/* Price and Type */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-lg font-bold text-green-600">
-            {formatPrice(product.price.toString())}
-          </span>
-          <span className={`flex items-center text-sm text-green-500`}>
-            {product.postInfo.course && (
-              <span className="mr-2">{product.postInfo.course}</span>
-            )}
+            {formatPrice(product.price)}
           </span>
         </div>
 
@@ -77,21 +109,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Button Group */}
         <div className="mt-4">
           {/* Add to Cart Button */}
-          <button className="btn btn-neutral flex items-center justify-center w-full">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
+          <button className="btn btn-neutral flex items-center justify-center w-full"
+          onClick={() => handleAddToCart(product._id)}>
+            <AiOutlineShoppingCart className="w-5 h-5" />
             Add to Cart
           </button>
         </div>

@@ -8,6 +8,7 @@ import {
 import { IoChevronBackOutline } from "react-icons/io5";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useProductContext } from "../../context/ProductContext";
 
 interface Ingredient {
   name: string;
@@ -15,6 +16,7 @@ interface Ingredient {
 }
 
 interface ProductPageProps {
+  _id: string;
   recipeId: string;
   title: string;
   description: string;
@@ -74,6 +76,7 @@ const ProductPage: React.FC = () => {
   const [selectedToppings, setSelectedToppings] = useState<number[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+  const { addProductToCart } = useProductContext();
 
   const recipeData = (location.state as ProductPageProps) || {};
   const {
@@ -119,6 +122,11 @@ const ProductPage: React.FC = () => {
     navigate(`/posts/${recipeId}`);
   };
 
+  const handleAddToCart = (productId: string) => {
+    console.log(`Adding product to cart: ${productId}`);
+    addProductToCart(productId, quantity);
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg overflow-hidden h-screen overflow-y-auto">
@@ -144,8 +152,7 @@ const ProductPage: React.FC = () => {
             onClick={handleRecipeLinkClick}
             className="flex items-center text-blue-600 hover:underline mt-4 cursor-pointer"
           >
-            <AiOutlineLink className="w-5 h-5 mr-2" /> 
-
+            <AiOutlineLink className="w-5 h-5 mr-2" />
             <span className="font-bold">{` ${title}`}</span>.
           </a>
 
@@ -210,8 +217,11 @@ const ProductPage: React.FC = () => {
             </div>
 
             <div className="flex justify-center">
-              <button className="w-48 bg-black text-white py-3 rounded-lg font-bold">
-                Go To Cart
+              <button
+                className="w-48 bg-black text-white py-3 rounded-lg font-bold"
+                onClick={() => handleAddToCart(recipeData._id)}
+              >
+                Add To Cart
               </button>
             </div>
           </div>
