@@ -334,11 +334,20 @@ export interface ProductData {
   timeToPrepare: number;
 }
 
+export interface Review {
+  userId: string;
+  rating: number;
+  review: string;
+  author: AccountInfo;
+}
+
 export interface ProductInfo {
   _id: string;
   postId: string;
   quantity: number;
   price: number;
+  reviews: Review[];
+  averageRating: number;
   timeToPrepare: number;
   postInfo: PostInfo;
 }

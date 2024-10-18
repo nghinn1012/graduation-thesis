@@ -1,4 +1,4 @@
-import { Product } from "../data/interface/product_interface";
+import { Product, Review, ReviewCreate } from "../data/interface/product_interface";
 import cartModel from "../models/cartModel";
 import postModel from "../models/postModel";
 import productModel from "../models/productModel";
@@ -133,13 +133,28 @@ export const getCartService = async (userId: string) => {
 
 export const getProductByPostIdService = async (postId: string) => {
   try {
-    const product = await productModel.findOne({ postId });
+    let product = await productModel.findOne({ postId });
     if (!product) {
       return null;
     }
+    const productData = product.toObject() as unknown as Product;
+    const reviewAuthors = await rpcGetUsers<IAuthor[]>(
+      productData.reviews.map((review) => review.userId),
+      ["_id", "name", "avatar"]
+    );
+    if (!reviewAuthors) {
+      throw new Error("Failed to fetch review authors");
+    }
+    productData.reviews.forEach((review) => {
+      const author = reviewAuthors.find((a) => a._id.toString() === review?.userId?.toString());
+      if (author) {
+        review.author = author;
+      }
+    }
+    );
     const postInfo = await postModel.findOne({ _id: postId });
     return {
-      ...product.toObject(),
+      ...productData,
       postInfo,
     };
   } catch (error) {
@@ -164,3 +179,31 @@ export const removeProductFromCartService = async (userId: string, productId: st
     throw new Error(`Failed to remove product from cart: ${error}`);
   }
 }
+
+export const createReviewProductService = async (
+  userId: string,
+  productId: string,
+  reviewData: ReviewCreate,
+) => {
+  try {
+    const product = await productModel.findOne({ _id: productId });
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const newReview = {
+      userId: userId,
+      rating: reviewData.rating,
+      review: reviewData.review,
+    };
+
+    product.reviews.push(newReview);
+    product.averageRating = product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length;
+
+    await product.save();
+
+    return product;
+  } catch (error) {
+    throw new Error(`Failed to create review for product: ${error}`);
+  }
+};

@@ -12,7 +12,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   const navigate = useNavigate();
-  const {addProductToCart} = useProductContext();
+  const {addProductToCart, setCurrentProduct} = useProductContext();
 
   const formatPrice = (price: string | number) => {
     const num = parseFloat(price.toString());
@@ -35,22 +35,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   };
 
   const handleClickImage = () => {
+    setCurrentProduct(null);
     navigate(`/posts/productDetails/${product?._id}`, {
       state: {
         recipeId: product?.postInfo?._id,
         _id: product?._id,
-        title: product.postInfo.title,
-        description: product.postInfo?.about,
-        quantity: product?.quantity,
-        price: product?.price,
-        preparationTime: product?.timeToPrepare,
-        images: product.postInfo.images,
-        chef: {
-          name: "",
-          avatar: "post.author.avatar",
-        },
-        ingredients: product.postInfo.ingredients,
-        hashtags: product.postInfo.hashtags,
       },
     });
   };
@@ -88,7 +77,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
       {/* Product Info */}
       <div className="p-4 flex flex-col flex-grow">
         {/* Product Title */}
-        <h2 className="text-md font-semibold mb-2">{product.postInfo.title}</h2>
+        <h2 className="text-md font-semibold mb-2 truncate max-w-36">{product.postInfo.title}</h2>
 
         {/* Rating */}
         <div className="flex items-center mb-2">

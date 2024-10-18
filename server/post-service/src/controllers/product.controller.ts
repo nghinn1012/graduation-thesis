@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { addProductToCartService, getAllProductsService, getCartService, getProductByPostIdService, removeProductFromCartService } from "../services/product.services";
+import { addProductToCartService, createReviewProductService, getAllProductsService, getCartService, getProductByPostIdService, removeProductFromCartService } from "../services/product.services";
 import { Response } from "express";
 export const addProductToCartController = async (req: AuthRequest, res: Response) => {
   try {
@@ -94,6 +94,26 @@ export const removeProductFromCartController = async (req: AuthRequest, res: Res
   } catch (error) {
     return res.status(400).json({
       message: "Failed to remove product from cart",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const createReviewProductController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to create review for product",
+      error: "User not found",
+    });
+  }
+  const { productId, ...reviewData } = req.body;
+  try {
+    const product = await createReviewProductService(userId, productId, reviewData);
+    return res.status(200).json(product);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to create review for product",
       error: (error as Error).message,
     });
   }

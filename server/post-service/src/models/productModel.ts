@@ -1,5 +1,20 @@
 import { Schema, model, Document, Types } from "mongoose";
 
+const reviewSchema = new Schema({
+  userId: {
+    type: String,
+    required: true,
+  },
+  rating: {
+    type: Number,
+    required: true,
+  },
+  review: {
+    type: String,
+    required: true,
+  },
+});
+
 const productSchema = new Schema({
   postId: {
     type: Types.ObjectId,
@@ -13,34 +28,21 @@ const productSchema = new Schema({
     type: Number,
     required: true,
   },
-  toppings: {
-    type: [String],
-    default: [],
-  },
   timeToPrepare: {
     type: Number,
     required: true,
   },
   reviews: {
-    type: [
-      {
-        userId: {
-          type: Types.ObjectId,
-          required: true,
-        },
-        rating: {
-          type: Number,
-          required: true,
-        },
-        review: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
+    type: [reviewSchema],
     default: [],
+  },
+  averageRating: {
+    type: Number,
+    default: 0,
   },
 });
 
 const productModel = model("Product", productSchema);
+const reviewModel = model("Review", reviewSchema);
+
 export default productModel;

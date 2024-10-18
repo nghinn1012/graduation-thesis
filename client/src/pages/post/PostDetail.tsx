@@ -146,7 +146,7 @@ const PostDetails: React.FunctionComponent = () => {
   const { followUser } = useFollowContext();
   const { posts, setPosts } = usePostContext();
   const { user, setUser } = useProfileContext();
-  const { fetchProductByPostId, removeProduct } = useProductContext();
+  const { fetchProductByPostId, removeProduct, setCurrentProduct } = useProductContext();
   const [product, setProduct] = useState<ProductInfo>(
     [] as unknown as ProductInfo
   );
@@ -543,6 +543,7 @@ const PostDetails: React.FunctionComponent = () => {
   const updateServings = (increment: number) => {
     setServings((prevServings) => Math.max(prevServings + increment, 1));
   };
+
   const parseQuantity = (quantity: string) => {
     const match = quantity.match(/^(\d+\.?\d*)\s*(.*)$/);
     if (match) {
@@ -673,22 +674,11 @@ const PostDetails: React.FunctionComponent = () => {
 
   const handleOrderNow = () => {
     if (!post.hasProduct) return;
+    setCurrentProduct(null);
     navigate(`/posts/productDetails/${post?.product?._id}`, {
       state: {
         recipeId: post._id,
         _id: post?.product?._id,
-        title: post.title,
-        description: post.about,
-        quantity: post?.product?.quantity,
-        price: post?.product?.price,
-        preparationTime: post?.product?.timeToPrepare,
-        images: post.images,
-        chef: {
-          name: post.author.name,
-          avatar: post.author.avatar,
-        },
-        ingredients: post.ingredients,
-        hashtags: post.hashtags,
       },
     });
   };

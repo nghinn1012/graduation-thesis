@@ -10,7 +10,10 @@ interface ProductContextProps {
   removeProductFromCart: (productId: string) => void;
   fetchProductByPostId: (postId: string) => void;
   addProductToCart: (productId: string, quantity: number) => void;
+  currentProduct: ProductInfo | null;
+  setCurrentProduct: React.Dispatch<React.SetStateAction<ProductInfo | null>>;
   loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
 }
 
@@ -18,6 +21,7 @@ export const ProductContext = createContext<ProductContextProps | undefined>(und
 
 export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<ProductInfo[]>([]);
+  const [currentProduct, setCurrentProduct] = useState<ProductInfo | null>(null);
   const [cart, setCart] = useState<ProductCart[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,13 +80,14 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
 
           return [...prevProducts.filter((p) => p._id !== product._id), product];
         });
+        setCurrentProduct(product);
       } catch (err) {
         setError("Failed to fetch product");
       } finally {
         setLoading(false);
       }
     },
-    [auth?.token, setProducts]
+    [auth?.token, setProducts, setCurrentProduct]
   );
 
   const removeProduct = useCallback(
@@ -117,7 +122,6 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     [auth?.token]
   );
 
-
   const removeProductFromCart = useCallback(
     async (productId: string) => {
       console.log(productId);
@@ -137,7 +141,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   return (
-    <ProductContext.Provider value={{ removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
+    <ProductContext.Provider value={{ setLoading, currentProduct, setCurrentProduct, removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
       {children}
     </ProductContext.Provider>
   );

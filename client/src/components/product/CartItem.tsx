@@ -2,6 +2,7 @@ import React from "react";
 import { FaMinus, FaPlus, FaTrash } from "react-icons/fa";
 import { ProductCart } from "../../api/post";
 import { useNavigate } from "react-router-dom";
+import { useProductContext } from "../../context/ProductContext";
 
 interface CartItemType {
   productInfo: ProductCart;
@@ -19,6 +20,7 @@ const CartItem: React.FC<CartItemType> = ({
   formatPrice,
 }) => {
   const navigate = useNavigate();
+  const {setCurrentProduct } = useProductContext();
   if (!productInfo.productInfo) {
     return (
       <div className="flex items-center justify-between mb-4">
@@ -37,22 +39,11 @@ const CartItem: React.FC<CartItemType> = ({
   }
 
   const handleClick = () => {
+    setCurrentProduct(null);
     navigate(`/posts/productDetails/${productInfo.productId}`, {
       state: {
         recipeId: productInfo?.postInfo?._id,
         _id: productInfo?._id,
-        title: productInfo.postInfo.title,
-        description: productInfo.postInfo?.about,
-        quantity: productInfo?.quantity,
-        price: productInfo.productInfo.price,
-        preparationTime: productInfo?.productInfo.timeToPrepare,
-        images: productInfo.postInfo.images,
-        chef: {
-          name: "",
-          avatar: "post.author.avatar",
-        },
-        ingredients: productInfo.postInfo.ingredients,
-        hashtags: productInfo.postInfo.hashtags,
       },
     });
   }
