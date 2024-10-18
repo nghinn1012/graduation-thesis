@@ -352,6 +352,13 @@ export interface ProductInfo {
   postInfo: PostInfo;
 }
 
+export interface ProductList {
+  page: number;
+  total: number;
+  products: ProductInfo[];
+  totalPages: number;
+}
+
 export interface ProductCart {
   _id: string;
   productId: string;
@@ -369,7 +376,7 @@ export interface Cart {
 
 export interface PostFetcher {
   // product
-  getAllProducts: (token: string) => Promise<PostResponse<ProductInfo[]>>;
+  getAllProducts: (token: string, page: number, limit: number) => Promise<PostResponse<ProductList>>;
   getCart: (token: string) => Promise<PostResponse<Cart>>;
   getProductByPostId: (postId: string, token: string) => Promise<PostResponse<ProductInfo>>;
   addProductToCart: (productId: string, quantity: number, token: string) => Promise<PostResponse<ProductInfo[]>>;
@@ -795,10 +802,14 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
-  getAllProducts: async (token: string): Promise<PostResponse<ProductInfo[]>> => {
+  getAllProducts: async (token: string, page: number, limit: number): Promise<PostResponse<ProductList>> => {
     return postInstance.get(postEndpoints.getAllProducts, {
       headers: {
         'Authorization': `Bearer ${token}`,
+      },
+      params: {
+        page,
+        limit,
       },
     });
   },

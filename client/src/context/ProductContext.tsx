@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from "react";
-import { Cart, postFetcher, ProductCart, ProductInfo } from "../api/post";
+import { Cart, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 
 interface ProductContextProps {
@@ -15,6 +15,9 @@ interface ProductContextProps {
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
+  page: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  totalPages: number;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -26,14 +29,20 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const {auth} = useAuthContext();
+  const [page, setPage] = useState<number>(1);
+  const limit = 8;
+  const [totalPages, setTotalPages] = useState<number>(0);
 
   useEffect(() => {
     if (!auth?.token) return;
+
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const fetchedProducts = await postFetcher.getAllProducts(auth?.token);
-        setProducts(fetchedProducts as unknown as ProductInfo[]);
+        const fetchedProducts = await postFetcher.getAllProducts(auth?.token, page, limit) as unknown as ProductList;
+        console.log(fetchedProducts);
+        setProducts(fetchedProducts.products);
+        setTotalPages(fetchedProducts.totalPages);
       } catch (err) {
         setError("Failed to fetch products");
       } finally {
@@ -42,8 +51,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
 
     fetchProducts();
-    console.log(products);
-  }, [auth?.token]);
+  }, [auth?.token, page]);
 
   useEffect(() => {
     if (!auth?.token) return;
@@ -141,7 +149,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   return (
-    <ProductContext.Provider value={{ setLoading, currentProduct, setCurrentProduct, removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
+    <ProductContext.Provider value={{ totalPages, page, setPage, setLoading, currentProduct, setCurrentProduct, removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
       {children}
     </ProductContext.Provider>
   );

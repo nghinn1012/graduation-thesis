@@ -23,6 +23,7 @@ export const addProductToCartController = async (req: AuthRequest, res: Response
 
 export const getAllProductsController = async (req: AuthRequest, res: Response) => {
   const userId = req.authContent?.data.userId;
+  const { page, limit } = req.query;
   if (!userId) {
     return res.status(400).json({
       message: "Failed to get all products",
@@ -30,7 +31,7 @@ export const getAllProductsController = async (req: AuthRequest, res: Response) 
     });
   }
   try {
-    const products = await getAllProductsService();
+  const products = await getAllProductsService(page as unknown as number, limit as unknown as number);
     return res.status(200).json(products);
   } catch (error) {
     return res.status(400).json({

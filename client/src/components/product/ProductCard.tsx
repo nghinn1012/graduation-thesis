@@ -63,7 +63,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   };
 
   return (
-    <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-full">
+    <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-[95%]">
       {/* Image Section */}
       <figure className="relative">
         <img

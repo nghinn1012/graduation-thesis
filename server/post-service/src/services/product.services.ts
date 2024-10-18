@@ -4,9 +4,39 @@ import postModel from "../models/postModel";
 import productModel from "../models/productModel";
 import { IAuthor, rpcGetUsers } from "./rpc.services";
 
-export const getAllProductsService = async () => {
+// export const getAllProductsService = async () => {
+//   try {
+//     const products = await productModel.find({
+//       quantity: { $gt: 0 },
+//     });
+
+//     const productsWithPostInfo = await Promise.all(
+//       products.map(async (product) => {
+//         const postInfo = await postModel.findOne({ _id: product.postId });
+//         return {
+//           ...product.toObject(),
+//           postInfo,
+//         };
+//       })
+//     );
+
+//     return productsWithPostInfo;
+//   } catch (error) {
+//     throw new Error(`Failed to get all products: ${error}`);
+//   }
+// };
+
+export const getAllProductsService = async (page: number, limit: number) => {
   try {
+    const skip = (page - 1) * limit;
+
     const products = await productModel.find({
+      quantity: { $gt: 0 },
+    })
+    .skip(skip)
+    .limit(limit);
+
+    const totalProducts = await productModel.countDocuments({
       quantity: { $gt: 0 },
     });
 
@@ -20,11 +50,17 @@ export const getAllProductsService = async () => {
       })
     );
 
-    return productsWithPostInfo;
+    return {
+      products: productsWithPostInfo,
+      total: totalProducts,
+      page,
+      totalPages: Math.ceil(totalProducts / limit),
+    };
   } catch (error) {
     throw new Error(`Failed to get all products: ${error}`);
   }
 };
+
 
 export const addProductToCartService = async (userId: string, productId: string, quantity: number) => {
   try {

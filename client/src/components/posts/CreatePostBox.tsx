@@ -11,6 +11,7 @@ import { Toaster } from "react-hot-toast";
 import { BsPostcardHeart } from "react-icons/bs";
 import { BiDish } from "react-icons/bi";
 import ProductModal from "../product/CreateProductFromPost";
+import { useProductContext } from "../../context/ProductContext";
 
 const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -23,6 +24,7 @@ const CreatePostBox: React.FC = () => {
   const { fetchPost, setPosts } = usePostContext();
   const { socket } = useSocket();
   const { success, error } = useToastContext();
+  const {setPage} = useProductContext();
 
   useEffect(() => {
     if (!socket || !auth?.account) return;
@@ -30,7 +32,7 @@ const CreatePostBox: React.FC = () => {
     const handleUploadsComplete = async (message: string) => {
       console.log(`Received message: ${message}`);
       setIsLoading(true);
-
+1
       try {
         const newPostId = message;
         const newPost = (await fetchPost(newPostId)) as PostInfo;
@@ -38,6 +40,9 @@ const CreatePostBox: React.FC = () => {
         if (newPost && setPosts) {
           newPost.author = auth.account as unknown as PostInfo["author"];
           setPosts((prevPosts) => [newPost, ...prevPosts]);
+        }
+        if (newPost.hasProduct) {
+          setPage(1);
         }
       } catch (err) {
         console.error("Failed to fetch new post:", err);

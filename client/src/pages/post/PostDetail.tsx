@@ -146,7 +146,7 @@ const PostDetails: React.FunctionComponent = () => {
   const { followUser } = useFollowContext();
   const { posts, setPosts } = usePostContext();
   const { user, setUser } = useProfileContext();
-  const { fetchProductByPostId, removeProduct, setCurrentProduct } = useProductContext();
+  const { fetchProductByPostId, removeProduct, setCurrentProduct, setPage } = useProductContext();
   const [product, setProduct] = useState<ProductInfo>(
     [] as unknown as ProductInfo
   );
@@ -222,9 +222,9 @@ const PostDetails: React.FunctionComponent = () => {
         setIsSaved(isSavedPost as unknown as boolean);
         setPost(updatedPost as unknown as PostInfo);
         if ((updatedPost as unknown as PostInfo).hasProduct === true) {
-          fetchProductByPostId(post._id);
+          setPage(1);
         } else {
-          removeProduct(post._id);
+          setPage(1);
         }
       } catch (error) {
         console.error("Failed to fetch the updated post:", error);
