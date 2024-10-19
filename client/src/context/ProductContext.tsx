@@ -18,6 +18,7 @@ interface ProductContextProps {
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
+  searchProducts: (searchTerm: string) => void;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -117,14 +118,12 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     async (productId: string, quantity: number) => {
       if (!auth?.token) return;
       try {
-        setLoading(true);
         const updatedCart = await postFetcher.addProductToCart(productId, quantity, auth?.token) as unknown as Cart;
 
         setCart(updatedCart.products);
       } catch (err) {
         setError("Failed to add product to cart");
       } finally {
-        setLoading(false);
       }
     },
     [auth?.token]
@@ -148,8 +147,25 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     [auth?.token]
   );
 
+  const searchProducts = useCallback(
+    async (searchTerm: string) => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        const fetchedProducts = await postFetcher.searchProduct(searchTerm, page, limit, auth?.token) as unknown as ProductList;
+        setProducts(fetchedProducts.products);
+        setTotalPages(fetchedProducts.totalPages);
+      } catch (err) {
+        setError("Failed to search products");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token, page]
+  );
+
   return (
-    <ProductContext.Provider value={{ totalPages, page, setPage, setLoading, currentProduct, setCurrentProduct, removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
+    <ProductContext.Provider value={{ searchProducts, totalPages, page, setPage, setLoading, currentProduct, setCurrentProduct, removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
       {children}
     </ProductContext.Provider>
   );

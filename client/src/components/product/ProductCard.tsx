@@ -51,9 +51,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
 
     return (
       <div className="flex items-center">
-        {Array(fullStars).fill(<FaStar className="text-yellow-500" />)} {/* Full Stars */}
+        {Array(fullStars)?.fill(<FaStar className="text-yellow-500" />)} {/* Full Stars */}
         {halfStar && <FaStarHalfAlt className="text-yellow-500" />} {/* Half Star */}
-        {Array(emptyStars).fill(<FaRegStar className="text-yellow-500" />)} {/* Empty Stars */}
+        {Array(emptyStars)?.fill(<FaRegStar className="text-yellow-500" />)} {/* Empty Stars */}
       </div>
     );
   };
@@ -63,7 +63,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   };
 
   return (
-    <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-[95%]">
+    <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-[90%]">
       {/* Image Section */}
       <figure className="relative">
         <img

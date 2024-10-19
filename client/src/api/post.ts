@@ -12,6 +12,7 @@ export const postEndpoints = {
   getProductByPostId: "/posts/product/getProductByPostId/:postId",
   addProductToCart: "/posts/product/addToCart",
   removeProductFromCart: "/posts/product/removeProductFromCart/:productId",
+  searchProducts: "/posts/product/search",
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -381,6 +382,7 @@ export interface PostFetcher {
   getProductByPostId: (postId: string, token: string) => Promise<PostResponse<ProductInfo>>;
   addProductToCart: (productId: string, quantity: number, token: string) => Promise<PostResponse<ProductInfo[]>>;
   removeProductFromCart: (productId: string, token: string) => Promise<PostResponse<ProductInfo[]>>;
+  searchProduct: (query: string, page: number, limit: number, token: string) => Promise<PostResponse<ProductList>>;
   // posts
   getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
@@ -844,4 +846,16 @@ export const postFetcher: PostFetcher = {
       },
     });
   },
+  searchProduct: async (query: string, page: number, limit: number, token: string): Promise<PostResponse<ProductList>> => {
+    return postInstance.get(postEndpoints.searchProducts, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      params: {
+        query,
+        page,
+        limit,
+      },
+    });
+  }
 }

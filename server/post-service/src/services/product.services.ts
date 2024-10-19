@@ -4,28 +4,6 @@ import postModel from "../models/postModel";
 import productModel from "../models/productModel";
 import { IAuthor, rpcGetUsers } from "./rpc.services";
 
-// export const getAllProductsService = async () => {
-//   try {
-//     const products = await productModel.find({
-//       quantity: { $gt: 0 },
-//     });
-
-//     const productsWithPostInfo = await Promise.all(
-//       products.map(async (product) => {
-//         const postInfo = await postModel.findOne({ _id: product.postId });
-//         return {
-//           ...product.toObject(),
-//           postInfo,
-//         };
-//       })
-//     );
-
-//     return productsWithPostInfo;
-//   } catch (error) {
-//     throw new Error(`Failed to get all products: ${error}`);
-//   }
-// };
-
 export const getAllProductsService = async (page: number, limit: number) => {
   try {
     const skip = (page - 1) * limit;
@@ -241,5 +219,56 @@ export const createReviewProductService = async (
     return product;
   } catch (error) {
     throw new Error(`Failed to create review for product: ${error}`);
+  }
+};
+
+export const searchProductsService = async (query: string, page: number, limit: number) => {
+  try {
+    const skip = (page - 1) * limit;
+
+    const matchingPosts = await postModel.find({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { about: { $regex: query, $options: 'i' } },
+      ],
+    }).lean();
+
+    const postIds = matchingPosts.map(post => post._id);
+
+    const products = await productModel.find({
+      quantity: { $gt: 0 },
+      postId: { $in: postIds },
+    })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+    console.log(products);
+
+    const totalProducts = await productModel.countDocuments({
+      quantity: { $gt: 0 },
+      postId: { $in: postIds },
+    });
+
+    const productsWithPostInfo = await Promise.all(
+      products.map(async (product) => {
+        const postInfo = await postModel.findOne({ _id: product.postId }).lean();
+        console.log(product);
+        return {
+          ...product,
+          postInfo: postInfo,
+        };
+      })
+    );
+
+    return {
+      products: productsWithPostInfo,
+      total: totalProducts,
+      page,
+      totalPages: Math.ceil(totalProducts / limit),
+    };
+  } catch (error) {
+    console.error("Error in searchProductsService:", error);
+    throw new Error(`Failed to search products: ${(error as Error).message}`);
   }
 };

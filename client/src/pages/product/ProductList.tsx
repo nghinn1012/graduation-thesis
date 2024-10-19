@@ -1,79 +1,133 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import ProductCard from "../../components/product/ProductCard";
-import { ProductInfo } from "../../api/post";
 import { useProductContext } from "../../context/ProductContext";
+import { MdOutlineSearch } from "react-icons/md";
 
-const Skeleton = () => (
-  <div className="animate-pulse p-4">
-    <div className="h-48 bg-gray-300 rounded-lg mb-4"></div>
-    <div className="h-6 bg-gray-300 rounded mb-2"></div>
-    <div className="h-6 bg-gray-300 rounded mb-2"></div>
-    <div className="h-6 bg-gray-300 rounded mb-4"></div>
-  </div>
-);
+const categories = [
+  { name: "all", icon: "🍽" },
+  { name: "breakfast", icon: "🍳" },
+  { name: "lunch", icon: "🥪" },
+  { name: "dinner", icon: "🍝" },
+  { name: "dessert", icon: "🍰" },
+  { name: "snack", icon: "🍪" },
+  { name: "appetizer", icon: "🥟" },
+  { name: "drink", icon: "🍹" },
+  { name: "side", icon: "🥗" },
+];
 
-const ProductListPage: React.FC = () => {
-  const { products, loading, error, page, setPage, totalPages } = useProductContext();
+const ProductListPage = () => {
+  const { products, loading, page, setPage, totalPages, searchProducts } =
+    useProductContext();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
-    // Fetch products
     console.log(products);
   }, [products]);
 
-  // Tạo mảng số trang
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      if (selectedCategory === "all") return true;
+      return product?.postInfo?.course?.includes(selectedCategory.toLowerCase());
+    });
+  }, [products, selectedCategory]);
+
   const createPageArray = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPage(1);
+    searchProducts(searchTerm);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+  };
+
   return (
-    <div className="w-full flex flex-col items-center px-4 py-6 min-h-screen"> {/* Add min-h-screen */}
-      {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-screen-xl">
-          {[...Array(8)].map((_, index) => (
-            <Skeleton key={index} />
+    <div className="container mx-auto px-4 py-8">
+      <form onSubmit={handleSearchSubmit} className="mb-8">
+        <div className="form-control">
+          <div className="input-group flex flex-row">
+            <input
+              type="text"
+              placeholder="Search food"
+              className="input input-bordered flex-grow"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button type="submit" className="btn btn-square btn-primary">
+              <MdOutlineSearch className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Explore Categories</h2>
+        <div className="flex flex-wrap gap-2 mt-4">
+          {categories.map((category) => (
+            <button
+              key={category.name}
+              onClick={() => handleCategoryChange(category.name)}
+              className={`btn btn-md py-2 ${
+                selectedCategory === category.name ? "btn-accent" : ""
+              }`}
+            >
+              <span className="">{category.icon}</span>
+              {category.name}
+            </button>
           ))}
         </div>
-      )}
-      {error && <p>{error}</p>}
+      </div>
 
-      {/* Product Grid */}
-      {!loading && products.length === 0 && <p>No products found.</p>}
-      {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-screen-xl">
-          {products.map((product) => (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, index) => (
+            <div key={index} className="skeleton h-64 w-full"></div>
+          ))}
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <p className="text-center text-lg">No products found in this category.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
             <ProductCard
               key={product._id}
               product={product}
-              rating={product.averageRating}
+              rating={product.averageRating || 0}
             />
           ))}
         </div>
       )}
 
-      {/* Pagination Controls with DaisyUI */}
-      <div className="join mt-8 fixed bottom-0 left-[50%] right-0 bg-white p-2">
+      <div className="join mt-8 flex justify-center">
         <button
-          onClick={() => setPage(prevPage => Math.max(prevPage - 1, 1))}
+          onClick={() => setPage((prevPage) => Math.max(prevPage - 1, 1))}
           className="join-item btn"
           disabled={page === 1}
         >
           Previous
         </button>
 
-        {/* Dãy trang */}
         {createPageArray().map((pageNumber) => (
           <button
             key={pageNumber}
             onClick={() => setPage(pageNumber)}
-            className={`join-item btn ${page === pageNumber ? "btn-active" : ""}`}
-            disabled={totalPages === 1} // Disable if there's only one page
+            className={`join-item btn ${
+              page === pageNumber ? "btn-active" : ""
+            }`}
           >
             {pageNumber}
           </button>
         ))}
 
         <button
-          onClick={() => setPage(prevPage => Math.min(prevPage + 1, totalPages))}
+          onClick={() =>
+            setPage((prevPage) => Math.min(prevPage + 1, totalPages))
+          }
           className="join-item btn"
           disabled={page === totalPages}
         >

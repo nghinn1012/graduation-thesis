@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { addProductToCartService, createReviewProductService, getAllProductsService, getCartService, getProductByPostIdService, removeProductFromCartService } from "../services/product.services";
+import { addProductToCartService, createReviewProductService, getAllProductsService, getCartService, getProductByPostIdService, removeProductFromCartService, searchProductsService } from "../services/product.services";
 import { Response } from "express";
 export const addProductToCartController = async (req: AuthRequest, res: Response) => {
   try {
@@ -115,6 +115,26 @@ export const createReviewProductController = async (req: AuthRequest, res: Respo
   } catch (error) {
     return res.status(400).json({
       message: "Failed to create review for product",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const searchProductsController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to search products",
+      error: "User not found",
+    });
+  }
+  const { query, page, limit } = req.query;
+  try {
+    const products = await searchProductsService(query as string, page as unknown as number, limit as unknown as number);
+    return res.status(200).json(products);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to search products",
       error: (error as Error).message,
     });
   }
