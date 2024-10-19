@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import ProductCard from "../../components/product/ProductCard";
 import { useProductContext } from "../../context/ProductContext";
 import { MdOutlineSearch } from "react-icons/md";
+import { useLocation } from "react-router-dom";
 
 const categories = [
   { name: "all", icon: "🍽" },
@@ -16,11 +17,9 @@ const categories = [
 ];
 
 const ProductListPage = () => {
-  const { products, loading, page, setPage, totalPages, searchProducts } =
+  const { products, loading, page, setPage, totalPages, searchProducts,
+    searchTerm, setSearchTerm, selectedCategory, setSelectedCategory } =
     useProductContext();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-
   useEffect(() => {
     console.log(products);
   }, [products]);
@@ -56,6 +55,7 @@ const ProductListPage = () => {
               placeholder="Search food"
               className="input input-bordered flex-grow"
               value={searchTerm}
+              defaultValue={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button type="submit" className="btn btn-square btn-primary">

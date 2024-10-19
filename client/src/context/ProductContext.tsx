@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from "react";
 import { Cart, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useLocation } from "react-router-dom";
 
 interface ProductContextProps {
   products: ProductInfo[];
@@ -19,6 +20,10 @@ interface ProductContextProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   searchProducts: (searchTerm: string) => void;
+  searchTerm: string;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  selectedCategory: string;
+  setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -32,7 +37,19 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const {auth} = useAuthContext();
   const [page, setPage] = useState<number>(1);
   const limit = 8;
+  const location = useLocation();
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  useEffect(() => {
+    if (location.pathname !== "/products") {
+      setSearchTerm("");
+      setSelectedCategory("all");
+      setPage(1);
+      console.log("reset");
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!auth?.token) return;
@@ -40,6 +57,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        console.log("chay qua sau reset");
         const fetchedProducts = await postFetcher.getAllProducts(auth?.token, page, limit) as unknown as ProductList;
         console.log(fetchedProducts);
         setProducts(fetchedProducts.products);
@@ -52,7 +70,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
 
     fetchProducts();
-  }, [auth?.token, page]);
+  }, [auth?.token, page, location.pathname]);
 
   useEffect(() => {
     if (!auth?.token) return;
@@ -165,7 +183,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   return (
-    <ProductContext.Provider value={{ searchProducts, totalPages, page, setPage, setLoading, currentProduct, setCurrentProduct, removeProductFromCart, addProductToCart, removeProduct, products, loading, error, cart, setCart, fetchProductByPostId }}>
+    <ProductContext.Provider value={{ searchTerm, setSearchTerm,
+     searchProducts, totalPages, page, setPage, setLoading,
+     currentProduct, setCurrentProduct, removeProductFromCart,
+     addProductToCart, removeProduct, products, loading, error,
+     cart, setCart, fetchProductByPostId, selectedCategory, setSelectedCategory }}>
       {children}
     </ProductContext.Provider>
   );
