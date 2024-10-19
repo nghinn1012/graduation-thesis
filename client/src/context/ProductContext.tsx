@@ -24,6 +24,8 @@ interface ProductContextProps {
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   selectedCategory: string;
   setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
+  selectedItems: string[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -41,6 +43,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [totalPages, setTotalPages] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -187,7 +190,8 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
      searchProducts, totalPages, page, setPage, setLoading,
      currentProduct, setCurrentProduct, removeProductFromCart,
      addProductToCart, removeProduct, products, loading, error,
-     cart, setCart, fetchProductByPostId, selectedCategory, setSelectedCategory }}>
+     cart, setCart, fetchProductByPostId, selectedCategory,
+     setSelectedCategory, selectedItems, setSelectedItems }}>
       {children}
     </ProductContext.Provider>
   );

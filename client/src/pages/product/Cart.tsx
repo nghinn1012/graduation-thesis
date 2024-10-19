@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import CartItem from "../../components/product/CartItem";
 import { useProductContext } from "../../context/ProductContext";
 import { ProductCart } from "../../api/post";
+import { useNavigate } from "react-router-dom";
 
 const CartPage: React.FC = () => {
-  const { cart, addProductToCart, removeProductFromCart } = useProductContext();
+  const { cart, addProductToCart, removeProductFromCart, selectedItems, setSelectedItems } = useProductContext();
   const [items, setItems] = useState<ProductCart[]>(cart);
   const [promoCode, setPromoCode] = useState<string>("");
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [authorSelections, setAuthorSelections] = useState<{
     [authorId: string]: boolean;
   }>({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     setItems(cart);
@@ -39,6 +40,7 @@ const CartPage: React.FC = () => {
 
   const handleCheckout = () => {
     console.log("Proceeding to checkout");
+    navigate("/checkout");
   };
 
   const handleApplyPromo = () => {
