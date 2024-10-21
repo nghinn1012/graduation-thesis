@@ -6,6 +6,8 @@ import MessageTab from "../pages/message/MessageTab";
 import ProductListPage from "../pages/product/ProductList";
 import CartPage from "../pages/product/Cart";
 import OrderInfoPage from "../pages/product/OrderInfoPage";
+import PaymentSuccess from "../pages/product/PaymentSuccess";
+import OrdersPage from "../pages/product/OrderList";
 
 export default function AppMainCenter() {
   return (
@@ -18,6 +20,8 @@ export default function AppMainCenter() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/posts/*" element={<PostIndex />} />
         <Route path="/users/*" element={<UserIndex />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/orders" element={<OrdersPage />} />
       </Routes>
     </div>
   );

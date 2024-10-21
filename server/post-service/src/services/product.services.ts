@@ -1,8 +1,9 @@
-import { Product, Review, ReviewCreate } from "../data/interface/product_interface";
+import { OrderCreate, Product, Review, ReviewCreate } from "../data/interface/product_interface";
 import cartModel from "../models/cartModel";
+import orderModel from "../models/orderModel";
 import postModel from "../models/postModel";
 import productModel from "../models/productModel";
-import { IAuthor, rpcGetUsers } from "./rpc.services";
+import { IAuthor, rpcGetUser, rpcGetUsers } from "./rpc.services";
 
 export const getAllProductsService = async (page: number, limit: number) => {
   try {
@@ -11,8 +12,8 @@ export const getAllProductsService = async (page: number, limit: number) => {
     const products = await productModel.find({
       quantity: { $gt: 0 },
     })
-    .skip(skip)
-    .limit(limit);
+      .skip(skip)
+      .limit(limit);
 
     const totalProducts = await productModel.countDocuments({
       quantity: { $gt: 0 },
@@ -38,7 +39,6 @@ export const getAllProductsService = async (page: number, limit: number) => {
     throw new Error(`Failed to get all products: ${error}`);
   }
 };
-
 
 export const addProductToCartService = async (userId: string, productId: string, quantity: number) => {
   try {
@@ -176,23 +176,25 @@ export const getProductByPostIdService = async (postId: string) => {
   }
 }
 
-export const removeProductFromCartService = async (userId: string, productId: string) => {
+export const removeProductsFromCartService = async (userId: string, productIds: string[]) => {
   try {
     const cart = await cartModel.findOne({ userId });
     if (!cart) {
       throw new Error("Cart not found");
     }
-    const productIndex = cart.products.findIndex((product) => product.productId.toString() === productId);
-    if (productIndex === -1) {
-      throw new Error("Product not found in cart");
-    }
-    cart.products.splice(productIndex, 1);
+
+    const updatedProducts = cart.products.filter(product =>
+      !productIds.includes(product.productId.toString())
+    );
+
+    cart.products.splice(0, cart.products.length, ...updatedProducts);
+
     await cart.save();
     return cart;
   } catch (error) {
-    throw new Error(`Failed to remove product from cart: ${error}`);
+    throw new Error(`Failed to remove products from cart: ${error}`);
   }
-}
+};
 
 export const createReviewProductService = async (
   userId: string,
@@ -222,7 +224,7 @@ export const createReviewProductService = async (
   }
 };
 
-export const searchProductsService = async (query: string, page: number, limit: number) => {
+export const searchProductsService = async (query: string, filter: string, page: number, limit: number) => {
   try {
     const skip = (page - 1) * limit;
 
@@ -235,25 +237,14 @@ export const searchProductsService = async (query: string, page: number, limit: 
 
     const postIds = matchingPosts.map(post => post._id);
 
-    const products = await productModel.find({
+    const allProducts = await productModel.find({
       quantity: { $gt: 0 },
       postId: { $in: postIds },
-    })
-    .skip(skip)
-    .limit(limit)
-    .lean();
-
-    console.log(products);
-
-    const totalProducts = await productModel.countDocuments({
-      quantity: { $gt: 0 },
-      postId: { $in: postIds },
-    });
+    }).lean();
 
     const productsWithPostInfo = await Promise.all(
-      products.map(async (product) => {
+      allProducts.map(async (product) => {
         const postInfo = await postModel.findOne({ _id: product.postId }).lean();
-        console.log(product);
         return {
           ...product,
           postInfo: postInfo,
@@ -261,14 +252,124 @@ export const searchProductsService = async (query: string, page: number, limit: 
       })
     );
 
+    let filteredProducts = productsWithPostInfo.filter(product => {
+      if (filter === "") {
+        return true;
+      }
+      return product.postInfo?.course?.includes(filter.toLowerCase());
+    });
+
+    const totalFilteredProducts = filteredProducts.length;
+
+    const paginatedProducts = filteredProducts.slice(skip, skip + limit);
+
     return {
-      products: productsWithPostInfo,
-      total: totalProducts,
+      products: paginatedProducts,
+      total: totalFilteredProducts,
       page,
-      totalPages: Math.ceil(totalProducts / limit),
+      totalPages: Math.ceil(totalFilteredProducts / limit),
     };
   } catch (error) {
     console.error("Error in searchProductsService:", error);
     throw new Error(`Failed to search products: ${(error as Error).message}`);
   }
 };
+
+
+export const createOrderService = async (orderCreate: OrderCreate) => {
+  try {
+    if (!orderCreate.products || orderCreate.products.length === 0) {
+      throw new Error("Products not found");
+    };
+    const newOrder = await orderModel.create(orderCreate);
+    const productsWithInfo = await Promise.all(newOrder.products.map(async (product) => {
+      const productInfo = await productModel.findOne({ _id: product.productId });
+      const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;
+
+      return {
+        ...product.toObject(),
+        productInfo,
+        postInfo,
+      };
+    }));
+
+    const userInfo = await rpcGetUser<IAuthor>(newOrder.userId, ["_id", "name", "avatar", "username"]);
+    const sellerInfo = await rpcGetUser<IAuthor>(newOrder.sellerId, ["_id", "name", "avatar", "username"]);
+
+    return {
+      ...newOrder.toObject(),
+      products: productsWithInfo,
+      userInfo,
+      sellerInfo,
+    };
+  } catch (error) {
+    throw new Error(`Failed to create order: ${error}`);
+  }
+}
+
+export const getOrdersByUserService = async (userId: string) => {
+  try {
+    const orders = await orderModel.find({ userId });
+
+    const result = await Promise.all(orders.map(async (order) => {
+      const productsWithInfo = await Promise.all(order.products.map(async (product) => {
+        const productInfo = await productModel.findOne({ _id: product.productId });
+        const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;
+
+        return {
+          ...product.toObject(),
+          productInfo,
+          postInfo,
+        };
+      }));
+
+      const userInfo = await rpcGetUser<IAuthor>(order.userId, ["_id", "name", "avatar", "username"]);
+      const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, ["_id", "name", "avatar", "username"]);
+
+      return {
+        ...order.toObject(),
+        products: productsWithInfo,
+        userInfo,
+        sellerInfo,
+      };
+    }));
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw new Error(`Failed to get orders by user: ${error}`);
+  }
+}
+
+export const getOrderOfSellerService = async (sellerId: string) => {
+  try {
+    const orders = await orderModel.find({ sellerId });
+    const result = await Promise.all(orders.map(async (order) => {
+      const productsWithInfo = await Promise.all(order.products.map(async (product) => {
+        const productInfo = await productModel.findOne({ _id: product.productId });
+        const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;
+
+        return {
+          ...product.toObject(),
+          productInfo,
+          postInfo,
+        };
+      }));
+
+      const userInfo = await rpcGetUser<IAuthor>(order.userId, ["_id", "name", "avatar", "username"]);
+      const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, ["_id", "name", "avatar", "username"]);
+
+      return {
+        ...order.toObject(),
+        products: productsWithInfo,
+        userInfo,
+        sellerInfo,
+      };
+    }));
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw new Error(`Failed to get order of seller: ${error}`);
+  }
+}

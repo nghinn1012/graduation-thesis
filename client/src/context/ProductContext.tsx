@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from "react";
-import { Cart, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
+import { Cart, OrderInfo, OrderWithUserInfo, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
 
@@ -8,7 +8,7 @@ interface ProductContextProps {
   cart: ProductCart[];
   setCart: React.Dispatch<React.SetStateAction<ProductCart[]>>;
   removeProduct: (productId: string) => void;
-  removeProductFromCart: (productId: string) => void;
+  removeProductFromCart: (productIds: string[]) => void;
   fetchProductByPostId: (postId: string) => void;
   addProductToCart: (productId: string, quantity: number) => void;
   currentProduct: ProductInfo | null;
@@ -19,13 +19,22 @@ interface ProductContextProps {
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
-  searchProducts: (searchTerm: string) => void;
+  searchProducts: (searchTerm: string, filter: string) => void;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   selectedCategory: string;
   setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
   selectedItems: string[];
   setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>;
+  ordersByUser: OrderWithUserInfo[];
+  ordersBySeller: OrderWithUserInfo[];
+  setOrdersByUser: React.Dispatch<React.SetStateAction<OrderWithUserInfo[]>>;
+  setOrdersBySeller: React.Dispatch<React.SetStateAction<OrderWithUserInfo[]>>;
+  fetchOrdersByUser: () => void;
+  fetchOrderBySeller: () => void;
+  createOrder: (orderInfo: OrderInfo) => void;
+  currentOrder: OrderInfo | null;
+  setCurrentOrder: React.Dispatch<React.SetStateAction<OrderInfo | null>>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -44,6 +53,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [ordersByUser, setOrdersByUser] = useState<OrderWithUserInfo[]>([]);
+  const [ordersBySeller, setOrdersBySeller] = useState<OrderWithUserInfo[]>([]);
+  const [currentOrder, setCurrentOrder] = useState<OrderInfo | null>(null);
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -151,14 +163,14 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   const removeProductFromCart = useCallback(
-    async (productId: string) => {
-      console.log(productId);
+    async (productIds: string[]) => {
+      console.log(productIds);
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const updatedCart = await postFetcher.removeProductFromCart(productId, auth?.token) as unknown as Cart;
+        const updatedCart = await postFetcher.removeProductFromCart(productIds, auth?.token) as unknown as Cart;
         console.log(updatedCart);
-        setCart((prevCart) => prevCart.filter((p) => p.productId !== productId));
+        setCart((prevCart) => prevCart.filter((p) => productIds.indexOf(p.productId) === -1));
       } catch (err) {
         setError("Failed to remove product from cart");
       } finally {
@@ -169,11 +181,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   const searchProducts = useCallback(
-    async (searchTerm: string) => {
+    async (searchTerm: string, filter: string) => {
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const fetchedProducts = await postFetcher.searchProduct(searchTerm, page, limit, auth?.token) as unknown as ProductList;
+        const fetchedProducts = await postFetcher.searchProduct(searchTerm, filter, page, limit, auth?.token) as unknown as ProductList;
         setProducts(fetchedProducts.products);
         setTotalPages(fetchedProducts.totalPages);
       } catch (err) {
@@ -185,13 +197,65 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     [auth?.token, page]
   );
 
+  const fetchOrdersByUser = useCallback(
+    async () => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        const fetchedOrders = await postFetcher.getOrderByUser(auth?.token) as unknown as OrderWithUserInfo[];
+        setOrdersByUser(fetchedOrders);
+      } catch (err) {
+        setError("Failed to fetch orders");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
+  const fetchOrderBySeller = useCallback(
+    async () => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        const fetchedOrders = await postFetcher.getOrderBySeller(auth?.token) as unknown as OrderWithUserInfo[];
+        setOrdersBySeller(fetchedOrders);
+      } catch (err) {
+        setError("Failed to fetch orders");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
+  const createOrder = useCallback(
+    async (orderInfo: OrderInfo) => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        const result = await postFetcher.createOrder(orderInfo, auth?.token) as unknown as OrderWithUserInfo;
+        setCurrentOrder(result);
+        setOrdersByUser((prevOrders) => [...prevOrders, result]);
+      } catch (err) {
+        setError("Failed to create order");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
   return (
     <ProductContext.Provider value={{ searchTerm, setSearchTerm,
      searchProducts, totalPages, page, setPage, setLoading,
      currentProduct, setCurrentProduct, removeProductFromCart,
      addProductToCart, removeProduct, products, loading, error,
      cart, setCart, fetchProductByPostId, selectedCategory,
-     setSelectedCategory, selectedItems, setSelectedItems }}>
+     setSelectedCategory, selectedItems, setSelectedItems,
+     ordersBySeller, setOrdersBySeller, ordersByUser,
+     setOrdersByUser, fetchOrderBySeller, fetchOrdersByUser,
+     createOrder, currentOrder, setCurrentOrder }}>
       {children}
     </ProductContext.Provider>
   );

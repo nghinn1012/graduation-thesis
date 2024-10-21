@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 const orderSchema = new Schema({
   userId: {
@@ -24,6 +24,19 @@ const orderSchema = new Schema({
     ],
     default: [],
   },
+  info: {
+    type: {
+      name: {
+        type: String,
+        default: "",
+      },
+      phone: {
+        type: String,
+        default: "",
+      },
+    },
+    default: {},
+  },
   address: {
     type: String,
     default: "",
@@ -38,7 +51,12 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
+    enum: ["Pending", "Confirmed", "Delivering", "Completed"],
     default: "Pending",
+  },
+  amount: {
+    type: Number,
+    default: 0,
   },
   createdAt: {
     type: Date,

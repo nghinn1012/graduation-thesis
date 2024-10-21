@@ -24,12 +24,10 @@ const ProductListPage = () => {
     console.log(products);
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (selectedCategory === "all") return true;
-      return product?.postInfo?.course?.includes(selectedCategory.toLowerCase());
-    });
-  }, [products, selectedCategory]);
+  useEffect(() => {
+    setPage(1);
+    searchProducts(searchTerm, selectedCategory === "all" ? "" : selectedCategory);
+  }, [selectedCategory]);
 
   const createPageArray = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -38,7 +36,7 @@ const ProductListPage = () => {
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPage(1);
-    searchProducts(searchTerm);
+    searchProducts(searchTerm, selectedCategory);
   };
 
   const handleCategoryChange = (category: string) => {
@@ -89,11 +87,11 @@ const ProductListPage = () => {
             <div key={index} className="skeleton h-64 w-full"></div>
           ))}
         </div>
-      ) : filteredProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <p className="text-center text-lg">No products found in this category.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard
               key={product._id}
               product={product}

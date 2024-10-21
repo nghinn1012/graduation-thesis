@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { addProductToCartService, createReviewProductService, getAllProductsService, getCartService, getProductByPostIdService, removeProductFromCartService, searchProductsService } from "../services/product.services";
+import { addProductToCartService, createOrderService, createReviewProductService, getAllProductsService, getCartService, getOrderOfSellerService, getOrdersByUserService, getProductByPostIdService, removeProductsFromCartService, searchProductsService } from "../services/product.services";
 import { Response } from "express";
 export const addProductToCartController = async (req: AuthRequest, res: Response) => {
   try {
@@ -88,9 +88,9 @@ export const removeProductFromCartController = async (req: AuthRequest, res: Res
       error: "User not found",
     });
   }
-  const { productId } = req.params;
+  const { productIds } = req.body;
   try {
-    const cart = await removeProductFromCartService(userId, productId);
+    const cart = await removeProductsFromCartService(userId, productIds);
     return res.status(200).json(cart);
   } catch (error) {
     return res.status(400).json({
@@ -128,13 +128,71 @@ export const searchProductsController = async (req: AuthRequest, res: Response) 
       error: "User not found",
     });
   }
-  const { query, page, limit } = req.query;
+  const { query, page, limit, filter } = req.query;
   try {
-    const products = await searchProductsService(query as string, page as unknown as number, limit as unknown as number);
+    const products = await searchProductsService(query as string, filter as unknown as string, page as unknown as number, limit as unknown as number);
     return res.status(200).json(products);
   } catch (error) {
     return res.status(400).json({
       message: "Failed to search products",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const createOrderController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to create order",
+      error: "User not found",
+    });
+  }
+  const { ...orderCreate } = req.body;
+  try {
+    const order = await createOrderService({ ...orderCreate, userId });
+    return res.status(200).json(order);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to create order",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getOrdersByUserController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to get orders",
+      error: "User not found",
+    });
+  }
+  try {
+    const orders = await getOrdersByUserService(userId);
+    return res.status(200).json(orders);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to get orders",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getOrderOfSellerController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to get orders",
+      error: "User not found",
+    });
+  }
+  try {
+    const orders = await getOrderOfSellerService(userId);
+    return res.status(200).json(orders);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to get orders",
       error: (error as Error).message,
     });
   }

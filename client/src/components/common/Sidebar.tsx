@@ -6,7 +6,7 @@ import { FaCartArrowDown, FaRegUser } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { BiDish, BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import { PiShoppingCartLight } from "react-icons/pi";
+import { PiPackageFill, PiShoppingCartLight } from "react-icons/pi";
 import { LuCalendarDays, LuMail } from "react-icons/lu";
 import { MdOutlineExplore } from "react-icons/md";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
@@ -134,6 +134,16 @@ const Sidebar = () => {
             >
               <PiShoppingCartLight className="w-6 h-6" />
               <span className="text-lg hidden md:block mt-1">Cart</span>
+            </Link>
+          </li>
+
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to="orders"
+              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <PiPackageFill className="w-6 h-6" />
+              <span className="text-lg hidden md:block mt-1">Orders</span>
             </Link>
           </li>
         </ul>

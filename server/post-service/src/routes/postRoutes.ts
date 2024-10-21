@@ -6,7 +6,7 @@ import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeBy
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
 import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
 import { addMealController, checkPostInUnscheduledMealController, getMealPlannerController, removeMealController, scheduleMealController } from "../controllers/mealPlanner.controllers";
-import { addProductToCartController, searchProductsController, createReviewProductController, getAllProductsController, getCartController, getProductByPostIdController, removeProductFromCartController } from "../controllers/product.controller";
+import { addProductToCartController, searchProductsController, createReviewProductController, getAllProductsController, getCartController, getProductByPostIdController, removeProductFromCartController, createOrderController, getOrdersByUserController, getOrderOfSellerController } from "../controllers/product.controller";
 
 const postRouter = express.Router();
 // product
@@ -14,9 +14,13 @@ postRouter.patch("/product/addToCart", tokenValidate, addProductToCartController
 postRouter.get("/product/getAll", tokenValidate, getAllProductsController);
 postRouter.get("/product/getCart", tokenValidate, getCartController);
 postRouter.get("/product/getProductByPostId/:postId", tokenValidate, getProductByPostIdController);
-postRouter.patch("/product/removeProductFromCart/:productId", tokenValidate, removeProductFromCartController);
+postRouter.patch("/product/removeProductFromCart", tokenValidate, removeProductFromCartController);
 postRouter.post("/product/createReview", tokenValidate, createReviewProductController);
 postRouter.get("/product/search", tokenValidate, searchProductsController);
+postRouter.post("/order/create", tokenValidate, createOrderController);
+postRouter.get("/order/getOrderByUser", tokenValidate, getOrdersByUserController);
+postRouter.get("/order/getOrderBySeller", tokenValidate, getOrderOfSellerController);
+
 // mealPlanner
 postRouter.post("/mealPlanner/create", tokenValidate, addMealController);
 postRouter.get("/mealPlanner/checkPost/:postId", tokenValidate, checkPostInUnscheduledMealController);

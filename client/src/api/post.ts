@@ -11,8 +11,11 @@ export const postEndpoints = {
   getCart: "/posts/product/getCart",
   getProductByPostId: "/posts/product/getProductByPostId/:postId",
   addProductToCart: "/posts/product/addToCart",
-  removeProductFromCart: "/posts/product/removeProductFromCart/:productId",
+  removeProductFromCart: "/posts/product/removeProductFromCart",
   searchProducts: "/posts/product/search",
+  createOrder: "/posts/order/create",
+  getOrderByUser: "/posts/order/getOrderByUser",
+  getOrderBySeller: "/posts/order/getOrderBySeller",
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -375,14 +378,84 @@ export interface Cart {
   products: ProductCart[];
 }
 
+export interface createOrderData {
+  products: {
+    productId: string;
+    quantity: number;
+  }[];
+  sellerId: string;
+  address: string;
+  note: string;
+  paymentMethod: string;
+  info: {
+    name: string;
+    phone: string;
+    address: string;
+    note: string;
+  };
+  amount: number;
+}
+
+export interface OrderInfo {
+  _id: string;
+  userId: string;
+  sellerId: string;
+  products: {
+    productId: string;
+    quantity: number;
+  }[];
+  address: string;
+  note: string;
+  paymentMethod: string;
+  status: string;
+  amount: number;
+  info: {
+    name: string;
+    phone: string;
+    address: string;
+    note: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderWithUserInfo {
+  _id: string;
+  userId: string;
+  sellerId: string;
+  products: {
+    productId: string;
+    quantity: number;
+  }[];
+  address: string;
+  note: string;
+  paymentMethod: string;
+  status: string;
+  info: {
+    name: string;
+    phone: string;
+    address: string;
+    note: string;
+  };
+  amount: number;
+  productInfo: ProductInfo[];
+  createdAt: string;
+  updatedAt: string;
+  userInfo: AccountInfo;
+  sellerInfo: AccountInfo;
+}
+
 export interface PostFetcher {
   // product
   getAllProducts: (token: string, page: number, limit: number) => Promise<PostResponse<ProductList>>;
   getCart: (token: string) => Promise<PostResponse<Cart>>;
   getProductByPostId: (postId: string, token: string) => Promise<PostResponse<ProductInfo>>;
   addProductToCart: (productId: string, quantity: number, token: string) => Promise<PostResponse<ProductInfo[]>>;
-  removeProductFromCart: (productId: string, token: string) => Promise<PostResponse<ProductInfo[]>>;
-  searchProduct: (query: string, page: number, limit: number, token: string) => Promise<PostResponse<ProductList>>;
+  removeProductFromCart: (productIds: string[], token: string) => Promise<PostResponse<ProductInfo[]>>;
+  searchProduct: (query: string, filter: string, page: number, limit: number, token: string) => Promise<PostResponse<ProductList>>;
+  createOrder: (data: createOrderData, token: string) => Promise<PostResponse<OrderInfo>>;
+  getOrderByUser: (token: string) => Promise<PostResponse<OrderWithUserInfo[]>>;
+  getOrderBySeller: (token: string) => Promise<PostResponse<OrderWithUserInfo[]>>;
   // posts
   getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
@@ -839,23 +912,47 @@ export const postFetcher: PostFetcher = {
       },
     });
   },
-  removeProductFromCart: async (productId: string, token: string): Promise<PostResponse<ProductInfo[]>> => {
-    return postInstance.patch(postEndpoints.removeProductFromCart.replace(":productId", productId), {}, {
+  removeProductFromCart: async (productIds: string[], token: string): Promise<PostResponse<ProductInfo[]>> => {
+    return postInstance.patch(postEndpoints.removeProductFromCart, {
+      productIds,
+    }, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
   },
-  searchProduct: async (query: string, page: number, limit: number, token: string): Promise<PostResponse<ProductList>> => {
+  searchProduct: async (query: string, filter: string, page: number, limit: number, token: string): Promise<PostResponse<ProductList>> => {
     return postInstance.get(postEndpoints.searchProducts, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
       params: {
         query,
+        filter,
         page,
         limit,
       },
     });
-  }
+  },
+  createOrder: async (data: createOrderData, token: string): Promise<PostResponse<OrderInfo>> => {
+    return postInstance.post(postEndpoints.createOrder, data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+  getOrderByUser: async (token: string): Promise<PostResponse<OrderWithUserInfo[]>> => {
+    return postInstance.get(postEndpoints.getOrderByUser, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+  getOrderBySeller: async (token: string): Promise<PostResponse<OrderWithUserInfo[]>> => {
+    return postInstance.get(postEndpoints.getOrderBySeller, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
 }

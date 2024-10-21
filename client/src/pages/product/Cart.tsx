@@ -5,7 +5,13 @@ import { ProductCart } from "../../api/post";
 import { useNavigate } from "react-router-dom";
 
 const CartPage: React.FC = () => {
-  const { cart, addProductToCart, removeProductFromCart, selectedItems, setSelectedItems } = useProductContext();
+  const {
+    cart,
+    addProductToCart,
+    removeProductFromCart,
+    selectedItems,
+    setSelectedItems,
+  } = useProductContext();
   const [items, setItems] = useState<ProductCart[]>(cart);
   const [promoCode, setPromoCode] = useState<string>("");
   const [selectAll, setSelectAll] = useState<boolean>(false);
@@ -31,7 +37,7 @@ const CartPage: React.FC = () => {
         "Quantity is 1. Do you want to remove this item from the cart?"
       );
       if (confirmRemove) {
-        removeProductFromCart(item.productId);
+        removeProductFromCart([item.productId]);
       }
     } else {
       addProductToCart(item.productId, -1);
@@ -48,7 +54,7 @@ const CartPage: React.FC = () => {
   };
 
   const handleRemove = (productId: string) => {
-    removeProductFromCart(productId);
+    removeProductFromCart([productId]);
   };
 
   const handleSelectAll = () => {
@@ -137,9 +143,7 @@ const CartPage: React.FC = () => {
   const total = subtotal + delivery;
 
   useEffect(() => {
-    setSelectAll(
-      items.length > 0 && selectedItems.length === items.length
-    );
+    setSelectAll(items.length > 0 && selectedItems.length === items.length);
 
     const newAuthorSelections: { [authorId: string]: boolean } = {};
     Object.keys(groupItemsByAuthor(items)).forEach((authorId) => {
@@ -152,17 +156,18 @@ const CartPage: React.FC = () => {
     setAuthorSelections(newAuthorSelections);
   }, [selectedItems, items]);
 
-
   return (
     <div className="bg-white p-6 rounded-3xl shadow-lg w-full mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Cart</h2>
-        <input
-          type="checkbox"
-          className="checkbox checkbox-info"
-          checked={selectAll}
-          onChange={handleSelectAll}
-        />
+        {selectedItems.length > 0 && (
+          <input
+            type="checkbox"
+            className="checkbox checkbox-info"
+            checked={selectAll}
+            onChange={handleSelectAll}
+          />
+        )}
       </div>
 
       <div className="space-y-4 mb-6">
@@ -234,22 +239,6 @@ const CartPage: React.FC = () => {
         ) : (
           <p>Your cart is empty.</p>
         )}
-      </div>
-
-      <div className="flex items-center mb-4">
-        <input
-          type="text"
-          placeholder="Promo Code"
-          className="flex-grow p-2 border rounded-l-lg"
-          value={promoCode}
-          onChange={(e) => setPromoCode(e.target.value)}
-        />
-        <button
-          className="bg-green-500 text-white px-4 py-2 rounded-r-lg"
-          onClick={handleApplyPromo}
-        >
-          Apply
-        </button>
       </div>
 
       <div className="space-y-2 mb-6">
