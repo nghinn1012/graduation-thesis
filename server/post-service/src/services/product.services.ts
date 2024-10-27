@@ -307,69 +307,126 @@ export const createOrderService = async (orderCreate: OrderCreate) => {
   }
 }
 
-export const getOrdersByUserService = async (userId: string) => {
+export const getOrdersByUserService = async (
+  userId: string,
+  page: number,
+  limit: number,
+  status: string
+) => {
   try {
-    const orders = await orderModel.find({ userId });
+    const skip = (page - 1) * limit;
+    console.log(userId, page, limit, status);
 
-    const result = await Promise.all(orders.map(async (order) => {
-      const productsWithInfo = await Promise.all(order.products.map(async (product) => {
-        const productInfo = await productModel.findOne({ _id: product.productId });
-        const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;
+    const query: any = { userId };
+
+    if (status !== "") {
+      query.status = status;
+    }
+
+    const orders = await orderModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    console.log("orders", orders);
+
+    const total = await orderModel.countDocuments(query);
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        const productsWithInfo = await Promise.all(
+          order.products.map(async (product) => {
+            const productInfo = await productModel.findOne({
+              _id: product.productId,
+            });
+            const postInfo = productInfo
+              ? await postModel.findOne({ _id: productInfo.postId })
+              : null;
+
+            return {
+              ...product.toObject(),
+              productInfo,
+              postInfo,
+            };
+          })
+        );
 
         return {
-          ...product.toObject(),
-          productInfo,
-          postInfo,
+          ...order.toObject(),
+          products: productsWithInfo,
         };
-      }));
+      })
+    );
 
-      const userInfo = await rpcGetUser<IAuthor>(order.userId, ["_id", "name", "avatar", "username"]);
-      const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, ["_id", "name", "avatar", "username"]);
-
-      return {
-        ...order.toObject(),
-        products: productsWithInfo,
-        userInfo,
-        sellerInfo,
-      };
-    }));
-
-    console.log(result);
-    return result;
+    return {
+      orders: result,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit)
+    };
   } catch (error) {
     throw new Error(`Failed to get orders by user: ${error}`);
   }
-}
+};
 
-export const getOrderOfSellerService = async (sellerId: string) => {
+export const getOrderOfSellerService = async (
+  sellerId: string,
+  page: number,
+  limit: number = 10,
+  status: string
+) => {
   try {
-    const orders = await orderModel.find({ sellerId });
-    const result = await Promise.all(orders.map(async (order) => {
-      const productsWithInfo = await Promise.all(order.products.map(async (product) => {
-        const productInfo = await productModel.findOne({ _id: product.productId });
-        const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;
+    const skip = (page - 1) * limit;
+
+    // Create a query object
+    const query: any = { sellerId };
+
+    // Only include status in query if it's not an empty string
+    if (status !== "") {
+      query.status = status;
+    }
+
+    const orders = await orderModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await orderModel.countDocuments(query); // Count based on the query
+
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        const productsWithInfo = await Promise.all(
+          order.products.map(async (product) => {
+            const productInfo = await productModel.findOne({
+              _id: product.productId,
+            });
+            const postInfo = productInfo
+              ? await postModel.findOne({ _id: productInfo.postId })
+              : null;
+
+            return {
+              ...product.toObject(),
+              productInfo,
+              postInfo,
+            };
+          })
+        );
 
         return {
-          ...product.toObject(),
-          productInfo,
-          postInfo,
+          ...order.toObject(),
+          products: productsWithInfo,
         };
-      }));
+      })
+    );
 
-      const userInfo = await rpcGetUser<IAuthor>(order.userId, ["_id", "name", "avatar", "username"]);
-      const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, ["_id", "name", "avatar", "username"]);
-
-      return {
-        ...order.toObject(),
-        products: productsWithInfo,
-        userInfo,
-        sellerInfo,
-      };
-    }));
-
-    console.log(result);
-    return result;
+    return {
+      orders: result,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit)
+    };
   } catch (error) {
     throw new Error(`Failed to get order of seller: ${error}`);
   }
-}
+};

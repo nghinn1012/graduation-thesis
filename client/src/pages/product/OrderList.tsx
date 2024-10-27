@@ -1,177 +1,277 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useProductContext } from "../../context/ProductContext";
-
-// Skeleton component for loading state
-const Skeleton = () => (
-  <div className="animate-pulse">
-    <div className="h-8 bg-gray-300 rounded w-full mb-2"></div>
-  </div>
-);
+import { OrderWithUserInfo } from "../../api/post";
+import { FiMoreVertical } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import DropdownMenu from "../../components/common/DropDownMenu";
+import OrderListSkeleton from "../../components/skeleton/OrderListSkeleton";
 
 const OrdersPage = () => {
-  const [startDate, setStartDate] = useState("27/02/2023");
-  const [endDate, setEndDate] = useState("13/03/2023");
-  const [activeTab, setActiveTab] = useState("All Order");
-  const [orderType, setOrderType] = useState("all");
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("My Orders");
+  const [myOrdersTab, setMyOrdersTab] = useState("All");
+  const [shopOrdersTab, setShopOrdersTab] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const {
     ordersBySeller,
     ordersByUser,
     fetchOrdersByUser,
     fetchOrderBySeller,
+    totalUserPages,
+    totalSellerPages,
+    pageUser,
+    pageSeller,
+    setPageUser,
+    setPageSeller,
+    statusUser,
+    statusSeller,
+    setStatusUser,
+    setStatusSeller,
+    limit,
+    setLimit,
+    loading,
+    setLoading,
   } = useProductContext();
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
-      if (orderType === 'my') {
+      setLoading(true);
+      if (activeTab === "My Orders") {
         await fetchOrdersByUser();
-      } else if (orderType === 'received') {
-        await fetchOrderBySeller();
-      } else {
-        await Promise.all([fetchOrdersByUser(), fetchOrderBySeller()]);
       }
-      setIsLoading(false);
+      if (activeTab === "Orders of My Shop") {
+        await fetchOrderBySeller();
+      }
+      setLoading(false);
     };
 
     fetchData();
-  }, [orderType, fetchOrdersByUser, fetchOrderBySeller]);
+  }, [fetchOrdersByUser, fetchOrderBySeller]);
 
-  const orders = [...ordersBySeller, ...ordersByUser];
-  const tabs = [
-    { name: "All Order", count: 31 },
-    { name: "Pending", count: 1 },
-    { name: "Delivered", count: 2 },
-    { name: "Completed", count: 1 },
-    { name: "Canceled", count: 1 },
-  ];
+  const handlePageChange = (page: number) => {
+    setLoading(true);
+    if (activeTab === "My Orders") {
+      setPageUser(page);
+    }
+    if (activeTab === "Orders of My Shop") {
+      setPageSeller(page);
+    }
+  };
 
-  const filteredOrders =
-    orderType === "all"
-      ? orders
-      : orderType === "my"
-      ? ordersByUser
-      : ordersBySeller;
+  const handlePageSizeChange = (size: number) => {
+    setLoading(true);
+    setPageSize(size);
+    if (activeTab === "My Orders") {
+      setPageUser(1);
+    }
+    if (activeTab === "Orders of My Shop") {
+      setPageSeller(1);
+    }
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "Delivered":
+        return "badge-success";
+      case "Completed":
+        return "badge-info";
+      case "Canceled":
+        return "badge-error";
+      case "Pending":
+        return "badge-warning";
+      default:
+        return "badge-ghost";
+    }
+  };
+
+  const handleStatusChange = (status: string) => {
+    setLoading(true);
+    if (activeTab === "My Orders") {
+      setPageUser(1);
+      setMyOrdersTab(status);
+      setStatusUser(status === "All" ? "" : status);
+    }
+    if (activeTab === "Orders of My Shop") {
+      setPageSeller(1);
+      setShopOrdersTab(status);
+      setStatusSeller(status === "All" ? "" : status);
+    }
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const renderOrdersTable = (isMyOrders: boolean) => {
+    const orders = isMyOrders ? ordersByUser : ordersBySeller;
+
+    return (
+      <div className="overflow-x-auto w-full">
+        <div className="inline-block min-w-full align-middle">
+          <div className="overflow-hidden">
+            <table className="table w-full">
+              <thead>
+                <tr>
+                  <th className="text-sm">Order Id</th>
+                  <th className="text-sm">
+                    {isMyOrders ? "Receiver's name" : "Full Name"}
+                  </th>
+                  {isMyOrders && <th className="text-sm">Address</th>}
+                  <th className="text-sm">Amount</th>
+                  <th className="hidden sm:table-cell text-sm">Date</th>
+                  <th className="text-sm">Status</th>
+                  <th className="text-sm">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading
+                  ? [...Array(5)].map((_, index) => (
+                      <tr key={index}>
+                        <td colSpan={isMyOrders ? 7 : 6}>
+                          <OrderListSkeleton />
+                        </td>
+                      </tr>
+                    ))
+                  : orders
+                      .slice(
+                        (currentPage - 1) * pageSize,
+                        currentPage * pageSize
+                      )
+                      .map((order) => (
+                        <tr key={order._id} className="hover:bg-base-200">
+                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                            {isMyOrders
+                              ? `ORD-${order._id.slice(-6).toUpperCase()}`
+                              : order._id}
+                          </td>
+                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                            {isMyOrders ? order.info.name : order.userInfo.name}
+                          </td>
+                          {isMyOrders && (
+                            <td className="text-xs sm:text-sm max-w-xs truncate">
+                              {order.address}
+                            </td>
+                          )}
+                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                            ₹{order.amount}
+                          </td>
+                          <td className="hidden sm:table-cell text-xs sm:text-sm whitespace-nowrap">
+                            {formatDate(order.createdAt)}
+                          </td>
+                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                            <span
+                              className={`badge badge-sm sm:badge-md ${getStatusBadgeClass(
+                                order.status
+                              )}`}
+                            >
+                              {order.status}
+                            </span>
+                          </td>
+                          <td className="text-xs sm:text-sm">
+                            <DropdownMenu />
+                          </td>
+                        </tr>
+                      ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="p-4 bg-base-200 min-h-screen">
-      <div className="bg-base-100 rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Orders List</h1>
-          <div className="flex items-center space-x-4">
-            <div>
-              <span className="text-sm">Start Date</span>
-              <input
-                type="text"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="input input-bordered input-sm ml-2"
-              />
-            </div>
-            <div>
-              <span className="text-sm">End Date</span>
-              <input
-                type="text"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="input input-bordered input-sm ml-2"
-              />
-            </div>
-            <button className="btn btn-warning btn-sm">Export CSV</button>
-          </div>
+    <div className="p-2 sm:p-4 bg-base-200 min-h-screen">
+      <div className="bg-base-100 rounded-lg shadow p-3 sm:p-6">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold">Orders</h1>
         </div>
 
-        <div className="flex flex-col mb-6">
-          <div className="tabs tabs-boxed mb-4">
-            {tabs.map((tab) => (
-              <a
-                key={tab.name}
-                className={`tab ${activeTab === tab.name ? "tab-active" : ""}`}
-                onClick={() => setActiveTab(tab.name)}
+        {/* Main Tabs */}
+        <div className="tabs tabs-boxed mb-4 sm:mb-6 flex-nowrap overflow-x-auto">
+          <button
+            className={`tab tab-sm sm:tab-md flex-shrink-0 ${
+              activeTab === "My Orders" ? "tab-active" : ""
+            }`}
+            onClick={() => setActiveTab("My Orders")}
+          >
+            My Orders
+          </button>
+          <button
+            className={`tab tab-sm sm:tab-md flex-shrink-0 ${
+              activeTab === "Orders of My Shop" ? "tab-active" : ""
+            }`}
+            onClick={() => setActiveTab("Orders of My Shop")}
+          >
+            Orders of My Shop
+          </button>
+        </div>
+
+        {/* Status Tabs */}
+        <div className="tabs tabs-boxed mb-4 flex-nowrap overflow-x-auto">
+          {["All", "Pending", "Delivered", "Completed", "Canceled"].map(
+            (tab) => (
+              <button
+                key={tab}
+                className={`tab tab-sm sm:tab-md flex-shrink-0 ${
+                  (activeTab === "My Orders" ? myOrdersTab : shopOrdersTab) ===
+                  tab
+                    ? "tab-active"
+                    : ""
+                }`}
+                onClick={() => handleStatusChange(tab)}
               >
-                {tab.name}{" "}
-                <span className="badge badge-sm ml-1">{tab.count}</span>
-              </a>
-            ))}
-          </div>
-          <div className="self-start">
+                {tab}
+              </button>
+            )
+          )}
+        </div>
+
+        {renderOrdersTable(activeTab === "My Orders")}
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4">
+          <div className="flex items-center">
+            <span className="mr-2 text-sm">Show</span>
             <select
-              className="select select-sm"
-              value={orderType}
-              onChange={(e) => setOrderType(e.target.value)}
+              className="select select-bordered select-sm w-20"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
             >
-              <option value="all">All Orders</option>
-              <option value="my">My Orders</option>
-              <option value="received">Orders I Received</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="table w-full">
-            <thead>
-              <tr>
-                <th>Order Id</th>
-                <th>Full Name</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Order Status</th>
-                <th>Payment Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                [...Array(5)].map((_, index) => (
-                  <tr key={index}>
-                    <td colSpan={6}><Skeleton /></td>
-                  </tr>
-                ))
-              ) : (
-                filteredOrders.map((order) => (
-                  <tr key={order._id}>
-                    <td>{order._id}</td>
-                    <td>{order.userInfo.name}</td>
-                    <td>₹{order.amount}</td>
-                    <td>{order.createdAt}</td>
-                    <td>
-                      <span
-                        className={`badge ${
-                          order.status === "Delivered"
-                            ? "badge-success"
-                            : order.status === "On the way"
-                            ? "badge-info"
-                            : order.status === "Canceled"
-                            ? "badge-error"
-                            : order.status === "Receive"
-                            ? "badge-warning"
-                            : "badge-ghost"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="text-2xl">⋮</span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex justify-between items-center mt-4">
-          <div>
-            <span className="mr-2">Show</span>
-            <select className="select select-bordered select-sm w-20">
               <option>10</option>
+              <option>20</option>
+              <option>50</option>
             </select>
           </div>
-          <div className="btn-group">
-            <button className="btn btn-sm">1</button>
-            <button className="btn btn-sm">2</button>
-            <button className="btn btn-sm">3</button>
-            <button className="btn btn-sm btn-active">Next</button>
+          <div className="btn-group overflow-x-auto max-w-full">
+            {Array.from({
+              length: Math.ceil(
+                activeTab === "My Orders" ? totalUserPages : totalSellerPages
+              ),
+            }).map((_, index) => (
+              <button
+                key={index + 1}
+                onClick={() => handlePageChange(index + 1)}
+                className={`btn btn-sm ${
+                  activeTab === "My Orders"
+                    ? pageUser === index + 1
+                      ? "btn-active"
+                      : ""
+                    : pageSeller === index + 1
+                    ? "btn-active"
+                    : ""
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
           </div>
         </div>
       </div>

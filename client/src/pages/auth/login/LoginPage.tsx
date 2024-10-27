@@ -48,8 +48,8 @@ const LoginPage = () => {
           auth.setAccount(account.user);
           auth.setToken(account?.token.toString() || '');
         })
-        .catch((error) => {
-          error(error);
+        .catch((e) => {
+          error(e);
         });
     },
   });

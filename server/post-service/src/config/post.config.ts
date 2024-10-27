@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-export const NOTIFICATION_PORT = +(process.env.NOTIFICATION_PORT || 8080) as number;
+export const POST_PORT = +(process.env.POST_PORT || 8080) as number;
 export const MONGO_LOCAL_URI = process.env.MONGO_LOCAL_URI as string;
 
 export const NODE_MAILER_ALIAS = process.env.NODE_MAILER_ALIAS as string;

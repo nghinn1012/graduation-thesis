@@ -445,6 +445,13 @@ export interface OrderWithUserInfo {
   sellerInfo: AccountInfo;
 }
 
+export interface OrderListWithPagination {
+  page: number;
+  total: number;
+  orders: OrderWithUserInfo[];
+  totalPages: number;
+}
+
 export interface PostFetcher {
   // product
   getAllProducts: (token: string, page: number, limit: number) => Promise<PostResponse<ProductList>>;
@@ -454,8 +461,8 @@ export interface PostFetcher {
   removeProductFromCart: (productIds: string[], token: string) => Promise<PostResponse<ProductInfo[]>>;
   searchProduct: (query: string, filter: string, page: number, limit: number, token: string) => Promise<PostResponse<ProductList>>;
   createOrder: (data: createOrderData, token: string) => Promise<PostResponse<OrderInfo>>;
-  getOrderByUser: (token: string) => Promise<PostResponse<OrderWithUserInfo[]>>;
-  getOrderBySeller: (token: string) => Promise<PostResponse<OrderWithUserInfo[]>>;
+  getOrderByUser: (token: string, page: number, limit: number, status: string) => Promise<PostResponse<OrderListWithPagination>>;
+  getOrderBySeller: (token: string, page: number, limit: number, status: string) => Promise<PostResponse<OrderListWithPagination>>;
   // posts
   getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
   getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
@@ -941,18 +948,28 @@ export const postFetcher: PostFetcher = {
       },
     });
   },
-  getOrderByUser: async (token: string): Promise<PostResponse<OrderWithUserInfo[]>> => {
+  getOrderByUser: async (token: string, page: number, limit: number, status: string): Promise<PostResponse<OrderListWithPagination>> => {
     return postInstance.get(postEndpoints.getOrderByUser, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      params: {
+        page,
+        limit,
+        status
+      }
     });
   },
-  getOrderBySeller: async (token: string): Promise<PostResponse<OrderWithUserInfo[]>> => {
+  getOrderBySeller: async (token: string, page: number, limit: number, status: string): Promise<PostResponse<OrderListWithPagination>> => {
     return postInstance.get(postEndpoints.getOrderBySeller, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      params: {
+        page,
+        limit,
+        status
+      }
     });
   },
 }

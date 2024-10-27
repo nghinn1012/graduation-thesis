@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from "react";
-import { Cart, OrderInfo, OrderWithUserInfo, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
+import { Cart, OrderInfo, OrderListWithPagination, OrderWithUserInfo, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
 
@@ -35,6 +35,20 @@ interface ProductContextProps {
   createOrder: (orderInfo: OrderInfo) => void;
   currentOrder: OrderInfo | null;
   setCurrentOrder: React.Dispatch<React.SetStateAction<OrderInfo | null>>;
+  totalUserPages: number;
+  totalSellerPages: number;
+  pageUser: number;
+  pageSeller: number;
+  statusUser: string;
+  statusSeller: string;
+  setTotalUserPages: React.Dispatch<React.SetStateAction<number>>;
+  setTotalSellerPages: React.Dispatch<React.SetStateAction<number>>;
+  setPageUser: React.Dispatch<React.SetStateAction<number>>;
+  setPageSeller: React.Dispatch<React.SetStateAction<number>>;
+  setStatusUser: React.Dispatch<React.SetStateAction<string>>;
+  setStatusSeller: React.Dispatch<React.SetStateAction<string>>;
+  limit: number;
+  setLimit: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -46,22 +60,29 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const {auth} = useAuthContext();
-  const [page, setPage] = useState<number>(1);
-  const limit = 8;
+  const [pageOrder, setPageOrder] = useState<number>(1);
   const location = useLocation();
-  const [totalPages, setTotalPages] = useState<number>(0);
+  const [totalUserPages, setTotalUserPages] = useState<number>(0);
+  const [totalSellerPages, setTotalSellerPages] = useState<number>(0);
+  const [pageUser, setPageUser] = useState<number>(1);
+  const [pageSeller, setPageSeller] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [ordersByUser, setOrdersByUser] = useState<OrderWithUserInfo[]>([]);
   const [ordersBySeller, setOrdersBySeller] = useState<OrderWithUserInfo[]>([]);
   const [currentOrder, setCurrentOrder] = useState<OrderInfo | null>(null);
+  const [statusUser, setStatusUser] = useState<string>("");
+  const [statusSeller, setStatusSeller] = useState<string>("");
+  const [limit, setLimit] = useState<number>(8);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
     if (location.pathname !== "/products") {
       setSearchTerm("");
       setSelectedCategory("all");
-      setPage(1);
+      setPageUser(1);
       console.log("reset");
     }
   }, [location.pathname]);
@@ -202,15 +223,16 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const fetchedOrders = await postFetcher.getOrderByUser(auth?.token) as unknown as OrderWithUserInfo[];
-        setOrdersByUser(fetchedOrders);
+        const fetchedOrders = await postFetcher.getOrderByUser(auth?.token, pageUser, limit, statusUser) as unknown as OrderListWithPagination;
+        setOrdersByUser(fetchedOrders.orders);
+        setTotalUserPages(fetchedOrders.totalPages);
       } catch (err) {
         setError("Failed to fetch orders");
       } finally {
         setLoading(false);
       }
     },
-    [auth?.token]
+    [auth?.token, pageUser, statusUser]
   );
 
   const fetchOrderBySeller = useCallback(
@@ -218,15 +240,16 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const fetchedOrders = await postFetcher.getOrderBySeller(auth?.token) as unknown as OrderWithUserInfo[];
-        setOrdersBySeller(fetchedOrders);
+        const fetchedOrders = await postFetcher.getOrderBySeller(auth?.token, pageSeller, limit, statusSeller) as unknown as OrderListWithPagination;
+        setOrdersBySeller(fetchedOrders.orders);
+        setTotalSellerPages(fetchedOrders.totalPages);
       } catch (err) {
         setError("Failed to fetch orders");
       } finally {
         setLoading(false);
       }
     },
-    [auth?.token]
+    [auth?.token, pageSeller, statusSeller]
   );
 
   const createOrder = useCallback(
@@ -255,7 +278,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
      setSelectedCategory, selectedItems, setSelectedItems,
      ordersBySeller, setOrdersBySeller, ordersByUser,
      setOrdersByUser, fetchOrderBySeller, fetchOrdersByUser,
-     createOrder, currentOrder, setCurrentOrder }}>
+     createOrder, currentOrder, setCurrentOrder,
+     statusUser, statusSeller, limit, pageUser, pageSeller, totalSellerPages, totalUserPages,
+     setLimit, setPageSeller, setPageUser, setStatusSeller, setStatusUser, setTotalSellerPages, setTotalUserPages }}>
       {children}
     </ProductContext.Provider>
   );

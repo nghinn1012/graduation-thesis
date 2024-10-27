@@ -162,6 +162,7 @@ export const createOrderController = async (req: AuthRequest, res: Response) => 
 
 export const getOrdersByUserController = async (req: AuthRequest, res: Response) => {
   const userId = req.authContent?.data.userId;
+  const {page, limit, status} = req.query;
   if (!userId) {
     return res.status(400).json({
       message: "Failed to get orders",
@@ -169,7 +170,7 @@ export const getOrdersByUserController = async (req: AuthRequest, res: Response)
     });
   }
   try {
-    const orders = await getOrdersByUserService(userId);
+    const orders = await getOrdersByUserService(userId, page as unknown as number, limit as unknown as number, status as unknown as string);
     return res.status(200).json(orders);
   } catch (error) {
     return res.status(400).json({
@@ -181,6 +182,7 @@ export const getOrdersByUserController = async (req: AuthRequest, res: Response)
 
 export const getOrderOfSellerController = async (req: AuthRequest, res: Response) => {
   const userId = req.authContent?.data.userId;
+  const {page, limit, status} = req.query;
   if (!userId) {
     return res.status(400).json({
       message: "Failed to get orders",
@@ -188,7 +190,7 @@ export const getOrderOfSellerController = async (req: AuthRequest, res: Response
     });
   }
   try {
-    const orders = await getOrderOfSellerService(userId);
+    const orders = await getOrderOfSellerService(userId, page as unknown as number, limit as unknown as number, status as unknown as string);
     return res.status(200).json(orders);
   } catch (error) {
     return res.status(400).json({

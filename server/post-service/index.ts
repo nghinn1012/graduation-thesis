@@ -2,7 +2,7 @@ import express from "express";
 import cors from 'cors';
 import { Server as SocketIOServer } from 'socket.io';
 import { connectDB, connectCloudinary } from "./src/db/index.db";
-import { NOTIFICATION_PORT } from "./src/config/post.config";
+import { POST_PORT } from "./src/config/post.config";
 import postRouter from "./src/routes/postRoutes";
 import http from 'http';
 import { setupSocketIO } from "./src/socket";
@@ -27,6 +27,6 @@ setupSocketIO(io);
 
 app.use("/posts", postRouter);
 
-server.listen(NOTIFICATION_PORT, () => {
-  console.log(`Post-Service running on port ${NOTIFICATION_PORT}`);
+server.listen(POST_PORT, () => {
+  console.log(`Post-Service running on port ${POST_PORT}`);
 });

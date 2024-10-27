@@ -8,7 +8,7 @@ export const userEndpoints = {
   // users
   signup: "/users/register",
   verify: "/users/verifyUser",
-  login: "users/login",
+  login: "/users/login",
   refeshToken: "/users/refresh-token",
   loginWithGoogle: "/users/google-login",
   getUserById: "/users/getUser",

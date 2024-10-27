@@ -22,8 +22,10 @@ interface GooglePayload {
 
 export const loginService = async (info: LoginInfo) => {
   const { email, password } = info;
+  console.log(email, password);
 
   const user = await UserModel.findOne({ email: email });
+  console.log(user);
   if (user === null) {
     throw new InvalidDataError({
       message: "Invalid email or password"
