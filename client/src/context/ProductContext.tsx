@@ -278,6 +278,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
+        console.log("fetching order");
         const order = await postFetcher.getOrderById(orderId, auth?.token) as unknown as OrderWithUserInfo;
         setCurrentOrderDetail(order);
       } catch (err) {

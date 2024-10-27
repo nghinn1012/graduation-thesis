@@ -7,6 +7,7 @@ import { AccountInfo } from "./user";
 
 export const postEndpoints = {
   // product
+  getOrderById: "/posts/order/getOrderById/:orderId",
   getAllProducts: "/posts/product/getAll",
   getCart: "/posts/product/getCart",
   getProductByPostId: "/posts/product/getProductByPostId/:postId",
@@ -16,7 +17,6 @@ export const postEndpoints = {
   createOrder: "/posts/order/create",
   getOrderByUser: "/posts/order/getOrderByUser",
   getOrderBySeller: "/posts/order/getOrderBySeller",
-  getOrderById: "/posts/order/getOrderById/:orderId",
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -438,6 +438,7 @@ export interface OrderWithUserInfo {
   address: string;
   note: string;
   paymentMethod: string;
+  shippingFee: number;
   status: string;
   info: {
     name: string;

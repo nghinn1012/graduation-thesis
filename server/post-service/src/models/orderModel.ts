@@ -13,7 +13,7 @@ const orderSchema = new Schema({
     type: [
       {
         productId: {
-          type: Types.ObjectId,
+          type: String,
           required: true,
         },
         quantity: {

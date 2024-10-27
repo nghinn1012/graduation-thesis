@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useProductContext } from "../../context/ProductContext";
 import { Review } from "../../api/post";
 import PurchaseSkeleton from "../../components/skeleton/PurchaseSkeleton";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 interface Ingredient {
   name: string;
@@ -43,6 +44,7 @@ const ProductPage: React.FC = () => {
     useProductContext();
 
   const recipeData = (location.state as ProductPageProps) || {};
+  const {account} = useAuthContext();
 
   useEffect(() => {
     fetchProductByPostId(recipeData.recipeId);
@@ -187,12 +189,12 @@ const ProductPage: React.FC = () => {
                 </div>
 
                 <div className="flex justify-center">
-                  <button
+                  {account?._id !== currentProduct?.postInfo.author && (<button
                     className="w-48 bg-black text-white py-3 rounded-lg font-bold"
                     onClick={() => handleAddToCart(recipeData._id)}
                   >
                     Add To Cart
-                  </button>
+                  </button>)}
                 </div>
               </div>
 

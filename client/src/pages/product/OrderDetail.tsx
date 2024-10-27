@@ -122,20 +122,30 @@ const OrderDetails: React.FC = () => {
     loading,
     setLoading,
   } = useProductContext();
+  const [orderId, setOrderId] = React.useState<string>("");
+
+  useEffect(() => {
+    if (location.state) {
+      const orderId = location.state as string;
+      setOrderId(orderId);
+    }
+    if (location.pathname.includes("/orders/")) {
+      const orderId = location.pathname.split("/orders/")[1];
+      setOrderId(orderId);
+    }
+  }, [location.state, location.pathname]);
 
   useEffect(() => {
     const initialize = async () => {
-      if (location.state) {
+      if (orderId) { // Ensure orderId is not empty
         setLoading(true);
-        const orderId =
-          location.state.orderId || location.pathname.split("/").pop();
+        console.log("Fetching orderId:", orderId);
         await fetchOrderById(orderId);
       }
     };
 
     initialize();
-  }, [location.state, location.pathname]);
-
+  }, [fetchOrderById, orderId]);
   useEffect(() => {
     if (currentOrderDetail) {
       setLoading(false);
@@ -153,7 +163,7 @@ const OrderDetails: React.FC = () => {
     return statusColors[status.toLowerCase() as OrderStatus] || "badge-ghost";
   };
 
-  if (loading || !currentOrderDetail) {
+  if (!currentOrderDetail) {
     return <LoadingSkeleton />;
   }
 
@@ -296,13 +306,13 @@ const OrderDetails: React.FC = () => {
                   </div>
                   <div className="flex justify-between text-base-content/70">
                     <span>Delivery Fee</span>
-                    <span>${(currentOrderDetail.amount * 0.1).toFixed(2)}</span>
+                    <span>${(currentOrderDetail.shippingFee).toFixed(2)}</span>
                   </div>
                   <div className="divider"></div>
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
                     <span className="text-primary">
-                      ${(currentOrderDetail.amount * 1.1).toFixed(2)}
+                      ${(currentOrderDetail.amount + currentOrderDetail.shippingFee).toFixed(2)}
                     </span>
                   </div>
                 </div>

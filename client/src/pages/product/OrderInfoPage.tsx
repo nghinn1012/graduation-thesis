@@ -151,7 +151,7 @@ const OrderInfoPage: React.FC = () => {
         ([authorId, products]) => ({
           sellerId: authorId,
           products: products.map((product) => ({
-            _id: product._id,
+            _id: product.productId,
             quantity: product.quantity,
           })),
         })

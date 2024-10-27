@@ -12,6 +12,7 @@ const OrdersPage = () => {
   const [shopOrdersTab, setShopOrdersTab] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const navigate = useNavigate();
 
   const {
     ordersBySeller,
@@ -109,6 +110,10 @@ const OrdersPage = () => {
     });
   };
 
+  const handleViewOrder = (orderId: string) => {
+    navigate(`/orders/${orderId}`), { state: { orderId } };
+  };
+
   const renderOrdersTable = (isMyOrders: boolean) => {
     const orders = isMyOrders ? ordersByUser : ordersBySeller;
 
@@ -144,7 +149,7 @@ const OrdersPage = () => {
                       )
                       .map((order) => (
                         <tr key={order._id} className="hover:bg-base-200">
-                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                          <td className="text-xs sm:text-sm whitespace-nowrap cursor-pointer" onClick={() => handleViewOrder(order._id)}>
                             ORD-${order._id.slice(-6).toUpperCase()}
                           </td>
                           <td className="text-xs sm:text-sm whitespace-nowrap">
