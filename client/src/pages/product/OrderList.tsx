@@ -3,8 +3,8 @@ import { useProductContext } from "../../context/ProductContext";
 import { OrderWithUserInfo } from "../../api/post";
 import { FiMoreVertical } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import DropdownMenu from "../../components/common/DropDownMenu";
 import OrderListSkeleton from "../../components/skeleton/OrderListSkeleton";
+// import OrderActionButtons from "../../components/common/OrderActionButtons";
 
 const OrdersPage = () => {
   const [activeTab, setActiveTab] = useState("My Orders");
@@ -47,7 +47,7 @@ const OrdersPage = () => {
     };
 
     fetchData();
-  }, [fetchOrdersByUser, fetchOrderBySeller]);
+  }, [fetchOrdersByUser, fetchOrderBySeller, activeTab]);
 
   const handlePageChange = (page: number) => {
     setLoading(true);
@@ -120,9 +120,7 @@ const OrdersPage = () => {
               <thead>
                 <tr>
                   <th className="text-sm">Order Id</th>
-                  <th className="text-sm">
-                    {isMyOrders ? "Receiver's name" : "Full Name"}
-                  </th>
+                  <th className="text-sm">{"Customer Name"}</th>
                   {isMyOrders && <th className="text-sm">Address</th>}
                   <th className="text-sm">Amount</th>
                   <th className="hidden sm:table-cell text-sm">Date</th>
@@ -147,35 +145,36 @@ const OrdersPage = () => {
                       .map((order) => (
                         <tr key={order._id} className="hover:bg-base-200">
                           <td className="text-xs sm:text-sm whitespace-nowrap">
-                            {isMyOrders
-                              ? `ORD-${order._id.slice(-6).toUpperCase()}`
-                              : order._id}
+                            ORD-${order._id.slice(-6).toUpperCase()}
                           </td>
                           <td className="text-xs sm:text-sm whitespace-nowrap">
-                            {isMyOrders ? order.info.name : order.userInfo.name}
+                            {order?.info?.name}
                           </td>
                           {isMyOrders && (
-                            <td className="text-xs sm:text-sm max-w-xs truncate">
+                            <td className="text-xs sm:text-sm max-w-40 truncate">
                               {order.address}
                             </td>
                           )}
                           <td className="text-xs sm:text-sm whitespace-nowrap">
-                            ₹{order.amount}
+                            ${order.amount}
                           </td>
                           <td className="hidden sm:table-cell text-xs sm:text-sm whitespace-nowrap">
                             {formatDate(order.createdAt)}
                           </td>
                           <td className="text-xs sm:text-sm whitespace-nowrap">
                             <span
-                              className={`badge badge-sm sm:badge-md ${getStatusBadgeClass(
+                              className={`badge badge-sm p-0 sm:badge-md ${getStatusBadgeClass(
                                 order.status
                               )}`}
                             >
                               {order.status}
                             </span>
                           </td>
-                          <td className="text-xs sm:text-sm">
-                            <DropdownMenu />
+                          <td className="text-sm sm:text-sm">
+                            {/* <OrderActionButtons
+                              order={order}
+                              isMyOrders={isMyOrders}
+                            /> */}
                           </td>
                         </tr>
                       ))}

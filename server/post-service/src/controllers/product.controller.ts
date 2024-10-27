@@ -1,5 +1,5 @@
 import { AuthRequest } from "../data";
-import { addProductToCartService, createOrderService, createReviewProductService, getAllProductsService, getCartService, getOrderOfSellerService, getOrdersByUserService, getProductByPostIdService, removeProductsFromCartService, searchProductsService } from "../services/product.services";
+import { addProductToCartService, createOrderService, createReviewProductService, getAllProductsService, getCartService, getOrderByIdService, getOrderOfSellerService, getOrdersByUserService, getProductByPostIdService, removeProductsFromCartService, searchProductsService } from "../services/product.services";
 import { Response } from "express";
 export const addProductToCartController = async (req: AuthRequest, res: Response) => {
   try {
@@ -195,6 +195,27 @@ export const getOrderOfSellerController = async (req: AuthRequest, res: Response
   } catch (error) {
     return res.status(400).json({
       message: "Failed to get orders",
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getOrderByIdController = async (req: AuthRequest, res: Response) => {
+  const userId = req.authContent?.data.userId;
+  const { orderId } = req.params;
+  console.log("orderId", orderId);
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to get order",
+      error: "User not found",
+    });
+  }
+  try {
+    const order = await getOrderByIdService(orderId);
+    return res.status(200).json(order);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to get order",
       error: (error as Error).message,
     });
   }

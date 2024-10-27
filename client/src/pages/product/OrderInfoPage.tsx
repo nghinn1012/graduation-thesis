@@ -10,19 +10,6 @@ import {
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { FaArrowLeft, FaCcMastercard, FaQrcode } from "react-icons/fa6";
 
-type Product = {
-  _id: string;
-  authorId: string;
-  postInfo?: {
-    title: string;
-  };
-  productInfo?: {
-    price: number;
-    image: string;
-  };
-  quantity: number;
-};
-
 type GroupedProducts = {
   [key: string]: ProductCart[];
 };
@@ -40,57 +27,54 @@ type FormData = {
   cardHolder?: string;
   expiryDate?: string;
   cvv?: string;
+  shippingMethod: "standard" | "express";
 };
 
-// Validation functions
-const validateRecipientName = (name: string) => {
-  if (!name) return "Recipient name is required";
-  return "";
-};
+const validateFormData = (data: FormData): Partial<FormData> => {
+  const errors: Partial<FormData> = {};
 
-const validatePhoneNumber = (phone: string) => {
-  if (!phone) return "Phone number is required";
-  if (!/^\d{10}$/.test(phone)) return "Phone number must be 10 digits";
-  return "";
-};
+  if (!data.recipientName) errors.recipientName = "Recipient name is required";
+  if (!data.phoneNumber) {
+    errors.phoneNumber = "Phone number is required";
+  } else if (!/^\d{10}$/.test(data.phoneNumber)) {
+    errors.phoneNumber = "Phone number must be 10 digits";
+  }
+  if (!data.address) errors.address = "Address is required";
 
-const validateAddress = (address: string) => {
-  if (!address) return "Address is required";
-  return "";
-};
+  if (data.paymentMethod === "credit_card") {
+    if (!data.cardNumber) errors.cardNumber = "Card number is required";
+    else if (!/^\d{16}$/.test(data.cardNumber))
+      errors.cardNumber = "Must be 16 digits";
 
-const validateCardNumber = (cardNumber: string) => {
-  if (!cardNumber) return "Card number is required";
-  if (!/^\d{16}$/.test(cardNumber)) return "Must be 16 digits";
-  return "";
-};
+    if (!data.cardHolder) errors.cardHolder = "Card holder name is required";
+    if (!data.expiryDate) errors.expiryDate = "Expiry date is required";
+    else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(data.expiryDate))
+      errors.expiryDate = "Must be in MM/YY format";
 
-const validateCardHolder = (cardHolder: string) => {
-  if (!cardHolder) return "Card holder name is required";
-  return "";
-};
+    if (!data.cvv) errors.cvv = "CVV is required";
+    else if (!/^\d{3,4}$/.test(data.cvv)) errors.cvv = "Must be 3 or 4 digits";
+  }
 
-const validateExpiryDate = (expiryDate: string) => {
-  if (!expiryDate) return "Expiry date is required";
-  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate))
-    return "Must be in MM/YY format";
-  return "";
-};
-
-const validateCVV = (cvv: string) => {
-  if (!cvv) return "CVV is required";
-  if (!/^\d{3,4}$/.test(cvv)) return "Must be 3 or 4 digits";
-  return "";
+  return errors;
 };
 
 const OrderInfoPage: React.FC = () => {
-  const { cart, selectedItems, removeProductFromCart, createOrder, currentOrder } = useProductContext();
+  const {
+    cart,
+    selectedItems,
+    removeProductFromCart,
+    createOrder,
+    currentOrder,
+  } = useProductContext();
   const [notes, setNotes] = useState<Notes>({});
   const navigate = useNavigate();
+  const [deliveryFee, setDeliveryFee] = useState<number>(5);
+  const [totalTransaction, setTotalTransaction] = useState<number>(0);
   const [formData, setFormData] = useState<FormData>({
     recipientName: "",
     phoneNumber: "",
     address: "",
+    shippingMethod: "standard",
     paymentMethod: "qr_code",
     cardNumber: "",
     cardHolder: "",
@@ -127,8 +111,22 @@ const OrderInfoPage: React.FC = () => {
     (sum, item) => sum + (item.productInfo?.price || 0) * item.quantity,
     0
   );
-  const deliveryFee = 3.5;
-  const totalTransaction = total + deliveryFee;
+  useEffect(() => {
+    if (formData.shippingMethod === "express") {
+      setDeliveryFee(10);
+      setTotalTransaction(total + 10);
+    } else {
+      setDeliveryFee(5);
+      setTotalTransaction(total + 5);
+    }
+  }, [formData.shippingMethod]);
+
+  const handleDeliveryChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -138,18 +136,9 @@ const OrderInfoPage: React.FC = () => {
   };
 
   const validateForm = () => {
-    const newErrors: Partial<FormData> = {};
-    newErrors.recipientName = validateRecipientName(formData.recipientName);
-    newErrors.phoneNumber = validatePhoneNumber(formData.phoneNumber);
-    newErrors.address = validateAddress(formData.address);
-    if (formData.paymentMethod === "credit_card") {
-      newErrors.cardNumber = validateCardNumber(formData.cardNumber || "");
-      newErrors.cardHolder = validateCardHolder(formData.cardHolder || "");
-      newErrors.expiryDate = validateExpiryDate(formData.expiryDate || "");
-      newErrors.cvv = validateCVV(formData.cvv || "");
-    }
-    setErrors(newErrors);
-    return Object.values(newErrors).every((error) => error === "");
+    const formErrors = validateFormData(formData);
+    setErrors(formErrors);
+    return Object.values(formErrors).every((error) => error === "");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,29 +159,34 @@ const OrderInfoPage: React.FC = () => {
 
       try {
         const orderPromises = ordersByAuthor.map(async (order) => {
-        const data = {
-              sellerId: order.sellerId,
-              products: order.products.map((product) => ({
-                productId: product._id,
-                quantity: product.quantity,
-              })),
-              info: {
-                name: formData.recipientName,
-                phone: formData.phoneNumber,
-                address: formData.address,
-                note: notes[order.sellerId] || "",
-              },
+          const data = {
+            sellerId: order.sellerId,
+            products: order.products.map((product) => ({
+              productId: product._id,
+              quantity: product.quantity,
+            })),
+            info: {
+              name: formData.recipientName,
+              phone: formData.phoneNumber,
               address: formData.address,
               note: notes[order.sellerId] || "",
-              paymentMethod: formData.paymentMethod,
-              amount: calculateOrderTotal(groupedProducts[order.sellerId]),
-            };
-          const response = await createOrder(data as OrderInfo);
-          return {
-            orderNumber: currentOrder?._id,
-            totalAmount: calculateOrderTotal(groupedProducts[order.sellerId]),
-            deliveryAddress: formData.address,
+            },
+            address: formData.address,
+            shippingFee: deliveryFee,
+            note: notes[order.sellerId] || "",
+            paymentMethod: formData.paymentMethod,
+            amount: calculateOrderTotal(groupedProducts[order.sellerId]),
           };
+          const response = await createOrder(data as OrderInfo);
+          if (currentOrder) {
+            return {
+              orderNumber: currentOrder?._id,
+              totalAmount: calculateOrderTotal(groupedProducts[order.sellerId]),
+              deliveryAddress: formData.address,
+            };
+          } else {
+            return null;
+          }
         });
 
         removeProductFromCart(
@@ -217,21 +211,8 @@ const OrderInfoPage: React.FC = () => {
     }));
   };
 
-  // Real-time validation using useEffect
   useEffect(() => {
-    const newErrors: Partial<FormData> = {};
-
-    newErrors.recipientName = validateRecipientName(formData.recipientName);
-    newErrors.phoneNumber = validatePhoneNumber(formData.phoneNumber);
-    newErrors.address = validateAddress(formData.address);
-
-    if (formData.paymentMethod === "credit_card") {
-      newErrors.cardNumber = validateCardNumber(formData.cardNumber || "");
-      newErrors.cardHolder = validateCardHolder(formData.cardHolder || "");
-      newErrors.expiryDate = validateExpiryDate(formData.expiryDate || "");
-      newErrors.cvv = validateCVV(formData.cvv || "");
-    }
-
+    const newErrors: Partial<FormData> = validateFormData(formData);
     setErrors(newErrors);
   }, [formData]);
 
@@ -277,7 +258,7 @@ const OrderInfoPage: React.FC = () => {
                       />
                     </figure>
                     <div className="card-body p-2">
-                      <h4 className="card-title text-xs">
+                      <h4 className="card-title text-sm">
                         {item.postInfo?.title}
                       </h4>
                       <p className="text-xs">Quantity: {item.quantity}</p>
@@ -487,6 +468,37 @@ const OrderInfoPage: React.FC = () => {
                 </div>
               </>
             )}
+
+            <h3 className="text-xl font-semibold mb-4">Delivery method</h3>
+            <div className="form-control mb-6">
+              <div className="flex flex-col gap-2 mt-2">
+                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-base-200">
+                  <input
+                    type="radio"
+                    name="shippingMethod"
+                    value="standard"
+                    className="radio radio-primary mr-3"
+                    checked={formData.shippingMethod === "standard"}
+                    onChange={handleDeliveryChange}
+                  />
+                  <FaQrcode className="w-6 h-6" />
+                  <span className="ml-3">Standard delivery</span>
+                </label>
+
+                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-base-200">
+                  <input
+                    type="radio"
+                    name="shippingMethod"
+                    value="express"
+                    className="radio radio-primary mr-3"
+                    checked={formData.shippingMethod === "express"}
+                    onChange={handleDeliveryChange}
+                  />
+                  <FaCcMastercard className="w-6 h-6" />
+                  <span className="ml-3">Express delivery</span>
+                </label>
+              </div>
+            </div>
 
             {/* Summary */}
             <div className="flex justify-between mt-6">

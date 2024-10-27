@@ -8,6 +8,7 @@ import CartPage from "../pages/product/Cart";
 import OrderInfoPage from "../pages/product/OrderInfoPage";
 import PaymentSuccess from "../pages/product/PaymentSuccess";
 import OrdersPage from "../pages/product/OrderList";
+import OrderDetails from "../pages/product/OrderDetail";
 
 export default function AppMainCenter() {
   return (
@@ -22,6 +23,7 @@ export default function AppMainCenter() {
         <Route path="/users/*" element={<UserIndex />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/orders/:orderId" element={<OrderDetails />} />
       </Routes>
     </div>
   );

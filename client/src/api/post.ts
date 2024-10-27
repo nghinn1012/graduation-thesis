@@ -16,6 +16,7 @@ export const postEndpoints = {
   createOrder: "/posts/order/create",
   getOrderByUser: "/posts/order/getOrderByUser",
   getOrderBySeller: "/posts/order/getOrderBySeller",
+  getOrderById: "/posts/order/getOrderById/:orderId",
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -63,7 +64,7 @@ export const postEndpoints = {
 } as const;
 
 export interface PostResponseError
-  extends ResponseErrorLike<UserErrorTarget, UserErrorReason> { }
+  extends ResponseErrorLike<UserErrorTarget, UserErrorReason> {}
 export interface PostResponse<DataLike>
   extends ResponseLike<DataLike, PostResponseError> {
   filter: any;
@@ -152,7 +153,7 @@ export interface PostInfoUpdate {
     price?: number;
     quantity?: number;
     timeToPrepare?: number;
-  }
+  };
 }
 
 export interface InstructionInfoUpdate {
@@ -166,7 +167,11 @@ export interface InstructionInfo {
   image?: string;
 }
 
-export interface createPostInfo extends Omit<PostInfo, 'saved' | '_id' | 'author' | 'createdAt' | 'updatedAt' | 'instructions'> {
+export interface createPostInfo
+  extends Omit<
+    PostInfo,
+    "saved" | "_id" | "author" | "createdAt" | "updatedAt" | "instructions"
+  > {
   instructions: {
     description: string;
     image?: string;
@@ -241,7 +246,7 @@ export interface Comment {
   userMention: {
     _id: string;
     username: string;
-  }
+  };
   createdAt: string;
   likes: string[];
   replies?: Comment[];
@@ -320,11 +325,11 @@ export interface DeleteMeal {
 
 export interface searchPostData {
   messsage: string;
-  posts: PostInfo[],
-  totalPosts: number,
-  currentPage: number,
-  pageSize: number,
-  totalPages: number,
+  posts: PostInfo[];
+  totalPosts: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface PostProfile {
@@ -407,6 +412,7 @@ export interface OrderInfo {
   address: string;
   note: string;
   paymentMethod: string;
+  shippingFee: number;
   status: string;
   amount: number;
   info: {
@@ -426,6 +432,8 @@ export interface OrderWithUserInfo {
   products: {
     productId: string;
     quantity: number;
+    productInfo: ProductInfo;
+    postInfo: PostInfo;
   }[];
   address: string;
   note: string;
@@ -452,109 +460,315 @@ export interface OrderListWithPagination {
   totalPages: number;
 }
 
+export interface OrderDetailsInfo {
+  _id: string;
+  userId: string;
+  sellerId: string;
+  products: {
+    productId: string;
+    quantity: number;
+    productInfo: ProductInfo;
+  }[];
+  address: string;
+  note: string;
+  paymentMethod: string;
+  status: string;
+  amount: number;
+  info: {
+    name: string;
+    phone: string;
+    address: string;
+    note: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  userInfo: AccountInfo;
+  sellerInfo: AccountInfo;
+}
+
 export interface PostFetcher {
   // product
-  getAllProducts: (token: string, page: number, limit: number) => Promise<PostResponse<ProductList>>;
+  getAllProducts: (
+    token: string,
+    page: number,
+    limit: number
+  ) => Promise<PostResponse<ProductList>>;
   getCart: (token: string) => Promise<PostResponse<Cart>>;
-  getProductByPostId: (postId: string, token: string) => Promise<PostResponse<ProductInfo>>;
-  addProductToCart: (productId: string, quantity: number, token: string) => Promise<PostResponse<ProductInfo[]>>;
-  removeProductFromCart: (productIds: string[], token: string) => Promise<PostResponse<ProductInfo[]>>;
-  searchProduct: (query: string, filter: string, page: number, limit: number, token: string) => Promise<PostResponse<ProductList>>;
-  createOrder: (data: createOrderData, token: string) => Promise<PostResponse<OrderInfo>>;
-  getOrderByUser: (token: string, page: number, limit: number, status: string) => Promise<PostResponse<OrderListWithPagination>>;
-  getOrderBySeller: (token: string, page: number, limit: number, status: string) => Promise<PostResponse<OrderListWithPagination>>;
+  getProductByPostId: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<ProductInfo>>;
+  addProductToCart: (
+    productId: string,
+    quantity: number,
+    token: string
+  ) => Promise<PostResponse<ProductInfo[]>>;
+  removeProductFromCart: (
+    productIds: string[],
+    token: string
+  ) => Promise<PostResponse<ProductInfo[]>>;
+  searchProduct: (
+    query: string,
+    filter: string,
+    page: number,
+    limit: number,
+    token: string
+  ) => Promise<PostResponse<ProductList>>;
+  createOrder: (
+    data: createOrderData,
+    token: string
+  ) => Promise<PostResponse<OrderInfo>>;
+  getOrderByUser: (
+    token: string,
+    page: number,
+    limit: number,
+    status: string
+  ) => Promise<PostResponse<OrderListWithPagination>>;
+  getOrderBySeller: (
+    token: string,
+    page: number,
+    limit: number,
+    status: string
+  ) => Promise<PostResponse<OrderListWithPagination>>;
+  getOrderById: (
+    orderId: string,
+    token: string
+  ) => Promise<PostResponse<OrderDetailsInfo>>;
   // posts
-  getPostByUserFollowing: (page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
-  getPostOfUser: (userId: string, page: number, limit: number, token: string) => Promise<PostResponse<PostInfo[]>>;
-  createPost: (data: createPostInfo, productData: ProductData, token: string) => Promise<PostResponse<createPostInfo>>;
-  getAllPosts: (token: string, page: number, limit: number, userId?: string) => Promise<PostResponse<PostInfo[]>>;
-  updatePost: (postId: string, data: PostInfoUpdate, token: string) => Promise<PostResponse<PostInfo>>;
-  getPostById: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
-  deletePost: (postId: string, token: string) => Promise<PostResponse<PostInfo>>;
-  likeOrUnlikePost: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  postLikesByUser: (token: string, userId?: string, page?: number, limit?: number) => Promise<PostResponse<PostLikesByUser>>;
-  postSavedOrUnsaved: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
+  getPostByUserFollowing: (
+    page: number,
+    limit: number,
+    token: string
+  ) => Promise<PostResponse<PostInfo[]>>;
+  getPostOfUser: (
+    userId: string,
+    page: number,
+    limit: number,
+    token: string
+  ) => Promise<PostResponse<PostInfo[]>>;
+  createPost: (
+    data: createPostInfo,
+    productData: ProductData,
+    token: string
+  ) => Promise<PostResponse<createPostInfo>>;
+  getAllPosts: (
+    token: string,
+    page: number,
+    limit: number,
+    userId?: string
+  ) => Promise<PostResponse<PostInfo[]>>;
+  updatePost: (
+    postId: string,
+    data: PostInfoUpdate,
+    token: string
+  ) => Promise<PostResponse<PostInfo>>;
+  getPostById: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostInfo>>;
+  deletePost: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostInfo>>;
+  likeOrUnlikePost: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostLikeResponse>>;
+  postLikesByUser: (
+    token: string,
+    userId?: string,
+    page?: number,
+    limit?: number
+  ) => Promise<PostResponse<PostLikesByUser>>;
+  postSavedOrUnsaved: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostLikeResponse>>;
   postSavedByUser: (token: string) => Promise<PostResponse<PostLikesByUser>>;
-  isLikedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  isSavedPostByUser: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>;
-  searchPost: (query: string, minTime: string, maxTime: string,
-    minQuality: string, haveMade: string, difficulty: string[], hashtags: string[],
-    page: number, pageSize: number, token: string) => Promise<PostResponse<searchPostData>>;
+  isLikedPostByUser: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostLikeResponse>>;
+  isSavedPostByUser: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostLikeResponse>>;
+  searchPost: (
+    query: string,
+    minTime: string,
+    maxTime: string,
+    minQuality: string,
+    haveMade: string,
+    difficulty: string[],
+    hashtags: string[],
+    page: number,
+    pageSize: number,
+    token: string
+  ) => Promise<PostResponse<searchPostData>>;
   //recipe
-  createMadeRecipe: (postId: string, token: string, data: createMadeInfo) => Promise<PostResponse<PostLikeResponse>>;
-  getMadeRecipeOfPost: (postId: string, token: string) => Promise<PostResponse<MadePostData>>;
-  updateMadeRecipe: (madeRecipeId: string, data: MadePostUpdate, token: string) => Promise<PostResponse<MadePostUpdate>>;
-  getMadeRecipeById: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
-  deleteMadeRecipe: (madeRecipeId: string, token: string) => Promise<PostResponse<MadePostData>>;
+  createMadeRecipe: (
+    postId: string,
+    token: string,
+    data: createMadeInfo
+  ) => Promise<PostResponse<PostLikeResponse>>;
+  getMadeRecipeOfPost: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<MadePostData>>;
+  updateMadeRecipe: (
+    madeRecipeId: string,
+    data: MadePostUpdate,
+    token: string
+  ) => Promise<PostResponse<MadePostUpdate>>;
+  getMadeRecipeById: (
+    madeRecipeId: string,
+    token: string
+  ) => Promise<PostResponse<MadePostData>>;
+  deleteMadeRecipe: (
+    madeRecipeId: string,
+    token: string
+  ) => Promise<PostResponse<MadePostData>>;
 
   //comment
-  getCommentByPostId: (postId: string, token: string) => Promise<PostResponse<Comment[]>>;
-  createComment: (postId: string, data: createCommentData, token: string) => Promise<PostResponse<Comment>>;
-  updateComment: (commentId: string, data: updateComment, token: string) => Promise<PostResponse<Comment>>;
-  deleteComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
-  likeOrUnlikeComment: (commentId: string, token: string) => Promise<PostResponse<Comment>>;
+  getCommentByPostId: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<Comment[]>>;
+  createComment: (
+    postId: string,
+    data: createCommentData,
+    token: string
+  ) => Promise<PostResponse<Comment>>;
+  updateComment: (
+    commentId: string,
+    data: updateComment,
+    token: string
+  ) => Promise<PostResponse<Comment>>;
+  deleteComment: (
+    commentId: string,
+    token: string
+  ) => Promise<PostResponse<Comment>>;
+  likeOrUnlikeComment: (
+    commentId: string,
+    token: string
+  ) => Promise<PostResponse<Comment>>;
 
   //shoppingList
-  addIngredientToShoppingList: (token: string, postId?: string, servings?: number, ingredients?: Ingredient[]) => Promise<PostResponse<ShoppingListData>>
-  getShoppingList: (token: string) => Promise<PostResponse<ShoppingListData>>
-  checkPostInShoppingList: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>
-  removePostFromShoppingList: (postId: string, token: string) => Promise<PostResponse<PostLikeResponse>>
-  updateIngredientInShoppingList: (token: string, ingredient: updateIngredientInShoppingList, postId?: string) => Promise<PostResponse<ShoppingListData>>
-  removeIngredientFromShoppingList: (token: string, ingredientId: string, postId?: string) => Promise<PostResponse<ShoppingListData>>
-  removeIngredientsFromShoppingList: (token: string, ingredientIds: string[], postIds?: string[]) => Promise<PostResponse<ShoppingListData>>
+  addIngredientToShoppingList: (
+    token: string,
+    postId?: string,
+    servings?: number,
+    ingredients?: Ingredient[]
+  ) => Promise<PostResponse<ShoppingListData>>;
+  getShoppingList: (token: string) => Promise<PostResponse<ShoppingListData>>;
+  checkPostInShoppingList: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostLikeResponse>>;
+  removePostFromShoppingList: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<PostLikeResponse>>;
+  updateIngredientInShoppingList: (
+    token: string,
+    ingredient: updateIngredientInShoppingList,
+    postId?: string
+  ) => Promise<PostResponse<ShoppingListData>>;
+  removeIngredientFromShoppingList: (
+    token: string,
+    ingredientId: string,
+    postId?: string
+  ) => Promise<PostResponse<ShoppingListData>>;
+  removeIngredientsFromShoppingList: (
+    token: string,
+    ingredientIds: string[],
+    postIds?: string[]
+  ) => Promise<PostResponse<ShoppingListData>>;
 
   //mealPlanner
-  addMeal: (createMealData: createMealData, token: string) => Promise<PostResponse<Meal>>;
+  addMeal: (
+    createMealData: createMealData,
+    token: string
+  ) => Promise<PostResponse<Meal>>;
   getMealPlanner: (token: string) => Promise<PostResponse<MealPlanner>>;
-  checkPostInUnscheduledMeal: (postId: string, token: string) => Promise<PostResponse<boolean>>;
-  removeMeal: (deleteMeal: DeleteMeal, token: string) => Promise<PostResponse<Meal>>;
-  scheduleMeal: (token: string, mealId: string, dates: MealPlannedDate[]) => Promise<PostResponse<Meal>>;
+  checkPostInUnscheduledMeal: (
+    postId: string,
+    token: string
+  ) => Promise<PostResponse<boolean>>;
+  removeMeal: (
+    deleteMeal: DeleteMeal,
+    token: string
+  ) => Promise<PostResponse<Meal>>;
+  scheduleMeal: (
+    token: string,
+    mealId: string,
+    dates: MealPlannedDate[]
+  ) => Promise<PostResponse<Meal>>;
 }
 
 export const postFetcher: PostFetcher = {
-  getPostByUserFollowing: async (page: number = 1, limit: number = 20, token: string): Promise<PostResponse<PostInfo[]>> => {
-    return postInstance.get(postEndpoints.getPostByUserFollowing,
+  getPostByUserFollowing: async (
+    page: number = 1,
+    limit: number = 20,
+    token: string
+  ): Promise<PostResponse<PostInfo[]>> => {
+    return postInstance.get(postEndpoints.getPostByUserFollowing, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        page,
+        limit,
+      },
+    });
+  },
+  getPostOfUser: async (
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+    token: string
+  ): Promise<PostResponse<PostInfo[]>> => {
+    return postInstance.get(
+      postEndpoints.getPostOfUser.replace(":userId", userId),
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         params: {
           page,
           limit,
-        }
-      }
-    );
-  },
-  getPostOfUser: async (userId: string, page: number = 1, limit: number = 20, token: string): Promise<PostResponse<PostInfo[]>> => {
-    return postInstance.get(postEndpoints.getPostOfUser.replace(":userId", userId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
         },
-        params: {
-          page,
-          limit,
-        }
       }
     );
   },
-  createPost: async (data: createPostInfo, productData: ProductData, token: string): Promise<PostResponse<createPostInfo>> => {
-    return postInstance.post(postEndpoints.createPost, {
-      post: data,
-      product: productData,
-    },
+  createPost: async (
+    data: createPostInfo,
+    productData: ProductData,
+    token: string
+  ): Promise<PostResponse<createPostInfo>> => {
+    return postInstance.post(
+      postEndpoints.createPost,
+      {
+        post: data,
+        product: productData,
+      },
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
   },
-  getAllPosts: async (token: string, page: number = 1, limit: number = 20, userId?: string): Promise<PostResponse<PostInfo[]>> => {
+  getAllPosts: async (
+    token: string,
+    page: number = 1,
+    limit: number = 20,
+    userId?: string
+  ): Promise<PostResponse<PostInfo[]>> => {
     try {
       return postInstance.get(postEndpoints.getAllPosts, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         params: {
           page,
@@ -566,328 +780,465 @@ export const postFetcher: PostFetcher = {
       throw new Error(`Failed to fetch posts: ${(error as Error).message}`);
     }
   },
-  updatePost: async (postId: string, data: PostInfoUpdate, token: string): Promise<PostResponse<PostInfo>> => {
-    return postInstance.patch(postEndpoints.updatePost.replace(":id", postId), data,
+  updatePost: async (
+    postId: string,
+    data: PostInfoUpdate,
+    token: string
+  ): Promise<PostResponse<PostInfo>> => {
+    return postInstance.patch(
+      postEndpoints.updatePost.replace(":id", postId),
+      data,
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  getPostById: async (postId: string, token: string): Promise<PostResponse<PostInfo>> => {
-    return postInstance.get(postEndpoints.getPostById.replace(":id", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  deletePost: async (postId: string, token: string): Promise<PostResponse<PostInfo>> => {
-    return postInstance.delete(postEndpoints.deletePost.replace(":id", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  likeOrUnlikePost: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.post(postEndpoints.likeOrUnlikePost.replace(":id", postId), {},
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  postLikesByUser: async (token: string, userId?: string, page?: number, limit?: number): Promise<PostResponse<PostLikesByUser>> => {
-    return postInstance.get(postEndpoints.getPostLikesByUser,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        params: {
-          userId,
-          page,
-          limit,
-        }
-      }
-    );
-  },
-  postSavedOrUnsaved: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.post(postEndpoints.savedOrUnsavedPost.replace(":id", postId), {},
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  postSavedByUser: async (token: string): Promise<PostResponse<PostLikesByUser>> => {
-    return postInstance.get(postEndpoints.getPostSavedByUser,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  isLikedPostByUser: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.get(postEndpoints.isLikedPostByUser.replace(":id", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  isSavedPostByUser: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.get(postEndpoints.isSavedPostByUser.replace(":id", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-    );
-  },
-  searchPost: async (query: string, maxTime: string, minTime: string,
-    minQuality: string, haveMade: string, difficulty: string[],
-    hashtags: string[],
-    page: number, pageSize: number, token: string): Promise<PostResponse<searchPostData>> => {
-    return postInstance.get(postEndpoints.searchPost,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        params: {
-          query,
-          minTime,
-          maxTime,
-          minQuality,
-          difficulty,
-          haveMade,
-          hashtags,
-          page,
-          pageSize,
-        }
-      }
-    );
-  },
-  createMadeRecipe: async (postId: string, token: string, data: createMadeInfo): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.post(postEndpoints.createMadeRecipe.replace(":id", postId), data,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
   },
-  getMadeRecipeOfPost: async (postId: string, token: string): Promise<PostResponse<MadePostData>> => {
-    return postInstance.get(postEndpoints.getMadeRecipeOfPost.replace(":id", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  updateMadeRecipe: async (madeRecipeId: string, data: MadePostUpdate, token: string): Promise<PostResponse<MadePostUpdate>> => {
-    return postInstance.patch(postEndpoints.updateMadeRecipe.replace(":madeRecipeId", madeRecipeId), data,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  getMadeRecipeById: async (madeRecipeId: string, token: string): Promise<PostResponse<MadePostData>> => {
-    return postInstance.get(postEndpoints.getMadeRecipeById.replace(":madeRecipeId", madeRecipeId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  deleteMadeRecipe: async (madeRecipeId: string, token: string): Promise<PostResponse<MadePostData>> => {
-    return postInstance.delete(postEndpoints.deleteMadeRecipe.replace(":madeRecipeId", madeRecipeId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  getCommentByPostId: async (postId: string, token: string): Promise<PostResponse<Comment[]>> => {
-    return postInstance.get(postEndpoints.getCommentByPostId.replace(":postId", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  createComment: async (postId: string, data: createCommentData, token: string): Promise<PostResponse<Comment>> => {
-    return postInstance.post(postEndpoints.createComment.replace(":postId", postId), data,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  updateComment: async (commentId: string, data: updateComment, token: string): Promise<PostResponse<Comment>> => {
-    return postInstance.patch(postEndpoints.updateComment.replace(":commentId", commentId), data,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  deleteComment: async (commentId: string, token: string): Promise<PostResponse<Comment>> => {
-    return postInstance.delete(postEndpoints.deleteComment.replace(":commentId", commentId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  likeOrUnlikeComment: async (commentId: string, token: string): Promise<PostResponse<Comment>> => {
-    return postInstance.post(postEndpoints.likeOrUnlikeComment.replace(":commentId", commentId), {},
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  addIngredientToShoppingList: async (token: string, postId?: string, servings?: number, ingredients?: Ingredient[]): Promise<PostResponse<ShoppingListData>> => {
-    return postInstance.post(postEndpoints.addIngredientToShoppingList, { postId, servings, ingredients },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  getShoppingList: async (token: string): Promise<PostResponse<ShoppingListData>> => {
-    return postInstance.get(postEndpoints.getShoppingList,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  checkPostInShoppingList: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.get(postEndpoints.checkIsPostInShoppingList.replace(":postId", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  removePostFromShoppingList: async (postId: string, token: string): Promise<PostResponse<PostLikeResponse>> => {
-    return postInstance.patch(postEndpoints.removePostFromShoppingList.replace(":postId", postId), {},
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  updateIngredientInShoppingList: async (token: string, ingredient: updateIngredientInShoppingList, postId?: string): Promise<PostResponse<ShoppingListData>> => {
-    return postInstance.patch(postEndpoints.updateIngredientInShoppingList, {
-      ingredient,
-      postId,
-    },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  removeIngredientFromShoppingList: async (token: string, ingredientId: string, postId?: string): Promise<PostResponse<ShoppingListData>> => {
-    return postInstance.patch(postEndpoints.removeIngredientFromShoppingList, {
-      ingredientId,
-      postId,
-    },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  removeIngredientsFromShoppingList: async (token: string, ingredientIds: string[], postIds?: string[]): Promise<PostResponse<ShoppingListData>> => {
-    return postInstance.patch(postEndpoints.removeIngredientsFromShoppingList, {
-      ingredientIds,
-      postIds,
-    },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  addMeal: async (createMealData: createMealData, token: string): Promise<PostResponse<Meal>> => {
-    return postInstance.post(postEndpoints.addMeal, createMealData,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  getMealPlanner: async (token: string): Promise<PostResponse<MealPlanner>> => {
-    return postInstance.get(postEndpoints.getMealPlanner,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  checkPostInUnscheduledMeal: async (postId: string, token: string): Promise<PostResponse<boolean>> => {
-    return postInstance.get(postEndpoints.checkPostInUnscheduledMeal.replace(":postId", postId),
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-  },
-  removeMeal: async (deleteMeal: DeleteMeal, token: string): Promise<PostResponse<Meal>> => {
-    return postInstance.delete(postEndpoints.removeMeal, {
-      data: deleteMeal,
+  getPostById: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostInfo>> => {
+    return postInstance.get(postEndpoints.getPostById.replace(":id", postId), {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   },
-  scheduleMeal: async (token: string, mealId: string, dates: MealPlannedDate[]): Promise<PostResponse<Meal>> => {
-    return postInstance.patch(postEndpoints.scheduleMeal, {
-      mealId,
-      plannedDate: dates,
-    },
+  deletePost: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostInfo>> => {
+    return postInstance.delete(
+      postEndpoints.deletePost.replace(":id", postId),
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
   },
-  getAllProducts: async (token: string, page: number, limit: number): Promise<PostResponse<ProductList>> => {
+  likeOrUnlikePost: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.post(
+      postEndpoints.likeOrUnlikePost.replace(":id", postId),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  postLikesByUser: async (
+    token: string,
+    userId?: string,
+    page?: number,
+    limit?: number
+  ): Promise<PostResponse<PostLikesByUser>> => {
+    return postInstance.get(postEndpoints.getPostLikesByUser, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        userId,
+        page,
+        limit,
+      },
+    });
+  },
+  postSavedOrUnsaved: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.post(
+      postEndpoints.savedOrUnsavedPost.replace(":id", postId),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  postSavedByUser: async (
+    token: string
+  ): Promise<PostResponse<PostLikesByUser>> => {
+    return postInstance.get(postEndpoints.getPostSavedByUser, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+  isLikedPostByUser: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.get(
+      postEndpoints.isLikedPostByUser.replace(":id", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  isSavedPostByUser: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.get(
+      postEndpoints.isSavedPostByUser.replace(":id", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  searchPost: async (
+    query: string,
+    maxTime: string,
+    minTime: string,
+    minQuality: string,
+    haveMade: string,
+    difficulty: string[],
+    hashtags: string[],
+    page: number,
+    pageSize: number,
+    token: string
+  ): Promise<PostResponse<searchPostData>> => {
+    return postInstance.get(postEndpoints.searchPost, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        query,
+        minTime,
+        maxTime,
+        minQuality,
+        difficulty,
+        haveMade,
+        hashtags,
+        page,
+        pageSize,
+      },
+    });
+  },
+  createMadeRecipe: async (
+    postId: string,
+    token: string,
+    data: createMadeInfo
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.post(
+      postEndpoints.createMadeRecipe.replace(":id", postId),
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getMadeRecipeOfPost: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<MadePostData>> => {
+    return postInstance.get(
+      postEndpoints.getMadeRecipeOfPost.replace(":id", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateMadeRecipe: async (
+    madeRecipeId: string,
+    data: MadePostUpdate,
+    token: string
+  ): Promise<PostResponse<MadePostUpdate>> => {
+    return postInstance.patch(
+      postEndpoints.updateMadeRecipe.replace(":madeRecipeId", madeRecipeId),
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getMadeRecipeById: async (
+    madeRecipeId: string,
+    token: string
+  ): Promise<PostResponse<MadePostData>> => {
+    return postInstance.get(
+      postEndpoints.getMadeRecipeById.replace(":madeRecipeId", madeRecipeId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  deleteMadeRecipe: async (
+    madeRecipeId: string,
+    token: string
+  ): Promise<PostResponse<MadePostData>> => {
+    return postInstance.delete(
+      postEndpoints.deleteMadeRecipe.replace(":madeRecipeId", madeRecipeId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getCommentByPostId: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<Comment[]>> => {
+    return postInstance.get(
+      postEndpoints.getCommentByPostId.replace(":postId", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  createComment: async (
+    postId: string,
+    data: createCommentData,
+    token: string
+  ): Promise<PostResponse<Comment>> => {
+    return postInstance.post(
+      postEndpoints.createComment.replace(":postId", postId),
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateComment: async (
+    commentId: string,
+    data: updateComment,
+    token: string
+  ): Promise<PostResponse<Comment>> => {
+    return postInstance.patch(
+      postEndpoints.updateComment.replace(":commentId", commentId),
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  deleteComment: async (
+    commentId: string,
+    token: string
+  ): Promise<PostResponse<Comment>> => {
+    return postInstance.delete(
+      postEndpoints.deleteComment.replace(":commentId", commentId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  likeOrUnlikeComment: async (
+    commentId: string,
+    token: string
+  ): Promise<PostResponse<Comment>> => {
+    return postInstance.post(
+      postEndpoints.likeOrUnlikeComment.replace(":commentId", commentId),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  addIngredientToShoppingList: async (
+    token: string,
+    postId?: string,
+    servings?: number,
+    ingredients?: Ingredient[]
+  ): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.post(
+      postEndpoints.addIngredientToShoppingList,
+      { postId, servings, ingredients },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getShoppingList: async (
+    token: string
+  ): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.get(postEndpoints.getShoppingList, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+  checkPostInShoppingList: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.get(
+      postEndpoints.checkIsPostInShoppingList.replace(":postId", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removePostFromShoppingList: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<PostLikeResponse>> => {
+    return postInstance.patch(
+      postEndpoints.removePostFromShoppingList.replace(":postId", postId),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateIngredientInShoppingList: async (
+    token: string,
+    ingredient: updateIngredientInShoppingList,
+    postId?: string
+  ): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.patch(
+      postEndpoints.updateIngredientInShoppingList,
+      {
+        ingredient,
+        postId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removeIngredientFromShoppingList: async (
+    token: string,
+    ingredientId: string,
+    postId?: string
+  ): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.patch(
+      postEndpoints.removeIngredientFromShoppingList,
+      {
+        ingredientId,
+        postId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removeIngredientsFromShoppingList: async (
+    token: string,
+    ingredientIds: string[],
+    postIds?: string[]
+  ): Promise<PostResponse<ShoppingListData>> => {
+    return postInstance.patch(
+      postEndpoints.removeIngredientsFromShoppingList,
+      {
+        ingredientIds,
+        postIds,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  addMeal: async (
+    createMealData: createMealData,
+    token: string
+  ): Promise<PostResponse<Meal>> => {
+    return postInstance.post(postEndpoints.addMeal, createMealData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+  getMealPlanner: async (token: string): Promise<PostResponse<MealPlanner>> => {
+    return postInstance.get(postEndpoints.getMealPlanner, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+  checkPostInUnscheduledMeal: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<boolean>> => {
+    return postInstance.get(
+      postEndpoints.checkPostInUnscheduledMeal.replace(":postId", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  removeMeal: async (
+    deleteMeal: DeleteMeal,
+    token: string
+  ): Promise<PostResponse<Meal>> => {
+    return postInstance.delete(postEndpoints.removeMeal, {
+      data: deleteMeal,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+  scheduleMeal: async (
+    token: string,
+    mealId: string,
+    dates: MealPlannedDate[]
+  ): Promise<PostResponse<Meal>> => {
+    return postInstance.patch(
+      postEndpoints.scheduleMeal,
+      {
+        mealId,
+        plannedDate: dates,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getAllProducts: async (
+    token: string,
+    page: number,
+    limit: number
+  ): Promise<PostResponse<ProductList>> => {
     return postInstance.get(postEndpoints.getAllProducts, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       params: {
         page,
@@ -898,40 +1249,67 @@ export const postFetcher: PostFetcher = {
   getCart: async (token: string): Promise<PostResponse<Cart>> => {
     return postInstance.get(postEndpoints.getCart, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   },
-  getProductByPostId: async (postId: string, token: string): Promise<PostResponse<ProductInfo>> => {
-    return postInstance.get(postEndpoints.getProductByPostId.replace(":postId", postId), {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+  getProductByPostId: async (
+    postId: string,
+    token: string
+  ): Promise<PostResponse<ProductInfo>> => {
+    return postInstance.get(
+      postEndpoints.getProductByPostId.replace(":postId", postId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   },
-  addProductToCart: async (productId: string, quantity: number, token: string): Promise<PostResponse<ProductInfo[]>> => {
-    return postInstance.patch(postEndpoints.addProductToCart, {
-      productId,
-      quantity,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
+  addProductToCart: async (
+    productId: string,
+    quantity: number,
+    token: string
+  ): Promise<PostResponse<ProductInfo[]>> => {
+    return postInstance.patch(
+      postEndpoints.addProductToCart,
+      {
+        productId,
+        quantity,
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   },
-  removeProductFromCart: async (productIds: string[], token: string): Promise<PostResponse<ProductInfo[]>> => {
-    return postInstance.patch(postEndpoints.removeProductFromCart, {
-      productIds,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
+  removeProductFromCart: async (
+    productIds: string[],
+    token: string
+  ): Promise<PostResponse<ProductInfo[]>> => {
+    return postInstance.patch(
+      postEndpoints.removeProductFromCart,
+      {
+        productIds,
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   },
-  searchProduct: async (query: string, filter: string, page: number, limit: number, token: string): Promise<PostResponse<ProductList>> => {
+  searchProduct: async (
+    query: string,
+    filter: string,
+    page: number,
+    limit: number,
+    token: string
+  ): Promise<PostResponse<ProductList>> => {
     return postInstance.get(postEndpoints.searchProducts, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       params: {
         query,
@@ -941,35 +1319,61 @@ export const postFetcher: PostFetcher = {
       },
     });
   },
-  createOrder: async (data: createOrderData, token: string): Promise<PostResponse<OrderInfo>> => {
+  createOrder: async (
+    data: createOrderData,
+    token: string
+  ): Promise<PostResponse<OrderInfo>> => {
     return postInstance.post(postEndpoints.createOrder, data, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   },
-  getOrderByUser: async (token: string, page: number, limit: number, status: string): Promise<PostResponse<OrderListWithPagination>> => {
+  getOrderByUser: async (
+    token: string,
+    page: number,
+    limit: number,
+    status: string
+  ): Promise<PostResponse<OrderListWithPagination>> => {
     return postInstance.get(postEndpoints.getOrderByUser, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       params: {
         page,
         limit,
-        status
-      }
+        status,
+      },
     });
   },
-  getOrderBySeller: async (token: string, page: number, limit: number, status: string): Promise<PostResponse<OrderListWithPagination>> => {
+  getOrderBySeller: async (
+    token: string,
+    page: number,
+    limit: number,
+    status: string
+  ): Promise<PostResponse<OrderListWithPagination>> => {
     return postInstance.get(postEndpoints.getOrderBySeller, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       params: {
         page,
         limit,
-        status
-      }
+        status,
+      },
     });
   },
-}
+  getOrderById: async (
+    orderId: string,
+    token: string
+  ): Promise<PostResponse<OrderDetailsInfo>> => {
+    return postInstance.get(
+      postEndpoints.getOrderById.replace(":orderId", orderId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+};

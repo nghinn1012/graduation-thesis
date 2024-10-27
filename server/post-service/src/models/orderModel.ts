@@ -54,6 +54,10 @@ const orderSchema = new Schema({
     enum: ["Pending", "Confirmed", "Delivering", "Completed"],
     default: "Pending",
   },
+  shippingFee: {
+    type: Number,
+    default: 0,
+  },
   amount: {
     type: Number,
     default: 0,

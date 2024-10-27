@@ -378,10 +378,8 @@ export const getOrderOfSellerService = async (
   try {
     const skip = (page - 1) * limit;
 
-    // Create a query object
     const query: any = { sellerId };
 
-    // Only include status in query if it's not an empty string
     if (status !== "") {
       query.status = status;
     }
@@ -430,3 +428,41 @@ export const getOrderOfSellerService = async (
     throw new Error(`Failed to get order of seller: ${error}`);
   }
 };
+
+export const getOrderByIdService = async (orderId: string) => {
+  try {
+    const order = await orderModel.findOne({ _id: orderId });
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    const productsWithInfo = await Promise.all(
+      order.products.map(async (product) => {
+        const productInfo = await productModel.findOne({
+          _id: product.productId,
+        });
+        const postInfo = productInfo
+          ? await postModel.findOne({ _id: productInfo.postId })
+          : null;
+
+        return {
+          ...product.toObject(),
+          productInfo,
+          postInfo,
+        };
+      })
+    );
+
+    const userInfo = await rpcGetUser<IAuthor>(order.userId, ["_id", "name", "avatar", "username"]);
+    const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, ["_id", "name", "avatar", "username"]);
+
+    return {
+      ...order.toObject(),
+      products: productsWithInfo,
+      userInfo,
+      sellerInfo,
+    };
+  } catch (error) {
+    throw new Error(`Failed to get order by id: ${error}`);
+  }
+}

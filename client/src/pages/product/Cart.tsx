@@ -139,8 +139,7 @@ const CartPage: React.FC = () => {
       0
     );
 
-  const delivery = selectedItems.length > 0 ? 3.5 : 0;
-  const total = subtotal + delivery;
+  const total = subtotal;
 
   useEffect(() => {
     setSelectAll(items.length > 0 && selectedItems.length === items.length);
@@ -245,10 +244,6 @@ const CartPage: React.FC = () => {
         <div className="flex justify-between">
           <span>Subtotal</span>
           <span>{formatPrice(subtotal)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Delivery</span>
-          <span>{formatPrice(delivery)}</span>
         </div>
         <div className="flex justify-between font-bold">
           <span>Total</span>

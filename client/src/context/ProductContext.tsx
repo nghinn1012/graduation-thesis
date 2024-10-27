@@ -33,8 +33,8 @@ interface ProductContextProps {
   fetchOrdersByUser: () => void;
   fetchOrderBySeller: () => void;
   createOrder: (orderInfo: OrderInfo) => void;
-  currentOrder: OrderInfo | null;
-  setCurrentOrder: React.Dispatch<React.SetStateAction<OrderInfo | null>>;
+  currentOrder: OrderWithUserInfo | null;
+  setCurrentOrder: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
   totalUserPages: number;
   totalSellerPages: number;
   pageUser: number;
@@ -49,6 +49,9 @@ interface ProductContextProps {
   setStatusSeller: React.Dispatch<React.SetStateAction<string>>;
   limit: number;
   setLimit: React.Dispatch<React.SetStateAction<number>>;
+  currentOrderDetail: OrderWithUserInfo | null;
+  setCurrentOrderDetail: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
+  fetchOrderById: (orderId: string) => void;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -71,12 +74,13 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [ordersByUser, setOrdersByUser] = useState<OrderWithUserInfo[]>([]);
   const [ordersBySeller, setOrdersBySeller] = useState<OrderWithUserInfo[]>([]);
-  const [currentOrder, setCurrentOrder] = useState<OrderInfo | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<OrderWithUserInfo | null>(null);
   const [statusUser, setStatusUser] = useState<string>("");
   const [statusSeller, setStatusSeller] = useState<string>("");
   const [limit, setLimit] = useState<number>(8);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
+  const [currentOrderDetail, setCurrentOrderDetail] = useState<OrderWithUserInfo | null>(null);
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -269,6 +273,22 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     [auth?.token]
   );
 
+  const fetchOrderById = useCallback(
+    async (orderId: string) => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        const order = await postFetcher.getOrderById(orderId, auth?.token) as unknown as OrderWithUserInfo;
+        setCurrentOrderDetail(order);
+      } catch (err) {
+        setError("Failed to fetch order");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
   return (
     <ProductContext.Provider value={{ searchTerm, setSearchTerm,
      searchProducts, totalPages, page, setPage, setLoading,
@@ -280,7 +300,8 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
      setOrdersByUser, fetchOrderBySeller, fetchOrdersByUser,
      createOrder, currentOrder, setCurrentOrder,
      statusUser, statusSeller, limit, pageUser, pageSeller, totalSellerPages, totalUserPages,
-     setLimit, setPageSeller, setPageUser, setStatusSeller, setStatusUser, setTotalSellerPages, setTotalUserPages }}>
+     setLimit, setPageSeller, setPageUser, setStatusSeller, setStatusUser, setTotalSellerPages,
+     setTotalUserPages, currentOrderDetail, setCurrentOrderDetail, fetchOrderById }}>
       {children}
     </ProductContext.Provider>
   );
