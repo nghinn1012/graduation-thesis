@@ -125,6 +125,7 @@ const OrderDetails: React.FC = () => {
   const [orderId, setOrderId] = React.useState<string>("");
 
   useEffect(() => {
+    setLoading(true);
     if (location.state) {
       const orderId = location.state as string;
       setOrderId(orderId);
@@ -133,11 +134,15 @@ const OrderDetails: React.FC = () => {
       const orderId = location.pathname.split("/orders/")[1];
       setOrderId(orderId);
     }
-  }, [location.state, location.pathname]);
+
+    return () => {
+      setCurrentOrderDetail(null); 
+    };
+  }, [location.state, location.pathname, setCurrentOrderDetail]);
 
   useEffect(() => {
     const initialize = async () => {
-      if (orderId) { // Ensure orderId is not empty
+      if (orderId) {
         setLoading(true);
         console.log("Fetching orderId:", orderId);
         await fetchOrderById(orderId);
@@ -146,11 +151,13 @@ const OrderDetails: React.FC = () => {
 
     initialize();
   }, [fetchOrderById, orderId]);
+
   useEffect(() => {
     if (currentOrderDetail) {
       setLoading(false);
     }
   }, [currentOrderDetail]);
+
 
   const getStatusBadge = (status: string): string => {
     const statusColors: Record<OrderStatus, string> = {

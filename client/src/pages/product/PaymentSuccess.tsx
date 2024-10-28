@@ -9,7 +9,7 @@ interface OrderInfo {
 
 const PaymentSuccess: React.FC = () => {
   const location = useLocation();
-  const orders: OrderInfo[] = location.state || [];
+  const orders: OrderInfo[] = location.state.orderResults || [];
 
   return (
     <div className="container mx-auto p-4">

@@ -9,6 +9,7 @@ import {
 } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { FaArrowLeft, FaCcMastercard, FaQrcode } from "react-icons/fa6";
+import ShippingAddressSection from "../../components/product/ShippingAddress";
 
 type GroupedProducts = {
   [key: string]: ProductCart[];
@@ -70,6 +71,11 @@ const OrderInfoPage: React.FC = () => {
   const navigate = useNavigate();
   const [deliveryFee, setDeliveryFee] = useState<number>(5);
   const [totalTransaction, setTotalTransaction] = useState<number>(0);
+  const { auth } = useAuthContext();
+  const [orderResults, setOrderResults] = useState<
+    { orderNumber: string; totalAmount: number; deliveryAddress: string }[]
+  >([]);
+
   const [formData, setFormData] = useState<FormData>({
     recipientName: "",
     phoneNumber: "",
@@ -81,8 +87,8 @@ const OrderInfoPage: React.FC = () => {
     expiryDate: "",
     cvv: "",
   });
+
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const { auth } = useAuthContext();
 
   const selectedProducts = cart.filter((item) =>
     selectedItems.includes(item._id)
@@ -111,6 +117,7 @@ const OrderInfoPage: React.FC = () => {
     (sum, item) => sum + (item.productInfo?.price || 0) * item.quantity,
     0
   );
+
   useEffect(() => {
     if (formData.shippingMethod === "express") {
       setDeliveryFee(10);
@@ -119,7 +126,18 @@ const OrderInfoPage: React.FC = () => {
       setDeliveryFee(5);
       setTotalTransaction(total + 5);
     }
-  }, [formData.shippingMethod]);
+  }, [formData.shippingMethod, total]);
+
+  useEffect(() => {
+    const newErrors: Partial<FormData> = validateFormData(formData);
+    setErrors(newErrors);
+  }, [formData]);
+
+  useEffect(() => {
+    if (selectedProducts.length === 0) {
+      navigate("/cart");
+    }
+  }, [selectedProducts, navigate]);
 
   const handleDeliveryChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -128,11 +146,17 @@ const OrderInfoPage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+
+  const handleNoteChange = (authorId: string, value: string) => {
+    setNotes((prevNotes) => ({
+      ...prevNotes,
+      [authorId]: value,
+    }));
   };
 
   const validateForm = () => {
@@ -146,7 +170,6 @@ const OrderInfoPage: React.FC = () => {
     if (!auth?.token) return;
 
     if (validateForm()) {
-      // Group products by author
       const ordersByAuthor = Object.entries(groupedProducts).map(
         ([authorId, products]) => ({
           sellerId: authorId,
@@ -184,341 +207,365 @@ const OrderInfoPage: React.FC = () => {
               totalAmount: calculateOrderTotal(groupedProducts[order.sellerId]),
               deliveryAddress: formData.address,
             };
-          } else {
-            return null;
           }
+          return null;
         });
 
-        removeProductFromCart(
-          selectedProducts.map((product) => product.productId)
-        );
+        const results = (await Promise.all(orderPromises)).filter((result) => result !== null);
+        setOrderResults(results as { orderNumber: string; totalAmount: number; deliveryAddress: string }[]);
 
-        const orderResults = await Promise.all(orderPromises);
-
-        navigate("/payment-success", {
-          state: orderResults,
-        });
+        removeProductFromCart(selectedProducts.map((product) => product.productId));
       } catch (error) {
         console.error("Error creating orders:", error);
       }
     }
   };
 
-  const handleNoteChange = (authorId: string, value: string) => {
-    setNotes((prevNotes) => ({
-      ...prevNotes,
-      [authorId]: value,
-    }));
-  };
-
   useEffect(() => {
-    const newErrors: Partial<FormData> = validateFormData(formData);
-    setErrors(newErrors);
-  }, [formData]);
-
-  useEffect(() => {
-    if (selectedProducts.length === 0) {
-      navigate("/cart");
+    if (orderResults.length > 0 && !orderResults.includes({ orderNumber: "", totalAmount: 0, deliveryAddress: "" })) {
+      navigate("/payment-success", {
+        state: { orderResults },
+      });
     }
-  }, [selectedProducts, navigate]);
+  }, [orderResults, navigate]);
 
   return (
-    <div className="min-h-screen p-2">
-      <div className="card mx-auto">
-        <div className="card-body">
-          <div className="flex items-center mb-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="btn btn-ghost btn-sm mr-4"
-            >
-              <FaArrowLeft className="mr-2 w-6 h-6" />
-            </button>
-            <h2 className="card-title text-2xl">Order Summary</h2>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Form Section */}
+        <div className="md:col-span-2">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="card bg-base-100 shadow">
+              <div className="card-body">
+                <h2 className="card-title">Thông tin giao hàng</h2>
 
-          {/* Display orders grouped by author */}
-          {Object.entries(groupedProducts).map(([authorId, products]) => (
-            <div key={authorId} className="mb-8 p-4 border rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">
-                Order from {products[0].author.name}
-              </h3>
-              <div className="space-y-4 mb-4">
-                {products.map((item) => (
-                  <div
-                    key={item._id}
-                    className="card card-side bg-base-200 w-full"
-                  >
-                    <figure className="w-24 h-24">
-                      <img
-                        src={
-                          item.postInfo.images[0] || "/placeholder-image.jpg"
-                        }
-                        alt={item.postInfo?.title}
-                        className="object-cover w-full h-full"
+                {/* Recipient Information */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">
+                      <span className="label-text">Tên người nhận</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="recipientName"
+                      value={formData.recipientName}
+                      onChange={handleInputChange}
+                      className={`input input-bordered w-full ${
+                        errors.recipientName ? "input-error" : ""
+                      }`}
+                    />
+                    {errors.recipientName && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.recipientName}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="label">
+                      <span className="label-text">Số điện thoại</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      className={`input input-bordered w-full ${
+                        errors.phoneNumber ? "input-error" : ""
+                      }`}
+                    />
+                    {errors.phoneNumber && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.phoneNumber}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="label">
+                      <span className="label-text">Địa chỉ giao hàng</span>
+                    </label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className={`textarea textarea-bordered w-full ${
+                        errors.address ? "textarea-error" : ""
+                      }`}
+                    />
+                    {errors.address && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {errors.address}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Method */}
+            <div className="card bg-base-100 shadow">
+              <div className="card-body">
+                <h2 className="card-title">Phương thức vận chuyển</h2>
+                <div className="space-y-4">
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text">
+                        Giao hàng tiêu chuẩn
+                        <br />
+                        <span className="text-sm opacity-70">3-5 ngày - $5</span>
+                      </span>
+                      <input
+                        type="radio"
+                        name="shippingMethod"
+                        value="standard"
+                        checked={formData.shippingMethod === "standard"}
+                        onChange={handleDeliveryChange}
+                        className="radio radio-primary"
                       />
-                    </figure>
-                    <div className="card-body p-2">
-                      <h4 className="card-title text-sm">
-                        {item.postInfo?.title}
-                      </h4>
-                      <p className="text-xs">Quantity: {item.quantity}</p>
-                      <p className="font-semibold text-sm">
-                        ${item.productInfo?.price || 0} x {item.quantity}
-                      </p>
+                    </label>
+                  </div>
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text">
+                        Giao hàng nhanh
+                        <br />
+                        <span className="text-sm opacity-70">1-2 ngày - $10</span>
+                      </span>
+                      <input
+                        type="radio"
+                        name="shippingMethod"
+                        value="express"
+                        checked={formData.shippingMethod === "express"}
+                        onChange={handleDeliveryChange}
+                        className="radio radio-primary"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="card bg-base-100 shadow">
+              <div className="card-body">
+                <h2 className="card-title">Phương thức thanh toán</h2>
+                <div className="space-y-4">
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text flex items-center gap-2">
+                        <FaQrcode /> Thanh toán QR Code
+                      </span>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="qr_code"
+                        checked={formData.paymentMethod === "qr_code"}
+                        onChange={handleInputChange}
+                        className="radio radio-primary"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text flex items-center gap-2">
+                        <FaCcMastercard /> Thẻ tín dụng
+                      </span>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="credit_card"
+                        checked={formData.paymentMethod === "credit_card"}
+                        onChange={handleInputChange}
+                        className="radio radio-primary"
+                      />
+                    </label>
+                  </div>
+
+                  {formData.paymentMethod === "credit_card" && (
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className="label">
+                          <span className="label-text">Số thẻ</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="cardNumber"
+                          value={formData.cardNumber}
+                          onChange={handleInputChange}
+                          className={`input input-bordered w-full ${
+                            errors.cardNumber ? "input-error" : ""
+                          }`}
+                        />
+                        {errors.cardNumber && (
+                          <label className="label">
+                            <span className="label-text-alt text-error">
+                              {errors.cardNumber}
+                            </span>
+                          </label>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="label">
+                          <span className="label-text">Tên chủ thẻ</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="cardHolder"
+                          value={formData.cardHolder}
+                          onChange={handleInputChange}
+                          className={`input input-bordered w-full ${
+                            errors.cardHolder ? "input-error" : ""
+                          }`}
+                        />
+                        {errors.cardHolder && (
+                          <label className="label">
+                            <span className="label-text-alt text-error">
+                              {errors.cardHolder}
+                            </span>
+                          </label>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="label">
+                            <span className="label-text">Ngày hết hạn</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="expiryDate"
+                            value={formData.expiryDate}
+                            onChange={handleInputChange}
+                            placeholder="MM/YY"
+                            className={`input input-bordered w-full ${
+                              errors.expiryDate ? "input-error" : ""
+                            }`}
+                          />
+                          {errors.expiryDate && (
+                            <label className="label">
+                              <span className="label-text-alt text-error">
+                                {errors.expiryDate}
+                              </span>
+                            </label>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="label">
+                            <span className="label-text">CVV</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="cvv"
+                            value={formData.cvv}
+                            onChange={handleInputChange}
+                            className={`input input-bordered w-full ${
+                              errors.cvv ? "input-error" : ""
+                            }`}
+                          />
+                          {errors.cvv && (
+                            <label className="label">
+                              <span className="label-text-alt text-error">
+                                {errors.cvv}
+                              </span>
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        {/* Order Summary */}
+        <div className="md:col-span-1">
+          <div className="card bg-base-100 shadow sticky top-6">
+            <div className="card-body">
+              <h2 className="card-title">Tóm tắt đơn hàng</h2>
+
+              {Object.entries(groupedProducts).map(([authorId, products]) => (
+                <div key={authorId} className="mb-6">
+                  <h3 className="font-medium mb-2">
+                    Người bán: {products[0].author.name}
+                  </h3>
+                  <div className="space-y-4">
+                    {products.map((product) => (
+                      <div key={product._id} className="flex space-x-4">
+                        <div className="flex-shrink-0 w-20 h-20">
+                          <img
+                            src={product.postInfo.images?.[0] || "/placeholder.jpg"}
+                            alt={product.postInfo?.title}
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium">
+                            {product.postInfo?.title}
+                          </h4>
+                          <p className="mt-1 text-sm opacity-70">
+                            Số lượng: {product.quantity}
+                          </p>
+                          <p className="mt-1 text-sm font-medium">
+                            ${product.productInfo?.price * product.quantity}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="mt-2">
+                      <label className="label">
+                        <span className="label-text">Ghi chú cho người bán</span>
+                      </label>
+                      <textarea
+                        value={notes[authorId] || ""}
+                        onChange={(e) =>
+                          handleNoteChange(authorId, e.target.value)
+                        }
+                        className="textarea textarea-bordered w-full"
+                        rows={2}
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
-              {/* Note input for each group */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Note for this order</span>
-                </label>
-                <textarea
-                  className="textarea textarea-bordered"
-                  placeholder="Add a note for this order"
-                  value={notes[authorId] || ""}
-                  onChange={(e) => handleNoteChange(authorId, e.target.value)}
-                ></textarea>
-              </div>
-              {/* Order total for this group */}
-              <div className="mt-4 text-right">
-                <p className="font-semibold">
-                  Order Total: ${calculateOrderTotal(products).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          ))}
-
-          <form onSubmit={handleSubmit}>
-            {/* Delivery Information */}
-            <h3 className="text-xl font-semibold mb-4">Delivery Information</h3>
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Recipient Name</span>
-              </label>
-              <input
-                type="text"
-                name="recipientName"
-                placeholder="Enter recipient's name"
-                className={`input input-bordered w-full ${
-                  errors.recipientName ? "input-error" : ""
-                }`}
-                value={formData.recipientName}
-                onChange={handleInputChange}
-              />
-              {errors.recipientName && (
-                <p className="text-error mt-1">{errors.recipientName}</p>
-              )}
-            </div>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Phone Number</span>
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                placeholder="Enter phone number"
-                className={`input input-bordered w-full ${
-                  errors.phoneNumber ? "input-error" : ""
-                }`}
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-              />
-              {errors.phoneNumber && (
-                <p className="text-error mt-1">{errors.phoneNumber}</p>
-              )}
-            </div>
-
-            <div className="form-control mb-6">
-              <label className="label">
-                <span className="label-text">Delivery Address</span>
-              </label>
-              <input
-                type="text"
-                name="address"
-                placeholder="Enter your delivery address"
-                className={`input input-bordered w-full ${
-                  errors.address ? "input-error" : ""
-                }`}
-                value={formData.address}
-                onChange={handleInputChange}
-              />
-              {errors.address && (
-                <p className="text-error mt-1">{errors.address}</p>
-              )}
-            </div>
-
-            {/* Payment method selection */}
-            <h3 className="text-xl font-semibold mb-4">Payment Method</h3>
-            <div className="form-control mb-6">
-              <div className="flex flex-col gap-2 mt-2">
-                {/* QR Code Option */}
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-base-200">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="qr_code"
-                    className="radio radio-primary mr-3"
-                    checked={formData.paymentMethod === "qr_code"}
-                    onChange={handleInputChange}
-                  />
-                  <FaQrcode className="w-6 h-6" />
-                  <span className="ml-3">QR Code Payment</span>
-                </label>
-
-                {/* Credit Card Option */}
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-base-200">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="credit_card"
-                    className="radio radio-primary mr-3"
-                    checked={formData.paymentMethod === "credit_card"}
-                    onChange={handleInputChange}
-                  />
-                  <FaCcMastercard className="w-6 h-6" />
-                  <span className="ml-3">Credit Card Payment</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Conditionally render credit card form fields */}
-            {formData.paymentMethod === "credit_card" && (
-              <>
-                {/* Card Number */}
-                <div className="form-control mb-4">
-                  <label className="label">
-                    <span className="label-text">Card Number</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    placeholder="Enter your card number"
-                    className={`input input-bordered w-full ${
-                      errors.cardNumber ? "input-error" : ""
-                    }`}
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                  />
-                  {errors.cardNumber && (
-                    <p className="text-error mt-1">{errors.cardNumber}</p>
-                  )}
                 </div>
+              ))}
 
-                {/* Card Holder */}
-                <div className="form-control mb-4">
-                  <label className="label">
-                    <span className="label-text">Card Holder</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="cardHolder"
-                    placeholder="Card holder's name"
-                    className={`input input-bordered w-full ${
-                      errors.cardHolder ? "input-error" : ""
-                    }`}
-                    value={formData.cardHolder}
-                    onChange={handleInputChange}
-                  />
-                  {errors.cardHolder && (
-                    <p className="text-error mt-1">{errors.cardHolder}</p>
-                  )}
+              <div className="divider"></div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm opacity-70">
+                  <span>Tạm tính</span>
+                  <span>${total}</span>
                 </div>
-
-                {/* Expiry Date */}
-                <div className="form-control mb-4">
-                  <label className="label">
-                    <span className="label-text">Expiry Date (MM/YY)</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="expiryDate"
-                    placeholder="MM/YY"
-                    className={`input input-bordered w-full ${
-                      errors.expiryDate ? "input-error" : ""
-                    }`}
-                    value={formData.expiryDate}
-                    onChange={handleInputChange}
-                  />
-                  {errors.expiryDate && (
-                    <p className="text-error mt-1">{errors.expiryDate}</p>
-                  )}
+                <div className="flex justify-between text-sm opacity-70">
+                  <span>Phí vận chuyển</span>
+                  <span>${deliveryFee}</span>
                 </div>
-
-                {/* CVV */}
-                <div className="form-control mb-4">
-                  <label className="label">
-                    <span className="label-text">CVV</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="cvv"
-                    placeholder="CVV"
-                    className={`input input-bordered w-full ${
-                      errors.cvv ? "input-error" : ""
-                    }`}
-                    value={formData.cvv}
-                    onChange={handleInputChange}
-                  />
-                  {errors.cvv && (
-                    <p className="text-error mt-1">{errors.cvv}</p>
-                  )}
+                <div className="flex justify-between text-base font-medium mt-4">
+                  <span>Tổng cộng</span>
+                  <span>${totalTransaction}</span>
                 </div>
-              </>
-            )}
-
-            <h3 className="text-xl font-semibold mb-4">Delivery method</h3>
-            <div className="form-control mb-6">
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-base-200">
-                  <input
-                    type="radio"
-                    name="shippingMethod"
-                    value="standard"
-                    className="radio radio-primary mr-3"
-                    checked={formData.shippingMethod === "standard"}
-                    onChange={handleDeliveryChange}
-                  />
-                  <FaQrcode className="w-6 h-6" />
-                  <span className="ml-3">Standard delivery</span>
-                </label>
-
-                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-base-200">
-                  <input
-                    type="radio"
-                    name="shippingMethod"
-                    value="express"
-                    className="radio radio-primary mr-3"
-                    checked={formData.shippingMethod === "express"}
-                    onChange={handleDeliveryChange}
-                  />
-                  <FaCcMastercard className="w-6 h-6" />
-                  <span className="ml-3">Express delivery</span>
-                </label>
               </div>
-            </div>
 
-            {/* Summary */}
-            <div className="flex justify-between mt-6">
-              <p className="text-left">Subtotal:</p>
-              <p className="text-right">${total.toFixed(2)}</p>
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className="btn btn-primary btn-block mt-6"
+              >
+                Xác nhận đặt hàng
+              </button>
             </div>
-            <div className="flex justify-between">
-              <p className="text-left">Delivery fee:</p>
-              <p className="text-right">${deliveryFee.toFixed(2)}</p>
-            </div>
-            <div className="flex justify-between text-lg font-semibold">
-              <p className="text-left">Total:</p>
-              <p className="text-right">${totalTransaction.toFixed(2)}</p>
-            </div>
-
-            {/* Submit button */}
-            <button type="submit" className="btn btn-primary mt-6 w-full">
-              Complete Payment
-            </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

@@ -52,6 +52,8 @@ interface ProductContextProps {
   currentOrderDetail: OrderWithUserInfo | null;
   setCurrentOrderDetail: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
   fetchOrderById: (orderId: string) => void;
+  loadingCart: boolean;
+  setLoadingCart: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
@@ -61,6 +63,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [currentProduct, setCurrentProduct] = useState<ProductInfo | null>(null);
   const [cart, setCart] = useState<ProductCart[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingCart, setLoadingCart] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const {auth} = useAuthContext();
   const [pageOrder, setPageOrder] = useState<number>(1);
@@ -116,14 +119,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!auth?.token) return;
     const fetchCart = async () => {
       try {
-        setLoading(true);
+        setLoadingCart(true);
         const fetchedCart = await postFetcher.getCart(auth?.token);
         setCart(fetchedCart as unknown as ProductCart[]);
-        console.log(fetchedCart);
       } catch (err) {
         setError("Failed to fetch cart");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -302,7 +302,8 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
      createOrder, currentOrder, setCurrentOrder,
      statusUser, statusSeller, limit, pageUser, pageSeller, totalSellerPages, totalUserPages,
      setLimit, setPageSeller, setPageUser, setStatusSeller, setStatusUser, setTotalSellerPages,
-     setTotalUserPages, currentOrderDetail, setCurrentOrderDetail, fetchOrderById }}>
+     setTotalUserPages, currentOrderDetail, setCurrentOrderDetail, fetchOrderById,
+     loadingCart, setLoadingCart }}>
       {children}
     </ProductContext.Provider>
   );
