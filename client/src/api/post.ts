@@ -17,6 +17,9 @@ export const postEndpoints = {
   createOrder: "/posts/order/create",
   getOrderByUser: "/posts/order/getOrderByUser",
   getOrderBySeller: "/posts/order/getOrderBySeller",
+  cancelOrder: "/posts/order/cancelOrder",
+  updateOrderStatus: "/posts/order/updateOrderStatus",
+
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
   getMealPlanner: "/posts/mealPlanner/getAll",
@@ -532,6 +535,15 @@ export interface PostFetcher {
     status: string
   ) => Promise<PostResponse<OrderListWithPagination>>;
   getOrderById: (
+    orderId: string,
+    token: string
+  ) => Promise<PostResponse<OrderDetailsInfo>>;
+  cancelOrder: (
+    orderId: string,
+    reason: string,
+    token: string
+  ) => Promise<PostResponse<OrderDetailsInfo>>;
+  updateOrderStatus: (
     orderId: string,
     token: string
   ) => Promise<PostResponse<OrderDetailsInfo>>;
@@ -1377,4 +1389,38 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
+  cancelOrder: async (
+    orderId: string,
+    reason: string,
+    token: string
+  ): Promise<PostResponse<OrderDetailsInfo>> => {
+    return postInstance.patch(
+      postEndpoints.cancelOrder,
+      {
+        orderId,
+        reason,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateOrderStatus: async (
+    orderId: string,
+    token: string
+  ): Promise<PostResponse<OrderDetailsInfo>> => {
+    return postInstance.patch(
+      postEndpoints.updateOrderStatus,
+      {
+        orderId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  }
 };

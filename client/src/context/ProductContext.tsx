@@ -1,5 +1,21 @@
-import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from "react";
-import { Cart, OrderInfo, OrderListWithPagination, OrderWithUserInfo, postFetcher, ProductCart, ProductInfo, ProductList } from "../api/post";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useContext,
+  useCallback,
+} from "react";
+import {
+  Cart,
+  OrderInfo,
+  OrderListWithPagination,
+  OrderWithUserInfo,
+  postFetcher,
+  ProductCart,
+  ProductInfo,
+  ProductList,
+} from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
 
@@ -34,7 +50,9 @@ interface ProductContextProps {
   fetchOrderBySeller: () => void;
   createOrder: (orderInfo: OrderInfo) => void;
   currentOrder: OrderWithUserInfo | null;
-  setCurrentOrder: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
+  setCurrentOrder: React.Dispatch<
+    React.SetStateAction<OrderWithUserInfo | null>
+  >;
   totalUserPages: number;
   totalSellerPages: number;
   pageUser: number;
@@ -50,22 +68,35 @@ interface ProductContextProps {
   limit: number;
   setLimit: React.Dispatch<React.SetStateAction<number>>;
   currentOrderDetail: OrderWithUserInfo | null;
-  setCurrentOrderDetail: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
+  setCurrentOrderDetail: React.Dispatch<
+    React.SetStateAction<OrderWithUserInfo | null>
+  >;
   fetchOrderById: (orderId: string) => void;
   loadingCart: boolean;
   setLoadingCart: React.Dispatch<React.SetStateAction<boolean>>;
+  loadingOrder: boolean;
+  setLoadingOrder: React.Dispatch<React.SetStateAction<boolean>>;
+  cancelOrder: (orderId: string, reason: string, isMyOrder: boolean, tab: string) => void;
+  updateOrderStatus: (orderId: string, status: string, tab: string) => void;
 }
 
-export const ProductContext = createContext<ProductContextProps | undefined>(undefined);
+export const ProductContext = createContext<ProductContextProps | undefined>(
+  undefined
+);
 
-export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ProductProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [products, setProducts] = useState<ProductInfo[]>([]);
-  const [currentProduct, setCurrentProduct] = useState<ProductInfo | null>(null);
+  const [currentProduct, setCurrentProduct] = useState<ProductInfo | null>(
+    null
+  );
   const [cart, setCart] = useState<ProductCart[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingOrder, setLoadingOrder] = useState<boolean>(true);
   const [loadingCart, setLoadingCart] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const {auth} = useAuthContext();
+  const { auth } = useAuthContext();
   const [pageOrder, setPageOrder] = useState<number>(1);
   const location = useLocation();
   const [totalUserPages, setTotalUserPages] = useState<number>(0);
@@ -77,13 +108,16 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [ordersByUser, setOrdersByUser] = useState<OrderWithUserInfo[]>([]);
   const [ordersBySeller, setOrdersBySeller] = useState<OrderWithUserInfo[]>([]);
-  const [currentOrder, setCurrentOrder] = useState<OrderWithUserInfo | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<OrderWithUserInfo | null>(
+    null
+  );
   const [statusUser, setStatusUser] = useState<string>("");
   const [statusSeller, setStatusSeller] = useState<string>("");
   const [limit, setLimit] = useState<number>(8);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
-  const [currentOrderDetail, setCurrentOrderDetail] = useState<OrderWithUserInfo | null>(null);
+  const [currentOrderDetail, setCurrentOrderDetail] =
+    useState<OrderWithUserInfo | null>(null);
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -101,7 +135,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       try {
         setLoading(true);
         console.log("chay qua sau reset");
-        const fetchedProducts = await postFetcher.getAllProducts(auth?.token, page, limit) as unknown as ProductList;
+        const fetchedProducts = (await postFetcher.getAllProducts(
+          auth?.token,
+          page,
+          limit
+        )) as unknown as ProductList;
         console.log(fetchedProducts);
         setProducts(fetchedProducts.products);
         setTotalPages(fetchedProducts.totalPages);
@@ -135,17 +173,25 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const product = await postFetcher.getProductByPostId(postId, auth?.token) as unknown as ProductInfo;
+        const product = (await postFetcher.getProductByPostId(
+          postId,
+          auth?.token
+        )) as unknown as ProductInfo;
         console.log(product);
 
         setProducts((prevProducts) => {
-          const isProductExists = prevProducts.some((p) => p._id === product._id);
+          const isProductExists = prevProducts.some(
+            (p) => p._id === product._id
+          );
 
           if (!isProductExists) {
             return [...prevProducts, product];
           }
 
-          return [...prevProducts.filter((p) => p._id !== product._id), product];
+          return [
+            ...prevProducts.filter((p) => p._id !== product._id),
+            product,
+          ];
         });
         setCurrentProduct(product);
       } catch (err) {
@@ -162,7 +208,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
-        setProducts((prevProducts) => prevProducts.filter((p) => p.postId !== postId));
+        setProducts((prevProducts) =>
+          prevProducts.filter((p) => p.postId !== postId)
+        );
       } catch (err) {
         setError("Failed to remove product");
       } finally {
@@ -176,7 +224,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     async (productId: string, quantity: number) => {
       if (!auth?.token) return;
       try {
-        const updatedCart = await postFetcher.addProductToCart(productId, quantity, auth?.token) as unknown as Cart;
+        const updatedCart = (await postFetcher.addProductToCart(
+          productId,
+          quantity,
+          auth?.token
+        )) as unknown as Cart;
 
         setCart(updatedCart.products);
       } catch (err) {
@@ -193,9 +245,14 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const updatedCart = await postFetcher.removeProductFromCart(productIds, auth?.token) as unknown as Cart;
+        const updatedCart = (await postFetcher.removeProductFromCart(
+          productIds,
+          auth?.token
+        )) as unknown as Cart;
         console.log(updatedCart);
-        setCart((prevCart) => prevCart.filter((p) => productIds.indexOf(p.productId) === -1));
+        setCart((prevCart) =>
+          prevCart.filter((p) => productIds.indexOf(p.productId) === -1)
+        );
       } catch (err) {
         setError("Failed to remove product from cart");
       } finally {
@@ -210,7 +267,13 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const fetchedProducts = await postFetcher.searchProduct(searchTerm, filter, page, limit, auth?.token) as unknown as ProductList;
+        const fetchedProducts = (await postFetcher.searchProduct(
+          searchTerm,
+          filter,
+          page,
+          limit,
+          auth?.token
+        )) as unknown as ProductList;
         setProducts(fetchedProducts.products);
         setTotalPages(fetchedProducts.totalPages);
       } catch (err) {
@@ -222,46 +285,53 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     [auth?.token, page]
   );
 
-  const fetchOrdersByUser = useCallback(
-    async () => {
-      if (!auth?.token) return;
-      try {
-        setLoading(true);
-        const fetchedOrders = await postFetcher.getOrderByUser(auth?.token, pageUser, limit, statusUser) as unknown as OrderListWithPagination;
-        setOrdersByUser(fetchedOrders.orders);
-        setTotalUserPages(fetchedOrders.totalPages);
-      } catch (err) {
-        setError("Failed to fetch orders");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [auth?.token, pageUser, statusUser]
-  );
+  const fetchOrdersByUser = useCallback(async () => {
+    if (!auth?.token) return;
+    try {
+      setLoadingOrder(true);
+      const fetchedOrders = (await postFetcher.getOrderByUser(
+        auth?.token,
+        pageUser,
+        limit,
+        statusUser
+      )) as unknown as OrderListWithPagination;
+      setOrdersByUser(fetchedOrders.orders);
+      setTotalUserPages(fetchedOrders.totalPages);
+    } catch (err) {
+      setError("Failed to fetch orders");
+    } finally {
+      setLoadingOrder(false);
+    }
+  }, [auth?.token, pageUser, statusUser]);
 
-  const fetchOrderBySeller = useCallback(
-    async () => {
-      if (!auth?.token) return;
-      try {
-        setLoading(true);
-        const fetchedOrders = await postFetcher.getOrderBySeller(auth?.token, pageSeller, limit, statusSeller) as unknown as OrderListWithPagination;
-        setOrdersBySeller(fetchedOrders.orders);
-        setTotalSellerPages(fetchedOrders.totalPages);
-      } catch (err) {
-        setError("Failed to fetch orders");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [auth?.token, pageSeller, statusSeller]
-  );
+  const fetchOrderBySeller = useCallback(async () => {
+    if (!auth?.token) return;
+    try {
+      setLoadingOrder(true);
+      const fetchedOrders = (await postFetcher.getOrderBySeller(
+        auth?.token,
+        pageSeller,
+        limit,
+        statusSeller
+      )) as unknown as OrderListWithPagination;
+      setOrdersBySeller(fetchedOrders.orders);
+      setTotalSellerPages(fetchedOrders.totalPages);
+    } catch (err) {
+      setError("Failed to fetch orders");
+    } finally {
+      setLoadingOrder(false);
+    }
+  }, [auth?.token, pageSeller, statusSeller]);
 
   const createOrder = useCallback(
     async (orderInfo: OrderInfo) => {
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const result = await postFetcher.createOrder(orderInfo, auth?.token) as unknown as OrderWithUserInfo;
+        const result = (await postFetcher.createOrder(
+          orderInfo,
+          auth?.token
+        )) as unknown as OrderWithUserInfo;
         setCurrentOrder(result);
         setOrdersByUser((prevOrders) => [...prevOrders, result]);
       } catch (err) {
@@ -279,7 +349,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       try {
         setLoading(true);
         console.log("fetching order");
-        const order = await postFetcher.getOrderById(orderId, auth?.token) as unknown as OrderWithUserInfo;
+        const order = (await postFetcher.getOrderById(
+          orderId,
+          auth?.token
+        )) as unknown as OrderWithUserInfo;
         setCurrentOrderDetail(order);
       } catch (err) {
         setError("Failed to fetch order");
@@ -290,20 +363,135 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     [auth?.token]
   );
 
+  const cancelOrder = useCallback(
+    async (orderId: string, reason: string, isMyOrder: boolean, tab: string) => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        await postFetcher.cancelOrder(orderId, reason, auth?.token);
+        if (isMyOrder) {
+          if (tab === "All") {
+            setOrdersByUser((prevOrders) =>
+              prevOrders.map((order) =>
+                order._id === orderId
+                  ? { ...order, status: "Cancelled By User" }
+                  : order
+              )
+            );
+          } else if (tab === "Pending") {
+            setOrdersByUser((prevOrders) =>
+              prevOrders.filter((order) => order._id !== orderId)
+            );
+          }
+        } else {
+          if (tab === "All") {
+            setOrdersBySeller((prevOrders) =>
+              prevOrders.map((order) =>
+                order._id === orderId
+                  ? { ...order, status: "Cancelled By Seller" }
+                  : order
+              )
+            );
+          } else if (tab === "Pending") {
+            setOrdersBySeller((prevOrders) =>
+              prevOrders.filter((order) => order._id !== orderId)
+            );
+          }
+        }
+      } catch (err) {
+        setError("Failed to cancel order");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
+  const updateOrderStatus = useCallback(
+    async (orderId: string, status: string, tab: string) => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        await postFetcher.updateOrderStatus(orderId, auth?.token);
+        if (tab === "All") {
+          setOrdersBySeller((prevOrders) =>
+            prevOrders.map((order) =>
+              order._id === orderId ? { ...order, status } : order
+            )
+          );
+        } else {
+          setOrdersBySeller((prevOrders) =>
+            prevOrders.filter((order) => order._id !== orderId)
+          );
+        }
+      } catch (err) {
+        setError("Failed to update order status");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
   return (
-    <ProductContext.Provider value={{ searchTerm, setSearchTerm,
-     searchProducts, totalPages, page, setPage, setLoading,
-     currentProduct, setCurrentProduct, removeProductFromCart,
-     addProductToCart, removeProduct, products, loading, error,
-     cart, setCart, fetchProductByPostId, selectedCategory,
-     setSelectedCategory, selectedItems, setSelectedItems,
-     ordersBySeller, setOrdersBySeller, ordersByUser,
-     setOrdersByUser, fetchOrderBySeller, fetchOrdersByUser,
-     createOrder, currentOrder, setCurrentOrder,
-     statusUser, statusSeller, limit, pageUser, pageSeller, totalSellerPages, totalUserPages,
-     setLimit, setPageSeller, setPageUser, setStatusSeller, setStatusUser, setTotalSellerPages,
-     setTotalUserPages, currentOrderDetail, setCurrentOrderDetail, fetchOrderById,
-     loadingCart, setLoadingCart }}>
+    <ProductContext.Provider
+      value={{
+        searchTerm,
+        setSearchTerm,
+        searchProducts,
+        totalPages,
+        page,
+        setPage,
+        setLoading,
+        currentProduct,
+        setCurrentProduct,
+        removeProductFromCart,
+        addProductToCart,
+        removeProduct,
+        products,
+        loading,
+        error,
+        cart,
+        setCart,
+        fetchProductByPostId,
+        selectedCategory,
+        setSelectedCategory,
+        selectedItems,
+        setSelectedItems,
+        ordersBySeller,
+        setOrdersBySeller,
+        ordersByUser,
+        setOrdersByUser,
+        fetchOrderBySeller,
+        fetchOrdersByUser,
+        createOrder,
+        currentOrder,
+        setCurrentOrder,
+        statusUser,
+        statusSeller,
+        limit,
+        pageUser,
+        pageSeller,
+        totalSellerPages,
+        totalUserPages,
+        setLimit,
+        setPageSeller,
+        setPageUser,
+        setStatusSeller,
+        setStatusUser,
+        setTotalSellerPages,
+        setTotalUserPages,
+        currentOrderDetail,
+        setCurrentOrderDetail,
+        fetchOrderById,
+        loadingCart,
+        setLoadingCart,
+        loadingOrder,
+        setLoadingOrder,
+        updateOrderStatus,
+        cancelOrder,
+      }}
+    >
       {children}
     </ProductContext.Provider>
   );

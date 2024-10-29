@@ -6,8 +6,7 @@ import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeBy
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
 import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
 import { addMealController, checkPostInUnscheduledMealController, getMealPlannerController, removeMealController, scheduleMealController } from "../controllers/mealPlanner.controllers";
-import { addProductToCartController, searchProductsController, createReviewProductController, getAllProductsController, getCartController, getProductByPostIdController, removeProductFromCartController, createOrderController, getOrdersByUserController, getOrderOfSellerController, getOrderByIdController } from "../controllers/product.controller";
-import { getOrderByIdService } from "../services/product.services";
+import { addProductToCartController, searchProductsController, createReviewProductController, getAllProductsController, getCartController, getProductByPostIdController, removeProductFromCartController, createOrderController, getOrdersByUserController, getOrderOfSellerController, getOrderByIdController, cancelOrderController, updateOrderStatusController } from "../controllers/product.controller";
 
 const postRouter = express.Router();
 // product
@@ -22,6 +21,8 @@ postRouter.post("/order/create", tokenValidate, createOrderController);
 postRouter.get("/order/getOrderByUser", tokenValidate, getOrdersByUserController);
 postRouter.get("/order/getOrderBySeller", tokenValidate, getOrderOfSellerController);
 postRouter.get("/order/getOrderById/:orderId", tokenValidate, getOrderByIdController);
+postRouter.patch("/order/cancelOrder", tokenValidate, cancelOrderController);
+postRouter.patch("/order/updateOrderStatus", tokenValidate, updateOrderStatusController);
 
 // mealPlanner
 postRouter.post("/mealPlanner/create", tokenValidate, addMealController);

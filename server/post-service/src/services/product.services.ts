@@ -466,3 +466,55 @@ export const getOrderByIdService = async (orderId: string) => {
     throw new Error(`Failed to get order by id: ${error}`);
   }
 }
+
+export const cancelOrderService = async (userId: string, orderId: string, reason: string) => {
+  try {
+    const order = await orderModel.findOne({ _id: orderId });
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.userId !== userId && order.userId !== order.sellerId) {
+      throw new Error("User not authorized to cancel this order");
+    }
+
+    if (order.status !== "Pending") {
+      throw new Error("Order cannot be canceled");
+    }
+
+    order.status = userId === order.userId ? "Cancelled By User" : "Cancelled By Seller";
+    order.reason = reason;
+    await order.save();
+    return order;
+  } catch (error) {
+    throw new Error(`Failed to cancel order: ${error}`);
+  }
+}
+
+export const updateOrderStatusService = async (userId: string, orderId: string) => {
+  try {
+    const order = await orderModel.findOne({ _id: orderId });
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.sellerId !== userId) {
+      throw new Error("User not authorized to update this order");
+    }
+
+    if (order.status === "Cancelled By User" || order.status === "Cancelled By Seller") {
+      throw new Error("Order is already cancelled");
+    }
+
+    if (order.status === "Delivering") {
+      order.status = "Completed";
+    } else if (order.status === "Pending") {
+      order.status = "Delivering";
+    }
+
+    await order.save();
+    return order;
+  } catch (error) {
+    throw new Error(`Failed to update order status: ${error}`);
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   BsChat,
   BsBox,
@@ -115,6 +115,7 @@ const LoadingSkeleton = () => {
 
 const OrderDetails: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     currentOrderDetail,
     setCurrentOrderDetail,
@@ -136,7 +137,7 @@ const OrderDetails: React.FC = () => {
     }
 
     return () => {
-      setCurrentOrderDetail(null); 
+      setCurrentOrderDetail(null);
     };
   }, [location.state, location.pathname, setCurrentOrderDetail]);
 
@@ -157,7 +158,6 @@ const OrderDetails: React.FC = () => {
       setLoading(false);
     }
   }, [currentOrderDetail]);
-
 
   const getStatusBadge = (status: string): string => {
     const statusColors: Record<OrderStatus, string> = {
@@ -180,12 +180,19 @@ const OrderDetails: React.FC = () => {
         {/* Header Section */}
         <div className="card bg-base-100 shadow-xl mb-6">
           <div className="card-body">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+              <button
+                className="btn btn-outline btn-sm w-full lg:w-auto"
+                onClick={() => navigate(-1)}
+              >
+                <BsFileText className="w-4 h-4 mr-2" />
+                Go Back
+              </button>
+              <div className="mb-4 lg:mb-0">
+                <h1 className="text-xl lg:text-2xl font-bold">
                   Order #{currentOrderDetail._id}
                 </h1>
-                <p className="text-base-content/70">
+                <p className="text-sm lg:text-base text-base-content/70">
                   Placed on{" "}
                   {new Date(currentOrderDetail.createdAt).toLocaleDateString(
                     "en-US",
@@ -197,15 +204,15 @@ const OrderDetails: React.FC = () => {
                   )}
                 </p>
               </div>
-              <div className="flex gap-3">
-                <button className="btn btn-primary btn-sm">
+              <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 items-center">
+                <button className="btn btn-primary btn-sm w-full lg:w-auto">
                   <BsChat className="w-4 h-4 mr-2" />
                   Message Customer
                 </button>
                 <span
                   className={`badge ${getStatusBadge(
                     currentOrderDetail.status
-                  )} badge-lg mt-1`}
+                  )} badge-lg mt-1 lg:mt-0`}
                 >
                   {currentOrderDetail.status}
                 </span>
@@ -313,13 +320,17 @@ const OrderDetails: React.FC = () => {
                   </div>
                   <div className="flex justify-between text-base-content/70">
                     <span>Delivery Fee</span>
-                    <span>${(currentOrderDetail.shippingFee).toFixed(2)}</span>
+                    <span>${currentOrderDetail.shippingFee.toFixed(2)}</span>
                   </div>
                   <div className="divider"></div>
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
                     <span className="text-primary">
-                      ${(currentOrderDetail.amount + currentOrderDetail.shippingFee).toFixed(2)}
+                      $
+                      {(
+                        currentOrderDetail.amount +
+                        currentOrderDetail.shippingFee
+                      ).toFixed(2)}
                     </span>
                   </div>
                 </div>

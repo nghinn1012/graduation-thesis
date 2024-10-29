@@ -1,7 +1,24 @@
 import { AuthRequest } from "../data";
-import { addProductToCartService, createOrderService, createReviewProductService, getAllProductsService, getCartService, getOrderByIdService, getOrderOfSellerService, getOrdersByUserService, getProductByPostIdService, removeProductsFromCartService, searchProductsService } from "../services/product.services";
+import {
+  addProductToCartService,
+  cancelOrderService,
+  createOrderService,
+  createReviewProductService,
+  getAllProductsService,
+  getCartService,
+  getOrderByIdService,
+  getOrderOfSellerService,
+  getOrdersByUserService,
+  getProductByPostIdService,
+  removeProductsFromCartService,
+  searchProductsService,
+  updateOrderStatusService,
+} from "../services/product.services";
 import { Response } from "express";
-export const addProductToCartController = async (req: AuthRequest, res: Response) => {
+export const addProductToCartController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const userId = req.authContent?.data.userId;
     if (!userId) {
@@ -19,9 +36,12 @@ export const addProductToCartController = async (req: AuthRequest, res: Response
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const getAllProductsController = async (req: AuthRequest, res: Response) => {
+export const getAllProductsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   const { page, limit } = req.query;
   if (!userId) {
@@ -31,7 +51,10 @@ export const getAllProductsController = async (req: AuthRequest, res: Response) 
     });
   }
   try {
-  const products = await getAllProductsService(page as unknown as number, limit as unknown as number);
+    const products = await getAllProductsService(
+      page as unknown as number,
+      limit as unknown as number
+    );
     return res.status(200).json(products);
   } catch (error) {
     return res.status(400).json({
@@ -39,7 +62,7 @@ export const getAllProductsController = async (req: AuthRequest, res: Response) 
       error: (error as Error).message,
     });
   }
-}
+};
 
 export const getCartController = async (req: AuthRequest, res: Response) => {
   const userId = req.authContent?.data.userId;
@@ -58,9 +81,12 @@ export const getCartController = async (req: AuthRequest, res: Response) => {
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const getProductByPostIdController = async (req: AuthRequest, res: Response) => {
+export const getProductByPostIdController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   if (!userId) {
     return res.status(400).json({
@@ -78,9 +104,12 @@ export const getProductByPostIdController = async (req: AuthRequest, res: Respon
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const removeProductFromCartController = async (req: AuthRequest, res: Response) => {
+export const removeProductFromCartController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   if (!userId) {
     return res.status(400).json({
@@ -98,9 +127,12 @@ export const removeProductFromCartController = async (req: AuthRequest, res: Res
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const createReviewProductController = async (req: AuthRequest, res: Response) => {
+export const createReviewProductController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   if (!userId) {
     return res.status(400).json({
@@ -110,7 +142,11 @@ export const createReviewProductController = async (req: AuthRequest, res: Respo
   }
   const { productId, ...reviewData } = req.body;
   try {
-    const product = await createReviewProductService(userId, productId, reviewData);
+    const product = await createReviewProductService(
+      userId,
+      productId,
+      reviewData
+    );
     return res.status(200).json(product);
   } catch (error) {
     return res.status(400).json({
@@ -118,9 +154,12 @@ export const createReviewProductController = async (req: AuthRequest, res: Respo
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const searchProductsController = async (req: AuthRequest, res: Response) => {
+export const searchProductsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   if (!userId) {
     return res.status(400).json({
@@ -130,7 +169,12 @@ export const searchProductsController = async (req: AuthRequest, res: Response) 
   }
   const { query, page, limit, filter } = req.query;
   try {
-    const products = await searchProductsService(query as string, filter as unknown as string, page as unknown as number, limit as unknown as number);
+    const products = await searchProductsService(
+      query as string,
+      filter as unknown as string,
+      page as unknown as number,
+      limit as unknown as number
+    );
     return res.status(200).json(products);
   } catch (error) {
     return res.status(400).json({
@@ -138,9 +182,12 @@ export const searchProductsController = async (req: AuthRequest, res: Response) 
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const createOrderController = async (req: AuthRequest, res: Response) => {
+export const createOrderController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   if (!userId) {
     return res.status(400).json({
@@ -158,11 +205,14 @@ export const createOrderController = async (req: AuthRequest, res: Response) => 
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const getOrdersByUserController = async (req: AuthRequest, res: Response) => {
+export const getOrdersByUserController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
-  const {page, limit, status} = req.query;
+  const { page, limit, status } = req.query;
   if (!userId) {
     return res.status(400).json({
       message: "Failed to get orders",
@@ -170,7 +220,12 @@ export const getOrdersByUserController = async (req: AuthRequest, res: Response)
     });
   }
   try {
-    const orders = await getOrdersByUserService(userId, page as unknown as number, limit as unknown as number, status as unknown as string);
+    const orders = await getOrdersByUserService(
+      userId,
+      page as unknown as number,
+      limit as unknown as number,
+      status as unknown as string
+    );
     return res.status(200).json(orders);
   } catch (error) {
     return res.status(400).json({
@@ -178,11 +233,14 @@ export const getOrdersByUserController = async (req: AuthRequest, res: Response)
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const getOrderOfSellerController = async (req: AuthRequest, res: Response) => {
+export const getOrderOfSellerController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
-  const {page, limit, status} = req.query;
+  const { page, limit, status } = req.query;
   if (!userId) {
     return res.status(400).json({
       message: "Failed to get orders",
@@ -190,7 +248,12 @@ export const getOrderOfSellerController = async (req: AuthRequest, res: Response
     });
   }
   try {
-    const orders = await getOrderOfSellerService(userId, page as unknown as number, limit as unknown as number, status as unknown as string);
+    const orders = await getOrderOfSellerService(
+      userId,
+      page as unknown as number,
+      limit as unknown as number,
+      status as unknown as string
+    );
     return res.status(200).json(orders);
   } catch (error) {
     return res.status(400).json({
@@ -198,9 +261,12 @@ export const getOrderOfSellerController = async (req: AuthRequest, res: Response
       error: (error as Error).message,
     });
   }
-}
+};
 
-export const getOrderByIdController = async (req: AuthRequest, res: Response) => {
+export const getOrderByIdController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req.authContent?.data.userId;
   const { orderId } = req.params;
   console.log("orderId", orderId);
@@ -219,4 +285,50 @@ export const getOrderByIdController = async (req: AuthRequest, res: Response) =>
       error: (error as Error).message,
     });
   }
-}
+};
+
+export const cancelOrderController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const userId = req.authContent?.data.userId;
+  const { orderId, reason } = req.body;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to cancel order",
+      error: "User not found",
+    });
+  }
+  try {
+    const order = await cancelOrderService(userId, orderId, reason);
+    return res.status(200).json(order);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to cancel order",
+      error: (error as Error).message,
+    });
+  }
+};
+
+export const updateOrderStatusController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const userId = req.authContent?.data.userId;
+  const { orderId } = req.body;
+  if (!userId) {
+    return res.status(400).json({
+      message: "Failed to update order status",
+      error: "User not found",
+    });
+  }
+  try {
+    const order = await updateOrderStatusService(userId, orderId);
+    return res.status(200).json(order);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Failed to update order status",
+      error: (error as Error).message,
+    });
+  }
+};

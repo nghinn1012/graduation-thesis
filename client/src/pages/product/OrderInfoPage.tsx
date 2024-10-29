@@ -146,11 +146,14 @@ const OrderInfoPage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
 
   const handleNoteChange = (authorId: string, value: string) => {
     setNotes((prevNotes) => ({
@@ -211,10 +214,16 @@ const OrderInfoPage: React.FC = () => {
           return null;
         });
 
-        const results = (await Promise.all(orderPromises)).filter((result) => result !== null);
-        setOrderResults(results as { orderNumber: string; totalAmount: number; deliveryAddress: string }[]);
-
-        removeProductFromCart(selectedProducts.map((product) => product.productId));
+        const results = (await Promise.all(orderPromises)).filter(
+          (result) => result !== null
+        );
+        setOrderResults(
+          results as {
+            orderNumber: string;
+            totalAmount: number;
+            deliveryAddress: string;
+          }[]
+        );
       } catch (error) {
         console.error("Error creating orders:", error);
       }
@@ -222,10 +231,20 @@ const OrderInfoPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (orderResults.length > 0 && !orderResults.includes({ orderNumber: "", totalAmount: 0, deliveryAddress: "" })) {
+    if (
+      orderResults.length > 0 &&
+      !orderResults.includes({
+        orderNumber: "",
+        totalAmount: 0,
+        deliveryAddress: "",
+      })
+    ) {
       navigate("/payment-success", {
         state: { orderResults },
       });
+      removeProductFromCart(
+        selectedProducts.map((product) => product.productId)
+      );
     }
   }, [orderResults, navigate]);
 
@@ -235,12 +254,28 @@ const OrderInfoPage: React.FC = () => {
         {/* Form Section */}
         <div className="md:col-span-2">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Order Information Header */}
+            <div className="card bg-base-100">
+              <div className="card-body flex flex-row items-center justify-center">
+                <button
+                  className="btn btn-square btn-sm mr-3"
+                  onClick={() => navigate(-1)}
+                >
+                  <FaArrowLeft className="w-4 h-4" />
+                </button>
+                <h1 className="card-title font-semibold text-center flex-1 text-2xl">
+                  Thông tin đặt hàng
+                </h1>
+              </div>
+            </div>
+
+            {/* Recipient Information */}
             <div className="card bg-base-100 shadow">
               <div className="card-body">
-                <h2 className="card-title">Thông tin giao hàng</h2>
+                <h2 className="card-title text-center">Thông tin giao hàng</h2>
 
-                {/* Recipient Information */}
                 <div className="space-y-4">
+                  {/* Recipient Name */}
                   <div>
                     <label className="label">
                       <span className="label-text">Tên người nhận</span>
@@ -263,6 +298,7 @@ const OrderInfoPage: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Phone Number */}
                   <div>
                     <label className="label">
                       <span className="label-text">Số điện thoại</span>
@@ -285,6 +321,7 @@ const OrderInfoPage: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Address */}
                   <div>
                     <label className="label">
                       <span className="label-text">Địa chỉ giao hàng</span>
@@ -312,14 +349,19 @@ const OrderInfoPage: React.FC = () => {
             {/* Shipping Method */}
             <div className="card bg-base-100 shadow">
               <div className="card-body">
-                <h2 className="card-title">Phương thức vận chuyển</h2>
+                <h2 className="card-title text-center">
+                  Phương thức vận chuyển
+                </h2>
                 <div className="space-y-4">
+                  {/* Standard Shipping */}
                   <div className="form-control">
                     <label className="label cursor-pointer">
                       <span className="label-text">
                         Giao hàng tiêu chuẩn
                         <br />
-                        <span className="text-sm opacity-70">3-5 ngày - $5</span>
+                        <span className="text-sm opacity-70">
+                          3-5 ngày - $5
+                        </span>
                       </span>
                       <input
                         type="radio"
@@ -331,12 +373,15 @@ const OrderInfoPage: React.FC = () => {
                       />
                     </label>
                   </div>
+                  {/* Express Shipping */}
                   <div className="form-control">
                     <label className="label cursor-pointer">
                       <span className="label-text">
                         Giao hàng nhanh
                         <br />
-                        <span className="text-sm opacity-70">1-2 ngày - $10</span>
+                        <span className="text-sm opacity-70">
+                          1-2 ngày - $10
+                        </span>
                       </span>
                       <input
                         type="radio"
@@ -355,8 +400,11 @@ const OrderInfoPage: React.FC = () => {
             {/* Payment Method */}
             <div className="card bg-base-100 shadow">
               <div className="card-body">
-                <h2 className="card-title">Phương thức thanh toán</h2>
+                <h2 className="card-title text-center">
+                  Phương thức thanh toán
+                </h2>
                 <div className="space-y-4">
+                  {/* QR Code Payment */}
                   <div className="form-control">
                     <label className="label cursor-pointer">
                       <span className="label-text flex items-center gap-2">
@@ -373,6 +421,7 @@ const OrderInfoPage: React.FC = () => {
                     </label>
                   </div>
 
+                  {/* Credit Card Payment */}
                   <div className="form-control">
                     <label className="label cursor-pointer">
                       <span className="label-text flex items-center gap-2">
@@ -389,8 +438,10 @@ const OrderInfoPage: React.FC = () => {
                     </label>
                   </div>
 
+                  {/* Credit Card Details */}
                   {formData.paymentMethod === "credit_card" && (
                     <div className="mt-4 space-y-4">
+                      {/* Card Number */}
                       <div>
                         <label className="label">
                           <span className="label-text">Số thẻ</span>
@@ -413,6 +464,7 @@ const OrderInfoPage: React.FC = () => {
                         )}
                       </div>
 
+                      {/* Card Holder */}
                       <div>
                         <label className="label">
                           <span className="label-text">Tên chủ thẻ</span>
@@ -435,6 +487,7 @@ const OrderInfoPage: React.FC = () => {
                         )}
                       </div>
 
+                      {/* Expiry Date and CVV */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="label">
@@ -458,7 +511,6 @@ const OrderInfoPage: React.FC = () => {
                             </label>
                           )}
                         </div>
-
                         <div>
                           <label className="label">
                             <span className="label-text">CVV</span>
@@ -505,7 +557,9 @@ const OrderInfoPage: React.FC = () => {
                       <div key={product._id} className="flex space-x-4">
                         <div className="flex-shrink-0 w-20 h-20">
                           <img
-                            src={product.postInfo.images?.[0] || "/placeholder.jpg"}
+                            src={
+                              product.postInfo.images?.[0] || "/placeholder.jpg"
+                            }
                             alt={product.postInfo?.title}
                             className="w-full h-full object-cover rounded"
                           />
@@ -525,7 +579,9 @@ const OrderInfoPage: React.FC = () => {
                     ))}
                     <div className="mt-2">
                       <label className="label">
-                        <span className="label-text">Ghi chú cho người bán</span>
+                        <span className="label-text">
+                          Ghi chú cho người bán
+                        </span>
                       </label>
                       <textarea
                         value={notes[authorId] || ""}

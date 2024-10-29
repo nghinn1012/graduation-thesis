@@ -4,7 +4,7 @@ import { OrderWithUserInfo } from "../../api/post";
 import { FiMoreVertical } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import OrderListSkeleton from "../../components/skeleton/OrderListSkeleton";
-// import OrderActionButtons from "../../components/common/OrderActionButtons";
+import OrderActionButtons from "../../components/order/OrderActionButtons";
 
 const OrdersPage = () => {
   const [activeTab, setActiveTab] = useState("My Orders");
@@ -31,27 +31,27 @@ const OrdersPage = () => {
     setStatusSeller,
     limit,
     setLimit,
-    loading,
-    setLoading,
+    loadingOrder,
+    setLoadingOrder,
   } = useProductContext();
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setLoadingOrder(true);
       if (activeTab === "My Orders") {
         await fetchOrdersByUser();
       }
       if (activeTab === "Orders of My Shop") {
         await fetchOrderBySeller();
       }
-      setLoading(false);
+      setLoadingOrder(false);
     };
 
     fetchData();
   }, [fetchOrdersByUser, fetchOrderBySeller, activeTab]);
 
   const handlePageChange = (page: number) => {
-    setLoading(true);
+    setLoadingOrder(true);
     if (activeTab === "My Orders") {
       setPageUser(page);
     }
@@ -61,7 +61,7 @@ const OrdersPage = () => {
   };
 
   const handlePageSizeChange = (size: number) => {
-    setLoading(true);
+    setLoadingOrder(true);
     setPageSize(size);
     if (activeTab === "My Orders") {
       setPageUser(1);
@@ -73,11 +73,12 @@ const OrdersPage = () => {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "Delivered":
+      case "Delivering":
         return "badge-success";
       case "Completed":
         return "badge-info";
-      case "Canceled":
+      case "Cancelled By Seller":
+      case "Cancelled By User":
         return "badge-error";
       case "Pending":
         return "badge-warning";
@@ -87,7 +88,7 @@ const OrdersPage = () => {
   };
 
   const handleStatusChange = (status: string) => {
-    setLoading(true);
+    setLoadingOrder(true);
     if (activeTab === "My Orders") {
       setPageUser(1);
       setMyOrdersTab(status);
@@ -134,7 +135,7 @@ const OrdersPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {loading
+                {loadingOrder
                   ? [...Array(5)].map((_, index) => (
                       <tr key={index}>
                         <td colSpan={isMyOrders ? 7 : 6}>
@@ -149,24 +150,42 @@ const OrdersPage = () => {
                       )
                       .map((order) => (
                         <tr key={order._id} className="hover:bg-base-200">
-                          <td className="text-xs sm:text-sm whitespace-nowrap cursor-pointer" onClick={() => handleViewOrder(order._id)}>
+                          <td
+                            className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+                            onClick={() => handleViewOrder(order._id)}
+                          >
                             ORD-${order._id.slice(-6).toUpperCase()}
                           </td>
-                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                          <td
+                            className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+                            onClick={() => handleViewOrder(order._id)}
+                          >
                             {order?.info?.name}
                           </td>
                           {isMyOrders && (
-                            <td className="text-xs sm:text-sm max-w-40 truncate">
+                            <td
+                              className="text-xs sm:text-sm max-w-40 truncate cursor-pointer"
+                              onClick={() => handleViewOrder(order._id)}
+                            >
                               {order.address}
                             </td>
                           )}
-                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                          <td
+                            className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+                            onClick={() => handleViewOrder(order._id)}
+                          >
                             ${order.amount}
                           </td>
-                          <td className="hidden sm:table-cell text-xs sm:text-sm whitespace-nowrap">
+                          <td
+                            className="hidden sm:table-cell text-xs sm:text-sm whitespace-nowrap"
+                            onClick={() => handleViewOrder(order._id)}
+                          >
                             {formatDate(order.createdAt)}
                           </td>
-                          <td className="text-xs sm:text-sm whitespace-nowrap">
+                          <td
+                            className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+                            onClick={() => handleViewOrder(order._id)}
+                          >
                             <span
                               className={`badge badge-sm p-0 sm:badge-md ${getStatusBadgeClass(
                                 order.status
@@ -176,10 +195,12 @@ const OrdersPage = () => {
                             </span>
                           </td>
                           <td className="text-sm sm:text-sm">
-                            {/* <OrderActionButtons
+                            <OrderActionButtons
                               order={order}
                               isMyOrders={isMyOrders}
-                            /> */}
+                              activeTab={activeTab}
+                              tab={isMyOrders ? myOrdersTab : shopOrdersTab}
+                            />
                           </td>
                         </tr>
                       ))}
@@ -220,7 +241,7 @@ const OrdersPage = () => {
 
         {/* Status Tabs */}
         <div className="tabs tabs-boxed mb-4 flex-nowrap overflow-x-auto">
-          {["All", "Pending", "Delivered", "Completed", "Canceled"].map(
+          {["All", "Pending", "Delivering", "Completed", "Canceled"].map(
             (tab) => (
               <button
                 key={tab}
