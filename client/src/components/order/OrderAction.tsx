@@ -8,13 +8,16 @@ import {
 } from "react-icons/bs";
 import { OrderWithUserInfo } from "../../api/post";
 import { IAccountInfo } from "../../data/interface_data/account_info";
-import CancelOrderModal from './CancelOrderModal';
+import CancelOrderModal from "./CancelOrderModal";
+import ReviewModal from "./ReviewModal";
 
 interface OrderActionsProps {
   order: OrderWithUserInfo;
   account?: IAccountInfo;
   onUpdateStatus: (status: string) => Promise<void>;
   onCancelOrder: (reason: string) => Promise<void>;
+  onSubmitReviews?: (reviews: Array<{ productId: string; rating: number; comment: string }>) => Promise<void>;
+  isMyOrders: boolean;
 }
 
 const OrderActions: React.FC<OrderActionsProps> = ({
@@ -22,24 +25,33 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   account,
   onUpdateStatus,
   onCancelOrder,
+  onSubmitReviews,
+  isMyOrders
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(order.status);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [cancelReason, setCancelReason] = useState("");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-  const isBuyer = account?._id === order.userId;
+  const isBuyer = isMyOrders;
+  const canCancel = order.status === "Pending";
 
-  const canCancel = isBuyer && order.status === "Pending";
-
-  const canUpdateStatus = !isBuyer;
+  // Status mapping for next status
+  const nextStatus: { [key: string]: string } = {
+    'Pending': 'Delivering',
+    'Delivering': 'Completed'
+  };
 
   const handleStatusUpdate = async () => {
     try {
-      await onUpdateStatus(selectedStatus);
+      setIsUpdating(true);
+      await onUpdateStatus(nextStatus[order.status]);
       setIsUpdating(false);
     } catch (error) {
       console.error("Error updating order status:", error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -47,6 +59,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
     try {
       await onCancelOrder(reason);
       setIsCancelModalOpen(false);
+      setCancelReason("");
     } catch (error) {
       console.error("Error cancelling order:", error);
     }
@@ -58,6 +71,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
         <div className="card-body">
           <h2 className="card-title text-lg mb-4">Order Actions</h2>
           <div className="space-y-4">
+            {/* Cancel Order Button - Available for both buyer and seller when pending */}
             {canCancel && (
               <button
                 className="btn btn-outline btn-block btn-error"
@@ -68,48 +82,35 @@ const OrderActions: React.FC<OrderActionsProps> = ({
               </button>
             )}
 
-            {canUpdateStatus && (
-              <div className="space-y-3">
-                {!isUpdating ? (
-                  <button
-                    className="btn btn-primary btn-block"
-                    onClick={() => setIsUpdating(true)}
-                  >
-                    <BsClock className="w-4 h-4 mr-2" />
-                    Update Status
-                  </button>
+            {/* Update Status Button - Only for seller */}
+            {!isBuyer && nextStatus[order.status] && (
+              <button
+                className="btn btn-primary btn-block"
+                onClick={handleStatusUpdate}
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <span className="loading loading-spinner loading-xs"></span>
                 ) : (
-                  <div className="space-y-3">
-                    <select
-                      className="select select-bordered w-full"
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Processing">Processing</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                    <div className="flex gap-2">
-                      <button
-                        className="btn btn-primary flex-1"
-                        onClick={handleStatusUpdate}
-                      >
-                        <BsCheck2 className="w-4 h-4 mr-2" />
-                        Confirm
-                      </button>
-                      <button
-                        className="btn btn-ghost flex-1"
-                        onClick={() => setIsUpdating(false)}
-                      >
-                        <BsX className="w-4 h-4 mr-2" />
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
+                  <>
+                    <BsClock className="w-4 h-4 mr-2" />
+                    Mark as {nextStatus[order.status]}
+                  </>
                 )}
-              </div>
+              </button>
             )}
+
+            {/* Review Button - Only for buyer when completed and not reviewed */}
+            {isBuyer && order.status === 'Completed' && !order.isReviewed && (
+              <button
+                className="btn btn-accent btn-block"
+                onClick={() => setIsReviewModalOpen(true)}
+              >
+                Review Order
+              </button>
+            )}
+
+            {/* Print and Export buttons */}
             <div className="space-y-2">
               <button className="btn btn-outline btn-block">
                 <BsPrinter className="w-4 h-4 mr-2" />
@@ -124,16 +125,27 @@ const OrderActions: React.FC<OrderActionsProps> = ({
         </div>
       </div>
 
+      {/* Modals */}
       <CancelOrderModal
         isOpen={isCancelModalOpen}
         onClose={() => {
           setIsCancelModalOpen(false);
-          setCancelReason('');
+          setCancelReason("");
         }}
         onCancel={handleCancelOrder}
         selectedReason={cancelReason}
         onReasonChange={setCancelReason}
+        isSeller={!isMyOrders}
       />
+
+      {onSubmitReviews && (
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          onSubmit={onSubmitReviews}
+          orderId={order._id}
+        />
+      )}
     </>
   );
 };

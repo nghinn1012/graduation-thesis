@@ -203,10 +203,12 @@ const OrderInfoPage: React.FC = () => {
             paymentMethod: formData.paymentMethod,
             amount: calculateOrderTotal(groupedProducts[order.sellerId]),
           };
+
           const response = await createOrder(data as OrderInfo);
-          if (currentOrder) {
+
+          if (response && response._id) {
             return {
-              orderNumber: currentOrder?._id,
+              orderNumber: response._id,
               totalAmount: calculateOrderTotal(groupedProducts[order.sellerId]),
               deliveryAddress: formData.address,
             };
@@ -217,36 +219,47 @@ const OrderInfoPage: React.FC = () => {
         const results = (await Promise.all(orderPromises)).filter(
           (result) => result !== null
         );
-        setOrderResults(
-          results as {
-            orderNumber: string;
-            totalAmount: number;
-            deliveryAddress: string;
-          }[]
-        );
+
+        if (results.length > 0) {
+          setOrderResults(
+            results as {
+              orderNumber: string;
+              totalAmount: number;
+              deliveryAddress: string;
+            }[]
+          );
+
+          navigate("/payment-success", {
+            state: {
+              orderResults: results,
+            },
+          });
+          removeProductFromCart(
+            selectedProducts.map((product) => product.productId)
+          );
+        } else {
+          throw new Error("Failed to create any orders");
+        }
       } catch (error) {
         console.error("Error creating orders:", error);
       }
     }
   };
 
-  useEffect(() => {
-    if (
-      orderResults.length > 0 &&
-      !orderResults.includes({
-        orderNumber: "",
-        totalAmount: 0,
-        deliveryAddress: "",
-      })
-    ) {
-      navigate("/payment-success", {
-        state: { orderResults },
-      });
-      removeProductFromCart(
-        selectedProducts.map((product) => product.productId)
-      );
-    }
-  }, [orderResults, navigate]);
+  // useEffect(() => {
+  //   if (
+  //     orderResults.length > 0 &&
+  //     !orderResults.includes({
+  //       orderNumber: "",
+  //       totalAmount: 0,
+  //       deliveryAddress: "",
+  //     })
+  //   ) {
+  //     navigate("/payment-success", {
+  //       state: { orderResults },
+  //     });
+  //   }
+  // }, [orderResults, navigate]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -10,13 +10,11 @@ export const getAllProductsService = async (page: number, limit: number) => {
     const skip = (page - 1) * limit;
 
     const products = await productModel.find({
-      quantity: { $gt: 0 },
     })
       .skip(skip)
       .limit(limit);
 
     const totalProducts = await productModel.countDocuments({
-      quantity: { $gt: 0 },
     });
 
     const productsWithPostInfo = await Promise.all(
@@ -197,6 +195,7 @@ export const removeProductsFromCartService = async (userId: string, productIds: 
 };
 
 export const createReviewProductService = async (
+  orderId: string,
   userId: string,
   productId: string,
   reviewData: ReviewCreate,
@@ -282,6 +281,17 @@ export const createOrderService = async (orderCreate: OrderCreate) => {
       throw new Error("Products not found");
     };
     const newOrder = await orderModel.create(orderCreate);
+    orderCreate.products.forEach(async (product) => {
+      const productInfo = await productModel.findOne({ _id: product.productId });
+      if (!productInfo) {
+        throw new Error("Product not found");
+      }
+      if (product.quantity > productInfo.quantity) {
+        throw new Error("Product quantity is not enough");
+      }
+      productInfo.quantity -= product.quantity;
+      await productInfo.save();
+    });
     const productsWithInfo = await Promise.all(newOrder.products.map(async (product) => {
       const productInfo = await productModel.findOne({ _id: product.productId });
       const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;

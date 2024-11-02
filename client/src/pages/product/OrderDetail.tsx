@@ -426,6 +426,7 @@ const OrderDetails: React.FC = () => {
               account={account}
               onUpdateStatus={handleUpdateStatus}
               onCancelOrder={handleCancelOrder}
+              isMyOrders={account?._id === currentOrderDetail.userId}
             />
           </div>
         </div>

@@ -49,7 +49,7 @@ interface ProductContextProps {
   setOrdersBySeller: React.Dispatch<React.SetStateAction<OrderWithUserInfo[]>>;
   fetchOrdersByUser: () => void;
   fetchOrderBySeller: () => void;
-  createOrder: (orderInfo: OrderInfo) => void;
+  createOrder: (orderInfo: OrderInfo) => Promise<OrderWithUserInfo | undefined>;
   currentOrder: OrderWithUserInfo | null;
   setCurrentOrder: React.Dispatch<
     React.SetStateAction<OrderWithUserInfo | null>
@@ -344,6 +344,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         )) as unknown as OrderWithUserInfo;
         setCurrentOrder(result);
         setOrdersByUser((prevOrders) => [...prevOrders, result]);
+        return result;
       } catch (err) {
         setError("Failed to create order");
       } finally {

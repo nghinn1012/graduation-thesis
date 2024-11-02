@@ -52,7 +52,6 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
   const handleSubmitReviews = async (reviews: Array<{ productId: string; rating: number; comment: string }>) => {
     try {
       // await submitOrderReview(order._id, reviews);
-      // Optionally refresh the orders list or update the local state
     } catch (error) {
       console.error('Error submitting reviews:', error);
     }
@@ -63,7 +62,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
     setSelectedReason('');
   };
 
-  if (order.status === 'Pending') {
+  if (order.status === 'Pending' && isMyOrders) {
     return (
       <>
         <button

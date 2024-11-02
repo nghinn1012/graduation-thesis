@@ -140,9 +140,10 @@ export const createReviewProductController = async (
       error: "User not found",
     });
   }
-  const { productId, ...reviewData } = req.body;
+  const { orderId, productId, ...reviewData } = req.body;
   try {
     const product = await createReviewProductService(
+      orderId,
       userId,
       productId,
       reviewData
