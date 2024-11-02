@@ -1,4 +1,9 @@
-import { OrderCreate, Product, Review, ReviewCreate } from "../data/interface/product_interface";
+import {
+  OrderCreate,
+  Product,
+  Review,
+  ReviewCreate,
+} from "../data/interface/product_interface";
 import cartModel from "../models/cartModel";
 import orderModel from "../models/orderModel";
 import postModel from "../models/postModel";
@@ -9,13 +14,9 @@ export const getAllProductsService = async (page: number, limit: number) => {
   try {
     const skip = (page - 1) * limit;
 
-    const products = await productModel.find({
-    })
-      .skip(skip)
-      .limit(limit);
+    const products = await productModel.find({}).skip(skip).limit(limit);
 
-    const totalProducts = await productModel.countDocuments({
-    });
+    const totalProducts = await productModel.countDocuments({});
 
     const productsWithPostInfo = await Promise.all(
       products.map(async (product) => {
@@ -38,7 +39,11 @@ export const getAllProductsService = async (page: number, limit: number) => {
   }
 };
 
-export const addProductToCartService = async (userId: string, productId: string, quantity: number) => {
+export const addProductToCartService = async (
+  userId: string,
+  productId: string,
+  quantity: number
+) => {
   try {
     const cart = await cartModel.findOne({ userId });
     if (!cart) {
@@ -48,7 +53,9 @@ export const addProductToCartService = async (userId: string, productId: string,
       });
       return newCart;
     }
-    const productIndex = cart.products.findIndex((product) => product.productId.toString() === productId);
+    const productIndex = cart.products.findIndex(
+      (product) => product.productId.toString() === productId
+    );
     if (productIndex === -1) {
       cart.products.push({ productId, quantity });
     } else {
@@ -56,10 +63,14 @@ export const addProductToCartService = async (userId: string, productId: string,
     }
     await cart.save();
 
-    const products = await Promise.all(
+    const products = (await Promise.all(
       cart.products.map(async (product) => {
-        const productInfo = await productModel.findOne({ _id: product.productId });
-        const postInfo = productInfo ? await postModel.findOne({ _id: productInfo?.postId }) : null;
+        const productInfo = await productModel.findOne({
+          _id: product.productId,
+        });
+        const postInfo = productInfo
+          ? await postModel.findOne({ _id: productInfo?.postId })
+          : null;
 
         return {
           ...product.toObject(),
@@ -67,14 +78,14 @@ export const addProductToCartService = async (userId: string, productId: string,
           postInfo,
         };
       })
-    ) as unknown as Product[];
+    )) as unknown as Product[];
 
-    const validProducts = products.filter(product => product.postInfo);
+    const validProducts = products.filter((product) => product.postInfo);
 
-    const authors = await rpcGetUsers<IAuthor[]>(
-      validProducts.map(product => product?.postInfo?.author || ""),
+    const authors = (await rpcGetUsers<IAuthor[]>(
+      validProducts.map((product) => product?.postInfo?.author || ""),
       ["_id", "name", "avatar", "username"]
-    ) as IAuthor[];
+    )) as IAuthor[];
 
     if (!authors) {
       throw new Error("Failed to fetch authors");
@@ -82,7 +93,9 @@ export const addProductToCartService = async (userId: string, productId: string,
 
     products.forEach((product) => {
       if (product.postInfo) {
-        const author = authors.find((a) => a._id.toString() === product?.postInfo?.author.toString());
+        const author = authors.find(
+          (a) => a._id.toString() === product?.postInfo?.author.toString()
+        );
         if (author) {
           product.author = author;
         }
@@ -95,7 +108,7 @@ export const addProductToCartService = async (userId: string, productId: string,
   } catch (error) {
     throw new Error(`Failed to add product to cart: ${error}`);
   }
-}
+};
 
 export const getCartService = async (userId: string) => {
   try {
@@ -104,10 +117,14 @@ export const getCartService = async (userId: string) => {
       return [];
     }
 
-    const products = await Promise.all(
+    const products = (await Promise.all(
       cart.products.map(async (product) => {
-        const productInfo = await productModel.findOne({ _id: product.productId });
-        const postInfo = productInfo ? await postModel.findOne({ _id: productInfo?.postId }) : null;
+        const productInfo = await productModel.findOne({
+          _id: product.productId,
+        });
+        const postInfo = productInfo
+          ? await postModel.findOne({ _id: productInfo?.postId })
+          : null;
 
         return {
           ...product.toObject(),
@@ -115,14 +132,14 @@ export const getCartService = async (userId: string) => {
           postInfo,
         };
       })
-    ) as unknown as Product[];
+    )) as unknown as Product[];
 
-    const validProducts = products.filter(product => product.postInfo);
+    const validProducts = products.filter((product) => product.postInfo);
 
-    const authors = await rpcGetUsers<IAuthor[]>(
-      validProducts.map(product => product?.postInfo?.author || ""),
+    const authors = (await rpcGetUsers<IAuthor[]>(
+      validProducts.map((product) => product?.postInfo?.author || ""),
       ["_id", "name", "avatar", "username"]
-    ) as IAuthor[];
+    )) as IAuthor[];
 
     if (!authors) {
       throw new Error("Failed to fetch authors");
@@ -130,7 +147,9 @@ export const getCartService = async (userId: string) => {
 
     products.forEach((product) => {
       if (product.postInfo) {
-        const author = authors.find((a) => a._id.toString() === product?.postInfo?.author.toString());
+        const author = authors.find(
+          (a) => a._id.toString() === product?.postInfo?.author.toString()
+        );
         if (author) {
           product.author = author;
         }
@@ -141,7 +160,7 @@ export const getCartService = async (userId: string) => {
   } catch (error) {
     throw new Error(`Failed to get cart: ${error}`);
   }
-}
+};
 
 export const getProductByPostIdService = async (postId: string) => {
   try {
@@ -158,12 +177,13 @@ export const getProductByPostIdService = async (postId: string) => {
       throw new Error("Failed to fetch review authors");
     }
     productData.reviews.forEach((review) => {
-      const author = reviewAuthors.find((a) => a._id.toString() === review?.userId?.toString());
+      const author = reviewAuthors.find(
+        (a) => a._id.toString() === review?.userId?.toString()
+      );
       if (author) {
         review.author = author;
       }
-    }
-    );
+    });
     const postInfo = await postModel.findOne({ _id: postId });
     return {
       ...productData,
@@ -172,17 +192,20 @@ export const getProductByPostIdService = async (postId: string) => {
   } catch (error) {
     throw new Error(`Failed to get product by post id: ${error}`);
   }
-}
+};
 
-export const removeProductsFromCartService = async (userId: string, productIds: string[]) => {
+export const removeProductsFromCartService = async (
+  userId: string,
+  productIds: string[]
+) => {
   try {
     const cart = await cartModel.findOne({ userId });
     if (!cart) {
       throw new Error("Cart not found");
     }
 
-    const updatedProducts = cart.products.filter(product =>
-      !productIds.includes(product.productId.toString())
+    const updatedProducts = cart.products.filter(
+      (product) => !productIds.includes(product.productId.toString())
     );
 
     cart.products.splice(0, cart.products.length, ...updatedProducts);
@@ -197,53 +220,108 @@ export const removeProductsFromCartService = async (userId: string, productIds: 
 export const createReviewProductService = async (
   orderId: string,
   userId: string,
-  productId: string,
-  reviewData: ReviewCreate,
+  reviewsData: ReviewCreate[]
 ) => {
+  console.log("createReviewProductService", orderId, userId, reviewsData);
   try {
-    const product = await productModel.findOne({ _id: productId });
-    if (!product) {
-      throw new Error("Product not found");
+    reviewsData.forEach(reviewData => {
+      if (reviewData.rating < 1 || reviewData.rating > 5) {
+        throw new Error(`Rating for product ${reviewData.productId} must be between 1 and 5`);
+      }
+    });
+
+    const order = await orderModel.findOne({ _id: orderId });
+    if (!order) {
+      throw new Error("Order not found");
     }
 
-    const newReview = {
-      userId: userId,
-      rating: reviewData.rating,
-      review: reviewData.review,
-    };
+    if (order.status !== "Completed") {
+      throw new Error("Order is not completed yet");
+    }
 
-    product.reviews.push(newReview);
-    product.averageRating = product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length;
+    if (userId !== order.userId) {
+      throw new Error("User not authorized to review this product");
+    }
 
-    await product.save();
+    const orderProductIds = order.products.map(p => p.productId.toString());
+    const invalidProducts = reviewsData.filter(
+      review => !orderProductIds.includes(review.productId)
+    );
+    if (invalidProducts.length > 0) {
+      throw new Error(
+        `Products with IDs ${invalidProducts.map(p => p.productId).join(", ")} are not in this order`
+      );
+    }
 
-    return product;
+    await Promise.all(
+      reviewsData.map(async (reviewData) => {
+        const productInfo = await productModel.findOne({
+          _id: reviewData.productId,
+        });
+        if (!productInfo) {
+          throw new Error(`Product with ID ${reviewData.productId} not found`);
+        }
+
+        const newReview = {
+          userId,
+          rating: reviewData.rating,
+          review: reviewData.review,
+          orderId: orderId,
+          createdAt: new Date(),
+        };
+
+        productInfo.reviews.push(newReview);
+        console.log("productInfo.reviews", productInfo.reviews);
+
+        productInfo.averageRating =
+          productInfo.reviews.reduce((acc, review) => acc + review.rating, 0) /
+          productInfo.reviews.length;
+
+        await productInfo.save();
+      }),
+    );
+    order.isReviewed = true;
+    await order.save();
+    return order.toJSON();
   } catch (error) {
-    throw new Error(`Failed to create review for product: ${error}`);
+    throw error instanceof Error
+      ? error
+      : new Error(`Failed to create product reviews: ${error}`);
   }
 };
 
-export const searchProductsService = async (query: string, filter: string, page: number, limit: number) => {
+export const searchProductsService = async (
+  query: string,
+  filter: string,
+  page: number,
+  limit: number
+) => {
   try {
     const skip = (page - 1) * limit;
 
-    const matchingPosts = await postModel.find({
-      $or: [
-        { title: { $regex: query, $options: 'i' } },
-        { about: { $regex: query, $options: 'i' } },
-      ],
-    }).lean();
+    const matchingPosts = await postModel
+      .find({
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { about: { $regex: query, $options: "i" } },
+        ],
+      })
+      .lean();
 
-    const postIds = matchingPosts.map(post => post._id);
+    const postIds = matchingPosts.map((post) => post._id);
 
-    const allProducts = await productModel.find({
-      quantity: { $gt: 0 },
-      postId: { $in: postIds },
-    }).lean();
+    const allProducts = await productModel
+      .find({
+        quantity: { $gt: 0 },
+        postId: { $in: postIds },
+      })
+      .lean();
 
     const productsWithPostInfo = await Promise.all(
       allProducts.map(async (product) => {
-        const postInfo = await postModel.findOne({ _id: product.postId }).lean();
+        const postInfo = await postModel
+          .findOne({ _id: product.postId })
+          .lean();
         return {
           ...product,
           postInfo: postInfo,
@@ -251,7 +329,7 @@ export const searchProductsService = async (query: string, filter: string, page:
       })
     );
 
-    let filteredProducts = productsWithPostInfo.filter(product => {
+    let filteredProducts = productsWithPostInfo.filter((product) => {
       if (filter === "") {
         return true;
       }
@@ -274,15 +352,16 @@ export const searchProductsService = async (query: string, filter: string, page:
   }
 };
 
-
 export const createOrderService = async (orderCreate: OrderCreate) => {
   try {
     if (!orderCreate.products || orderCreate.products.length === 0) {
       throw new Error("Products not found");
-    };
+    }
     const newOrder = await orderModel.create(orderCreate);
     orderCreate.products.forEach(async (product) => {
-      const productInfo = await productModel.findOne({ _id: product.productId });
+      const productInfo = await productModel.findOne({
+        _id: product.productId,
+      });
       if (!productInfo) {
         throw new Error("Product not found");
       }
@@ -292,19 +371,35 @@ export const createOrderService = async (orderCreate: OrderCreate) => {
       productInfo.quantity -= product.quantity;
       await productInfo.save();
     });
-    const productsWithInfo = await Promise.all(newOrder.products.map(async (product) => {
-      const productInfo = await productModel.findOne({ _id: product.productId });
-      const postInfo = productInfo ? await postModel.findOne({ _id: productInfo.postId }) : null;
+    const productsWithInfo = await Promise.all(
+      newOrder.products.map(async (product) => {
+        const productInfo = await productModel.findOne({
+          _id: product.productId,
+        });
+        const postInfo = productInfo
+          ? await postModel.findOne({ _id: productInfo.postId })
+          : null;
 
-      return {
-        ...product.toObject(),
-        productInfo,
-        postInfo,
-      };
-    }));
+        return {
+          ...product.toObject(),
+          productInfo,
+          postInfo,
+        };
+      })
+    );
 
-    const userInfo = await rpcGetUser<IAuthor>(newOrder.userId, ["_id", "name", "avatar", "username"]);
-    const sellerInfo = await rpcGetUser<IAuthor>(newOrder.sellerId, ["_id", "name", "avatar", "username"]);
+    const userInfo = await rpcGetUser<IAuthor>(newOrder.userId, [
+      "_id",
+      "name",
+      "avatar",
+      "username",
+    ]);
+    const sellerInfo = await rpcGetUser<IAuthor>(newOrder.sellerId, [
+      "_id",
+      "name",
+      "avatar",
+      "username",
+    ]);
 
     return {
       ...newOrder.toObject(),
@@ -315,7 +410,7 @@ export const createOrderService = async (orderCreate: OrderCreate) => {
   } catch (error) {
     throw new Error(`Failed to create order: ${error}`);
   }
-}
+};
 
 export const getOrdersByUserService = async (
   userId: string,
@@ -372,7 +467,7 @@ export const getOrdersByUserService = async (
       orders: result,
       total,
       currentPage: page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   } catch (error) {
     throw new Error(`Failed to get orders by user: ${error}`);
@@ -432,7 +527,7 @@ export const getOrderOfSellerService = async (
       orders: result,
       total,
       currentPage: page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   } catch (error) {
     throw new Error(`Failed to get order of seller: ${error}`);
@@ -463,8 +558,18 @@ export const getOrderByIdService = async (orderId: string) => {
       })
     );
 
-    const userInfo = await rpcGetUser<IAuthor>(order.userId, ["_id", "name", "avatar", "username"]);
-    const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, ["_id", "name", "avatar", "username"]);
+    const userInfo = await rpcGetUser<IAuthor>(order.userId, [
+      "_id",
+      "name",
+      "avatar",
+      "username",
+    ]);
+    const sellerInfo = await rpcGetUser<IAuthor>(order.sellerId, [
+      "_id",
+      "name",
+      "avatar",
+      "username",
+    ]);
 
     return {
       ...order.toObject(),
@@ -475,9 +580,13 @@ export const getOrderByIdService = async (orderId: string) => {
   } catch (error) {
     throw new Error(`Failed to get order by id: ${error}`);
   }
-}
+};
 
-export const cancelOrderService = async (userId: string, orderId: string, reason: string) => {
+export const cancelOrderService = async (
+  userId: string,
+  orderId: string,
+  reason: string
+) => {
   try {
     const order = await orderModel.findOne({ _id: orderId });
     if (!order) {
@@ -492,16 +601,20 @@ export const cancelOrderService = async (userId: string, orderId: string, reason
       throw new Error("Order cannot be canceled");
     }
 
-    order.status = userId === order.userId ? "Cancelled By User" : "Cancelled By Seller";
+    order.status =
+      userId === order.userId ? "Cancelled By User" : "Cancelled By Seller";
     order.reason = reason;
     await order.save();
     return order;
   } catch (error) {
     throw new Error(`Failed to cancel order: ${error}`);
   }
-}
+};
 
-export const updateOrderStatusService = async (userId: string, orderId: string) => {
+export const updateOrderStatusService = async (
+  userId: string,
+  orderId: string
+) => {
   try {
     const order = await orderModel.findOne({ _id: orderId });
     if (!order) {
@@ -512,7 +625,10 @@ export const updateOrderStatusService = async (userId: string, orderId: string) 
       throw new Error("User not authorized to update this order");
     }
 
-    if (order.status === "Cancelled By User" || order.status === "Cancelled By Seller") {
+    if (
+      order.status === "Cancelled By User" ||
+      order.status === "Cancelled By Seller"
+    ) {
       throw new Error("Order is already cancelled");
     }
 
@@ -527,4 +643,4 @@ export const updateOrderStatusService = async (userId: string, orderId: string) 
   } catch (error) {
     throw new Error(`Failed to update order status: ${error}`);
   }
-}
+};

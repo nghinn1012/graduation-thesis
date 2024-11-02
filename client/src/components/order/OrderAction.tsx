@@ -6,7 +6,7 @@ import {
   BsPrinter,
   BsFileEarmarkPdf,
 } from "react-icons/bs";
-import { OrderWithUserInfo } from "../../api/post";
+import { OrderWithUserInfo, ReviewCreate } from "../../api/post";
 import { IAccountInfo } from "../../data/interface_data/account_info";
 import CancelOrderModal from "./CancelOrderModal";
 import ReviewModal from "./ReviewModal";
@@ -16,7 +16,7 @@ interface OrderActionsProps {
   account?: IAccountInfo;
   onUpdateStatus: (status: string) => Promise<void>;
   onCancelOrder: (reason: string) => Promise<void>;
-  onSubmitReviews?: (reviews: Array<{ productId: string; rating: number; comment: string }>) => Promise<void>;
+  onSubmitReviews: (reviews: ReviewCreate[]) => Promise<void>;
   isMyOrders: boolean;
 }
 
@@ -26,7 +26,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   onUpdateStatus,
   onCancelOrder,
   onSubmitReviews,
-  isMyOrders
+  isMyOrders,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(order.status);
@@ -39,8 +39,8 @@ const OrderActions: React.FC<OrderActionsProps> = ({
 
   // Status mapping for next status
   const nextStatus: { [key: string]: string } = {
-    'Pending': 'Delivering',
-    'Delivering': 'Completed'
+    Pending: "Delivering",
+    Delivering: "Completed",
   };
 
   const handleStatusUpdate = async () => {
@@ -71,7 +71,6 @@ const OrderActions: React.FC<OrderActionsProps> = ({
         <div className="card-body">
           <h2 className="card-title text-lg mb-4">Order Actions</h2>
           <div className="space-y-4">
-            {/* Cancel Order Button - Available for both buyer and seller when pending */}
             {canCancel && (
               <button
                 className="btn btn-outline btn-block btn-error"
@@ -101,7 +100,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
             )}
 
             {/* Review Button - Only for buyer when completed and not reviewed */}
-            {isBuyer && order.status === 'Completed' && !order.isReviewed && (
+            {isBuyer && order.status === "Completed" && !order.isReviewed && (
               <button
                 className="btn btn-accent btn-block"
                 onClick={() => setIsReviewModalOpen(true)}

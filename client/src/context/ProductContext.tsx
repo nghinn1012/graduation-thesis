@@ -15,10 +15,10 @@ import {
   ProductCart,
   ProductInfo,
   ProductList,
+  ReviewCreate,
 } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
-import { set } from "date-fns";
 
 interface ProductContextProps {
   products: ProductInfo[];
@@ -77,12 +77,20 @@ interface ProductContextProps {
   setLoadingCart: React.Dispatch<React.SetStateAction<boolean>>;
   loadingOrder: boolean;
   setLoadingOrder: React.Dispatch<React.SetStateAction<boolean>>;
-  cancelOrder: (orderId: string, reason: string, isMyOrder: boolean, tab: string) => void;
+  cancelOrder: (
+    orderId: string,
+    reason: string,
+    isMyOrder: boolean,
+    tab: string
+  ) => void;
   updateOrderStatus: (orderId: string, status: string, tab: string) => void;
   alreadyAddToCart: boolean;
   setAlreadyAddToCart: React.Dispatch<React.SetStateAction<boolean>>;
   currentOrderReview: OrderWithUserInfo | null;
-  setCurrentOrderReview: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
+  setCurrentOrderReview: React.Dispatch<
+    React.SetStateAction<OrderWithUserInfo | null>
+  >;
+  createOrderReview: (orderId: string, reviews: ReviewCreate[]) => void;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(
@@ -376,7 +384,12 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const cancelOrder = useCallback(
-    async (orderId: string, reason: string, isMyOrder: boolean, tab: string) => {
+    async (
+      orderId: string,
+      reason: string,
+      isMyOrder: boolean,
+      tab: string
+    ) => {
       if (!auth?.token) return;
       try {
         setLoading(true);
@@ -445,6 +458,31 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     [auth?.token]
   );
 
+  const createOrderReview = useCallback(
+    async (orderId: string, reviews: ReviewCreate[]) => {
+      if (!auth?.token) return;
+      try {
+        setLoading(true);
+        const result = await postFetcher.createReviewProduct(
+          orderId,
+          reviews,
+          auth?.token
+        );
+        setOrdersByUser((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, isReviewed: true } : order
+          )
+        );
+        fetchOrderById(orderId);
+      } catch (err) {
+        setError("Failed to submit reviews");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [auth?.token]
+  );
+
   return (
     <ProductContext.Provider
       value={{
@@ -506,6 +544,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         setAlreadyAddToCart,
         currentOrderReview,
         setCurrentOrderReview,
+        createOrderReview,
       }}
     >
       {children}

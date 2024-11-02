@@ -30,6 +30,7 @@ postRouter.get("/mealPlanner/checkPost/:postId", tokenValidate, checkPostInUnsch
 postRouter.get("/mealPlanner/getAll", tokenValidate, getMealPlannerController);
 postRouter.delete("/mealPlanner/remove", tokenValidate, removeMealController);
 postRouter.patch("/mealPlanner/scheduleMeal", tokenValidate, scheduleMealController);
+
 // shoppinglist
 postRouter.patch("/shoppingList/removeIngredients", tokenValidate, removeIngredientsFromShoppingListController);
 postRouter.post("/shoppingList/add", tokenValidate, addIngredientToShoppingListController);
@@ -40,7 +41,6 @@ postRouter.patch("/shoppingList/update", tokenValidate, updateIngredientInShoppi
 postRouter.patch("/shoppingList/:postId", tokenValidate, removePostFromShoppingListController);
 // comment
 postRouter.post("/:commentId/likeComment", tokenValidate, likeOrUnlikeCommentController);
-
 postRouter.post("/:postId/comment", tokenValidate, createCommentController);
 postRouter.get("/:postId/comment", tokenValidate, getCommentByPostIdController);
 postRouter.get("/:commentId/getComment", tokenValidate, getCommentByIdController);

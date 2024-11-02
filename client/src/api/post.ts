@@ -19,6 +19,7 @@ export const postEndpoints = {
   getOrderBySeller: "/posts/order/getOrderBySeller",
   cancelOrder: "/posts/order/cancelOrder",
   updateOrderStatus: "/posts/order/updateOrderStatus",
+  createReviewProduct: "/posts/product/createReview",
 
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
@@ -351,6 +352,8 @@ export interface Review {
   rating: number;
   review: string;
   author: AccountInfo;
+  createdAt: string;
+  orderId: string;
 }
 
 export interface ProductInfo {
@@ -494,6 +497,17 @@ export interface OrderDetailsInfo {
   sellerInfo: AccountInfo;
 }
 
+export interface ReviewCreate {
+  productId: string;
+  rating: number;
+  review: string;
+}
+
+export interface ReviewCreateData {
+  orderId: string;
+  reviewsData: ReviewCreate[];
+}
+
 export interface PostFetcher {
   // product
   getAllProducts: (
@@ -551,6 +565,13 @@ export interface PostFetcher {
     orderId: string,
     token: string
   ) => Promise<PostResponse<OrderDetailsInfo>>;
+
+  // review
+  createReviewProduct: (
+    orderId: string,
+    reviewsData: ReviewCreate[],
+    token: string
+  ) => Promise<PostResponse<OrderInfo>>;
   // posts
   getPostByUserFollowing: (
     page: number,
@@ -1419,6 +1440,24 @@ export const postFetcher: PostFetcher = {
       postEndpoints.updateOrderStatus,
       {
         orderId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  createReviewProduct: async (
+    orderId: string,
+    reviewsData: ReviewCreate[],
+    token: string
+  ): Promise<PostResponse<OrderInfo>> => {
+    return postInstance.post(
+      postEndpoints.createReviewProduct,
+      {
+        orderId,
+        reviewsData,
       },
       {
         headers: {

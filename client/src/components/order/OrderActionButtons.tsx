@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { useProductContext } from '../../context/ProductContext';
-import { OrderWithUserInfo } from '../../api/post';
+import React, { useState } from "react";
+import { useProductContext } from "../../context/ProductContext";
+import { OrderWithUserInfo, ReviewCreate } from "../../api/post";
 import CancelOrderModal from "./CancelOrderModal";
 import ReviewModal from "./ReviewModal";
-import { useAuthContext } from '../../hooks/useAuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from "../../hooks/useAuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface OrderActionButtonsProps {
   order: OrderWithUserInfo;
@@ -13,28 +13,32 @@ interface OrderActionButtonsProps {
   tab: string;
 }
 
-const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrders, activeTab, tab }) => {
+const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
+  order,
+  isMyOrders,
+  activeTab,
+  tab,
+}) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedReason, setSelectedReason] = useState<string>('');
+  const [selectedReason, setSelectedReason] = useState<string>("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const { cancelOrder, updateOrderStatus } = useProductContext();
-  const { account } = useAuthContext();
+  const { cancelOrder, updateOrderStatus, createOrderReview } = useProductContext();
   const navigate = useNavigate();
 
   // Status options for shop orders
   const nextStatus: { [key: string]: string } = {
-    'Pending': 'Delivering',
-    'Delivering': 'Completed'
+    Pending: "Delivering",
+    Delivering: "Completed",
   };
 
   const handleCancelOrder = async (reason: string) => {
     try {
       await cancelOrder(order._id, reason, activeTab === "My Orders", tab);
-      setSelectedReason('');
+      setSelectedReason("");
       setIsCancelModalOpen(false);
     } catch (error) {
-      console.error('Error canceling order:', error);
+      console.error("Error canceling order:", error);
     }
   };
 
@@ -43,26 +47,28 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
       setIsUpdating(true);
       await updateOrderStatus(order._id, nextStatus[order.status], tab);
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error("Error updating status:", error);
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleSubmitReviews = async (reviews: Array<{ productId: string; rating: number; comment: string }>) => {
+  const handleSubmitReviews = async (
+    reviews: ReviewCreate[]
+  ) => {
     try {
-      // await submitOrderReview(order._id, reviews);
+      await createOrderReview(order._id, reviews);
     } catch (error) {
-      console.error('Error submitting reviews:', error);
+      console.error("Error submitting reviews:", error);
     }
   };
 
   const closeCancelModal = () => {
     setIsCancelModalOpen(false);
-    setSelectedReason('');
+    setSelectedReason("");
   };
 
-  if (order.status === 'Pending' && isMyOrders) {
+  if (order.status === "Pending" && isMyOrders) {
     return (
       <>
         <button
@@ -83,7 +89,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
     );
   }
 
-  if (order.status === 'Completed' && !order.isReviewed && isMyOrders) {
+  if (order.status === "Completed" && !order.isReviewed && isMyOrders) {
     return (
       <>
         <button

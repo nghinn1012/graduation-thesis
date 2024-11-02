@@ -2,6 +2,7 @@ import { IAuthor } from '../../services/rpc.services';
 import { IPost, IProduct } from './post_create_interface';
 
 export interface ReviewCreate {
+  productId: string;
   rating: number;
   review: string;
 }

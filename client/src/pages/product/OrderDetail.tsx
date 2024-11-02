@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   BsChat,
@@ -11,11 +11,16 @@ import {
   BsFileEarmarkPdf,
   BsPeopleFill,
   BsPeople,
+  BsStarFill,
+  BsStar,
 } from "react-icons/bs";
 import { useProductContext } from "../../context/ProductContext";
 import OrderActionButtons from "../../components/order/OrderActionButtons";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import OrderActions from "../../components/order/OrderAction";
+import { Review, ReviewCreate } from "../../api/post";
+import CancelOrderModal from "../../components/order/CancelOrderModal";
+import ReviewModal from "../../components/order/ReviewModal";
 
 type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
@@ -116,6 +121,22 @@ const LoadingSkeleton = () => {
   );
 };
 
+const RatingStars: React.FC<{ rating: number }> = ({ rating }) => {
+  return (
+    <div className="flex">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star}>
+          {star <= rating ? (
+            <BsStarFill className="w-4 h-4 text-yellow-400" />
+          ) : (
+            <BsStar className="w-4 h-4 text-yellow-400" />
+          )}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 const OrderDetails: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -127,9 +148,13 @@ const OrderDetails: React.FC = () => {
     setLoading,
     cancelOrder,
     updateOrderStatus,
+    createOrderReview,
   } = useProductContext();
   const [orderId, setOrderId] = React.useState<string>("");
   const { account } = useAuthContext();
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -200,6 +225,15 @@ const OrderDetails: React.FC = () => {
     }
   };
 
+  const handleSubmitReviews = async (reviews: ReviewCreate[]) => {
+    try {
+      if (!currentOrderDetail) return;
+      await createOrderReview(currentOrderDetail._id, reviews);
+    } catch (error) {
+      console.error("Error submitting reviews:", error);
+    }
+  };
+
   if (!currentOrderDetail) {
     return <LoadingSkeleton />;
   }
@@ -266,38 +300,110 @@ const OrderDetails: React.FC = () => {
                     Order Items
                   </h2>
                 </div>
-                {/* Scrollable container */}
                 <div className="flex-1 overflow-auto px-6 py-4">
                   <div className="space-y-4">
                     {currentOrderDetail.products.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center p-4 bg-base-200 rounded-box hover:bg-base-300 transition-colors"
-                      >
-                        <div className="relative">
-                          <img
-                            src={item.postInfo.images[0]}
-                            alt={item.postInfo.title}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
-                          <span className="badge badge-primary badge-sm absolute -top-2 -right-2">
-                            x{item.quantity}
-                          </span>
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <h4 className="font-medium">{item.postInfo.title}</h4>
-                          <div className="mt-1 flex items-center justify-between">
-                            <span className="text-sm text-base-content/70">
-                              ${item.productInfo.price}
-                            </span>
-                            <span className="font-medium">
-                              $
-                              {(item.productInfo.price * item.quantity).toFixed(
-                                2
-                              )}
+                      <div key={index}>
+                        {/* Product Info */}
+                        <div className="flex items-center p-4 bg-base-200 rounded-box hover:bg-base-300 transition-colors">
+                          <div className="relative">
+                            <img
+                              src={item.postInfo.images[0]}
+                              alt={item.postInfo.title}
+                              className="w-16 h-16 rounded-lg object-cover"
+                            />
+                            <span className="badge badge-primary badge-sm absolute -top-2 -right-2">
+                              x{item.quantity}
                             </span>
                           </div>
+                          <div className="ml-4 flex-1">
+                            <h4 className="font-medium">
+                              {item.postInfo.title}
+                            </h4>
+                            <div className="mt-1 flex items-center justify-between">
+                              <span className="text-sm text-base-content/70">
+                                ${item.productInfo.price}
+                              </span>
+                              <span className="font-medium">
+                                $
+                                {(
+                                  item.productInfo.price * item.quantity
+                                ).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
+
+                        {currentOrderDetail.status === "Completed" &&
+                          currentOrderDetail.isReviewed && (
+                            <div className="mt-2">
+                              <div className="collapse bg-base-100 border border-base-300 rounded-box">
+                                <input type="checkbox" className="peer" />
+                                <div className="collapse-title bg-base-200/50 text-sm font-medium peer-checked:bg-base-200">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <BsStarFill className="w-4 h-4 text-yellow-400" />
+                                      Your Review
+                                    </div>
+                                    {item.productInfo.reviews?.some(
+                                      (review: Review) =>
+                                        review.userId ===
+                                        currentOrderDetail.userId
+                                    ) ? (
+                                      <span className="badge badge-success badge-sm">
+                                        Reviewed
+                                      </span>
+                                    ) : (
+                                      <span className="badge badge-ghost badge-sm">
+                                        No Review Yet
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="collapse-content bg-base-100">
+                                  {item.productInfo.reviews
+                                    ?.filter(
+                                      (review: Review) =>
+                                        review.userId ===
+                                          currentOrderDetail.userId &&
+                                        review.orderId ===
+                                          currentOrderDetail._id
+                                    )
+                                    .map(
+                                      (review: Review, reviewIndex: number) => (
+                                        <div
+                                          key={reviewIndex}
+                                          className="bg-base-100 rounded-lg p-4"
+                                        >
+                                          <div className="flex items-center justify-between mb-2">
+                                            <RatingStars
+                                              rating={review.rating}
+                                            />
+                                            <span className="text-sm text-base-content/70">
+                                              {new Date(
+                                                review.createdAt
+                                              ).toLocaleDateString()}
+                                            </span>
+                                          </div>
+                                          <p className="text-sm mt-2">
+                                            {review.review}
+                                          </p>
+                                        </div>
+                                      )
+                                    )}
+                                  {!item.productInfo.reviews?.some(
+                                    (review: Review) =>
+                                      review.userId ===
+                                      currentOrderDetail.userId
+                                  ) && (
+                                    <div className="text-center text-base-content/70 py-4">
+                                      You haven't reviewed this product yet
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -427,6 +533,7 @@ const OrderDetails: React.FC = () => {
               onUpdateStatus={handleUpdateStatus}
               onCancelOrder={handleCancelOrder}
               isMyOrders={account?._id === currentOrderDetail.userId}
+              onSubmitReviews={handleSubmitReviews}
             />
           </div>
         </div>

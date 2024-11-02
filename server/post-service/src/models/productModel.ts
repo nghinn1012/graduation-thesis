@@ -13,6 +13,14 @@ const reviewSchema = new Schema({
     type: String,
     required: true,
   },
+  orderId: {
+    type: Types.ObjectId,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const productSchema = new Schema({
