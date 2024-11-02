@@ -424,6 +424,7 @@ export interface OrderInfo {
     address: string;
     note: string;
   };
+  isReviewed: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -443,12 +444,14 @@ export interface OrderWithUserInfo {
   paymentMethod: string;
   shippingFee: number;
   status: string;
+  reason: string;
   info: {
     name: string;
     phone: string;
     address: string;
     note: string;
   };
+  isReviewed: boolean;
   amount: number;
   productInfo: ProductInfo[];
   createdAt: string;
@@ -484,6 +487,7 @@ export interface OrderDetailsInfo {
     address: string;
     note: string;
   };
+  isReviewed: boolean;
   createdAt: string;
   updatedAt: string;
   userInfo: AccountInfo;

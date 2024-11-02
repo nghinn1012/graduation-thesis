@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductInfo } from "../../api/post";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { useProductContext } from "../../context/ProductContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface ProductCardProps {
   product: ProductInfo;
@@ -13,8 +14,9 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   const navigate = useNavigate();
-  const { addProductToCart, setCurrentProduct } = useProductContext();
+  const { addProductToCart, setCurrentProduct, cart, alreadyAddToCart } = useProductContext();
   const { account } = useAuthContext();
+  const { success, error } = useToastContext();
 
   const formatPrice = (price: string | number) => {
     const num = parseFloat(price.toString());
@@ -53,25 +55,48 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
 
     return (
       <div className="flex items-center">
-        {Array(fullStars)?.fill(<FaStar className="text-yellow-500" />)}{" "}
-        {/* Full Stars */}
-        {halfStar && <FaStarHalfAlt className="text-yellow-500" />}{" "}
-        {/* Half Star */}
-        {Array(emptyStars)?.fill(
-          <FaRegStar className="text-yellow-500" />
-        )}{" "}
-        {/* Empty Stars */}
+        {Array(fullStars)?.fill(<FaStar className="text-yellow-500" />)}
+        {halfStar && <FaStarHalfAlt className="text-yellow-500" />}
+        {Array(emptyStars)?.fill(<FaRegStar className="text-yellow-500" />)}
       </div>
     );
   };
 
+  const isMaximumQuantityInCart = () => {
+    const existingCartItem = cart.find(item => item.productId === product._id);
+    if (!existingCartItem) return false;
+    return existingCartItem.quantity >= (product.quantity || 0);
+  };
+
+  const getAddToCartButtonText = () => {
+    if (product.quantity <= 0) return 'Out of Stock';
+    if (isMaximumQuantityInCart()) return 'Maximum in Cart';
+    return 'Add to Cart';
+  };
+
   const handleAddToCart = (productId: string) => {
+    const existingCartItem = cart.find(item => item.productId === productId);
+    const availableQuantity = product.quantity || 0;
+
+    if (existingCartItem) {
+      const newQuantity = existingCartItem.quantity + 1;
+      if (newQuantity > availableQuantity) {
+        error("Maximum quantity already in cart");
+        return;
+      }
+    } else {
+      if (availableQuantity < 1) {
+        error("Sorry, this item is out of stock");
+        return;
+      }
+    }
+
     addProductToCart(productId, 1);
+    success("Item added to cart successfully!");
   };
 
   return (
     <div className="card w-full shadow-md rounded-lg relative overflow-hidden flex flex-col h-[90%]">
-      {/* Image Section */}
       <figure className="relative">
         <img
           src={product.postInfo.images[0]}
@@ -81,42 +106,40 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
         />
       </figure>
 
-      {/* Product Info */}
       <div className="p-4 flex flex-col flex-grow">
-        {/* Product Title */}
         <h2 className="text-md font-semibold mb-2 truncate max-w-36">
           {product.postInfo.title}
         </h2>
 
-        {/* Rating */}
         <div className="flex items-center mb-2">
           {renderStars(rating)}
           <span className="ml-2 text-sm text-gray-600">
             ({rating.toFixed(1)})
-          </span>{" "}
-          {/* Show rating number */}
+          </span>
         </div>
 
-        {/* Price and Type */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-lg font-bold text-green-600">
             {formatPrice(product.price)}
           </span>
+          <span className="text-sm text-gray-600">
+            Available: {product.quantity}
+          </span>
         </div>
 
-        {/* Spacer to push button to bottom */}
         <div className="flex-grow"></div>
 
-        {/* Button Group */}
         <div className="mt-4">
-          {/* Add to Cart Button */}
           {account?._id !== (product.postInfo.author as unknown as string) && (
             <button
-              className="btn btn-neutral flex items-center justify-center w-full"
+              className={`btn btn-neutral flex items-center justify-center w-full ${
+                (product.quantity <= 0 || isMaximumQuantityInCart()) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
               onClick={() => handleAddToCart(product._id)}
+              disabled={product.quantity <= 0 || isMaximumQuantityInCart() || alreadyAddToCart}
             >
-              <AiOutlineShoppingCart className="w-5 h-5" />
-              Add to Cart
+              <AiOutlineShoppingCart className="w-5 h-5 mr-2" />
+              {getAddToCartButtonText()}
             </button>
           )}
         </div>

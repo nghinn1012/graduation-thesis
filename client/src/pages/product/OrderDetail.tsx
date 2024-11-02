@@ -13,6 +13,9 @@ import {
   BsPeople,
 } from "react-icons/bs";
 import { useProductContext } from "../../context/ProductContext";
+import OrderActionButtons from "../../components/order/OrderActionButtons";
+import { useAuthContext } from "../../hooks/useAuthContext";
+import OrderActions from "../../components/order/OrderAction";
 
 type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
@@ -122,8 +125,11 @@ const OrderDetails: React.FC = () => {
     fetchOrderById,
     loading,
     setLoading,
+    cancelOrder,
+    updateOrderStatus,
   } = useProductContext();
   const [orderId, setOrderId] = React.useState<string>("");
+  const { account } = useAuthContext();
 
   useEffect(() => {
     setLoading(true);
@@ -169,6 +175,34 @@ const OrderDetails: React.FC = () => {
 
     return statusColors[status.toLowerCase() as OrderStatus] || "badge-ghost";
   };
+
+  const handleUpdateStatus = async (newStatus: string) => {
+    if (!currentOrderDetail) return;
+    try {
+      await updateOrderStatus(
+        currentOrderDetail._id,
+        newStatus,
+        "Orders Of My Shop"
+      );
+      await fetchOrderById(orderId);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
+  };
+
+  const handleCancelOrder = async (reason: string) => {
+    if (!currentOrderDetail) return;
+    try {
+      await cancelOrder(currentOrderDetail._id, reason, true, "My Orders");
+      await fetchOrderById(orderId);
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+    }
+  };
+
+  if (!currentOrderDetail) {
+    return <LoadingSkeleton />;
+  }
 
   if (!currentOrderDetail) {
     return <LoadingSkeleton />;
@@ -306,6 +340,54 @@ const OrderDetails: React.FC = () => {
               </div>
             </div>
 
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body">
+                <h2 className="card-title text-lg">
+                  <BsClock className="w-5 h-5 mr-2" />
+                  Order Status
+                </h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Status</span>
+                    <span
+                      className={`badge
+                        ${
+                          currentOrderDetail.status === "Pending"
+                            ? "badge-warning"
+                            : currentOrderDetail.status === "Processing"
+                            ? "badge-info"
+                            : currentOrderDetail.status === "Completed"
+                            ? "badge-success"
+                            : [
+                                "Cancelled By User",
+                                "Cancelled By Seller",
+                              ].includes(currentOrderDetail.status)
+                            ? "badge-error"
+                            : ""
+                        }
+                      `}
+                    >
+                      {currentOrderDetail.status}
+                    </span>
+                  </div>
+
+                  {["Cancelled By User", "Cancelled By Seller"].includes(
+                    currentOrderDetail.status
+                  ) &&
+                    currentOrderDetail.reason && (
+                      <div className="flex flex-col">
+                        <span className="text-base-content/70">
+                          Reason:{" "}
+                          <span className="font-semibold">
+                            {currentOrderDetail.reason}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
             {/* Payment Summary */}
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
@@ -338,21 +420,13 @@ const OrderDetails: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title text-lg mb-4">Actions</h2>
-                <div className="space-y-2">
-                  <button className="btn btn-outline btn-block">
-                    <BsPrinter className="w-4 h-4 mr-2" />
-                    Print Order
-                  </button>
-                  <button className="btn btn-outline btn-block">
-                    <BsFileEarmarkPdf className="w-4 h-4 mr-2" />
-                    Export PDF
-                  </button>
-                </div>
-              </div>
-            </div>
+
+            <OrderActions
+              order={currentOrderDetail}
+              account={account}
+              onUpdateStatus={handleUpdateStatus}
+              onCancelOrder={handleCancelOrder}
+            />
           </div>
         </div>
       </div>

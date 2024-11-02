@@ -134,7 +134,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+      <h1 className="text-2xl font-semibold text-gray-900 mb-4">
         {post ? "EDIT POST" : "NEW POST"}.
       </h1>
       {!post && (

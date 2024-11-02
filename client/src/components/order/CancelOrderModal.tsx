@@ -1,21 +1,13 @@
-// components/modals/CancelOrderModal.tsx
 import React from 'react';
 
 interface CancelOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCancel: (reason: string) => Promise<void>;
+  onCancel: (reason: string) => void;
   selectedReason: string;
   onReasonChange: (reason: string) => void;
+  isSeller?: boolean;
 }
-
-const cancelReasons = [
-  { id: 'changed_mind', label: 'Changed my mind' },
-  { id: 'wrong_item', label: 'Ordered wrong item' },
-  { id: 'delivery_time', label: 'Delivery time too long' },
-  { id: 'price_issue', label: 'Price issues' },
-  { id: 'other', label: 'Other reasons' }
-];
 
 const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   isOpen,
@@ -23,65 +15,73 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   onCancel,
   selectedReason,
   onReasonChange,
+  isSeller
 }) => {
-  const handleCancel = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!selectedReason) return;
-    await onCancel(selectedReason);
-  };
+  const buyerReasons = [
+    "Changed my mind",
+    "Found a better price elsewhere",
+    "Ordered by mistake",
+    "Shipping time too long",
+    "Other"
+  ];
 
-  const handleClose = (e: React.MouseEvent) => {
-    e.preventDefault();
-    onClose();
-  };
+  const sellerReasons = [
+    "Out of stock",
+    "Cannot fulfill order at this time",
+    "Pricing error",
+    "Shipping issues",
+    "Other"
+  ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    e.preventDefault();
-    onReasonChange(e.target.value);
-  };
+  const reasons = isSeller ? sellerReasons : buyerReasons;
 
   return (
-    <div className={`modal ${isOpen ? 'modal-open' : ''}`} onClick={(e) => e.stopPropagation()}>
+    <dialog className={`modal ${isOpen ? 'modal-open' : ''}`}>
       <div className="modal-box">
-        <h3 className="font-bold text-lg">Cancel Order</h3>
+        <h3 className="font-bold text-lg mb-4">
+          {isSeller ? "Cancel Customer Order" : "Cancel Your Order"}
+        </h3>
 
-        <div className="form-control w-full mt-4">
-          <label className="label">
-            <span className="label-text">Select Reason for Cancellation</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={selectedReason}
-            onChange={handleInputChange}
-          >
-            <option value="">Select a reason</option>
-            {cancelReasons.map((reason) => (
-              <option key={reason.id} value={reason.id}>
-                {reason.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Select Reason for Cancellation:
+            </label>
+            <select
+              value={selectedReason}
+              onChange={(e) => onReasonChange(e.target.value)}
+              className="select select-bordered w-full"
+            >
+              <option value="">Select a reason</option>
+              {reasons.map((reason) => (
+                <option key={reason} value={reason}>
+                  {reason}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="modal-action">
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={handleClose}
-          >
-            Close
-          </button>
-          <button
-            className="btn btn-error btn-sm"
-            onClick={handleCancel}
-            disabled={!selectedReason}
-          >
-            Confirm Cancellation
-          </button>
+          <div className="modal-action">
+            <button
+              onClick={onClose}
+              className="btn btn-ghost btn-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onCancel(selectedReason)}
+              disabled={!selectedReason}
+              className="btn btn-error btn-sm"
+            >
+              Confirm Cancellation
+            </button>
+          </div>
         </div>
       </div>
-      <div className="modal-backdrop" onClick={handleClose}></div>
-    </div>
+      <form method="dialog" className="modal-backdrop" onClick={onClose}>
+        <button>close</button>
+      </form>
+    </dialog>
   );
 };
 

@@ -5,6 +5,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import OrderListSkeleton from "../../components/skeleton/OrderListSkeleton";
 import OrderActionButtons from "../../components/order/OrderActionButtons";
+import Pagination from "../../components/product/Pagination";
 
 const OrdersPage = () => {
   const [activeTab, setActiveTab] = useState("My Orders");
@@ -117,6 +118,21 @@ const OrdersPage = () => {
 
   const renderOrdersTable = (isMyOrders: boolean) => {
     const orders = isMyOrders ? ordersByUser : ordersBySeller;
+
+    if (orders.length === 0 && !loadingOrder) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="text-xl font-semibold text-gray-500 mb-2">
+            No orders found
+          </div>
+          <div className="text-sm text-gray-400">
+            {isMyOrders
+              ? "You haven't placed any orders yet"
+              : "Your shop doesn't have any orders yet"}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="overflow-x-auto w-full">
@@ -241,29 +257,34 @@ const OrdersPage = () => {
 
         {/* Status Tabs */}
         <div className="tabs tabs-boxed mb-4 flex-nowrap overflow-x-auto">
-          {["All", "Pending", "Delivering", "Completed", "Canceled"].map(
-            (tab) => (
-              <button
-                key={tab}
-                className={`tab tab-sm sm:tab-md flex-shrink-0 ${
-                  (activeTab === "My Orders" ? myOrdersTab : shopOrdersTab) ===
-                  tab
-                    ? "tab-active"
-                    : ""
-                }`}
-                onClick={() => handleStatusChange(tab)}
-              >
-                {tab}
-              </button>
-            )
-          )}
+          {[
+            "All",
+            "Pending",
+            "Delivering",
+            "Completed",
+            "Cancelled By User",
+            "Cancelled By Seller",
+          ].map((tab) => (
+            <button
+              key={tab}
+              className={`tab tab-sm sm:tab-md flex-shrink-0 ${
+                (activeTab === "My Orders" ? myOrdersTab : shopOrdersTab) ===
+                tab
+                  ? "tab-active"
+                  : ""
+              }`}
+              onClick={() => handleStatusChange(tab)}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         {renderOrdersTable(activeTab === "My Orders")}
 
         {/* Pagination Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4">
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <span className="mr-2 text-sm">Show</span>
             <select
               className="select select-bordered select-sm w-20"
@@ -274,8 +295,8 @@ const OrdersPage = () => {
               <option>20</option>
               <option>50</option>
             </select>
-          </div>
-          <div className="btn-group overflow-x-auto max-w-full">
+          </div> */}
+          {/* <div className="btn-group overflow-x-auto max-w-full">
             {Array.from({
               length: Math.ceil(
                 activeTab === "My Orders" ? totalUserPages : totalSellerPages
@@ -297,7 +318,36 @@ const OrdersPage = () => {
                 {index + 1}
               </button>
             ))}
-          </div>
+          </div> */}
+          {activeTab === "My Orders"
+            ? totalUserPages > 0 && (
+                <Pagination
+                  currentPage={
+                    activeTab === "My Orders" ? pageUser : pageSeller
+                  }
+                  totalPages={
+                    activeTab === "My Orders"
+                      ? totalUserPages
+                      : totalSellerPages
+                  }
+                  onPageChange={handlePageChange}
+                  activeTab={activeTab}
+                />
+              )
+            : totalSellerPages > 0 && (
+                <Pagination
+                  currentPage={
+                    activeTab === "My Orders" ? pageUser : pageSeller
+                  }
+                  totalPages={
+                    activeTab === "My Orders"
+                      ? totalUserPages
+                      : totalSellerPages
+                  }
+                  onPageChange={handlePageChange}
+                  activeTab={activeTab}
+                />
+              )}
         </div>
       </div>
     </div>

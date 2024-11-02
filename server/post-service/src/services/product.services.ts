@@ -474,7 +474,7 @@ export const cancelOrderService = async (userId: string, orderId: string, reason
       throw new Error("Order not found");
     }
 
-    if (order.userId !== userId && order.userId !== order.sellerId) {
+    if (order.userId !== userId && userId !== order.sellerId) {
       throw new Error("User not authorized to cancel this order");
     }
 

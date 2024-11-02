@@ -38,13 +38,24 @@ const toppings: Topping[] = [
 const ProductPage: React.FC = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<number[]>([]);
+  const [error, setError] = useState<string>("");
   const location = useLocation();
   const navigate = useNavigate();
-  const { addProductToCart, currentProduct, fetchProductByPostId, loading } =
+  const { addProductToCart, currentProduct, fetchProductByPostId, loading, cart } =
     useProductContext();
 
   const recipeData = (location.state as ProductPageProps) || {};
   const {account} = useAuthContext();
+
+  const getCurrentCartQuantity = () => {
+    const cartItem = cart?.find((item) => item.productId === recipeData._id);
+    return cartItem?.quantity || 0;
+  };
+
+  const getRemainingQuantity = () => {
+    const cartQuantity = getCurrentCartQuantity();
+    return currentProduct?.quantity ? currentProduct.quantity - cartQuantity : 0;
+  };
 
   useEffect(() => {
     fetchProductByPostId(recipeData.recipeId);
@@ -58,10 +69,18 @@ const ProductPage: React.FC = () => {
 
   const decreaseQuantity = (): void => {
     setQuantity((prev) => Math.max(1, prev - 1));
+    setError("");
   };
 
   const increaseQuantity = (): void => {
+    const remainingQuantity = getRemainingQuantity();
+
+    if (quantity >= remainingQuantity) {
+      setError(`Cannot exceed available quantity (${remainingQuantity} remaining)`);
+      return;
+    }
     setQuantity((prev) => prev + 1);
+    setError("");
   };
 
   const handleClickBack = (): void => {
@@ -82,9 +101,30 @@ const ProductPage: React.FC = () => {
   };
 
   const handleAddToCart = (productId: string) => {
+    const remainingQuantity = getRemainingQuantity();
+    const cartQuantity = getCurrentCartQuantity();
+
+    if (!currentProduct?.quantity) {
+      setError("Product is out of stock");
+      return;
+    }
+
+    if (remainingQuantity === 0) {
+      setError("Maximum quantity already in cart");
+      return;
+    }
+
+    if (quantity > remainingQuantity) {
+      setError(`Cannot add more than ${remainingQuantity} items (${cartQuantity} already in cart)`);
+      return;
+    }
+
     console.log(`Adding product to cart: ${productId}`);
     addProductToCart(productId, quantity);
   };
+
+  const remainingQuantity = getRemainingQuantity();
+  const cartQuantity = getCurrentCartQuantity();
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -127,7 +167,7 @@ const ProductPage: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    className="bg-yellow-400 rounded-full w-8 h-8 flex items-center justify-center"
+                    className="btn btn-circle btn-sm bg-yellow-400 border-none hover:bg-yellow-500"
                     onClick={decreaseQuantity}
                   >
                     <FiMinus className="w-4 h-4 text-white" />
@@ -136,13 +176,36 @@ const ProductPage: React.FC = () => {
                     {quantity.toString().padStart(2, "0")}
                   </span>
                   <button
-                    className="bg-yellow-400 rounded-full w-8 h-8 flex items-center justify-center"
+                    className="btn btn-circle btn-sm bg-yellow-400 border-none hover:bg-yellow-500"
                     onClick={increaseQuantity}
+                    disabled={remainingQuantity === 0 || quantity >= remainingQuantity}
                   >
                     <FiPlus className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
+
+              {/* Available Items Display */}
+              <div className="mb-4 space-y-1">
+                <div className="text-sm text-gray-600">
+                  Total Available: {currentProduct?.quantity || 0} items
+                </div>
+                {cartQuantity > 0 && (
+                  <div className="text-sm text-blue-600">
+                    In Your Cart: {cartQuantity} items
+                  </div>
+                )}
+                <div className="text-sm text-green-600">
+                  Remaining: {remainingQuantity} items
+                </div>
+              </div>
+
+              {/* Error Alert */}
+              {error && (
+                <div className="alert alert-error mb-4">
+                  <span>{error}</span>
+                </div>
+              )}
 
               <h2 className="text-xl font-bold mb-1">
                 {currentProduct?.postInfo.title}
@@ -172,7 +235,7 @@ const ProductPage: React.FC = () => {
                   {currentProduct?.postInfo.hashtags?.map((tag, index) => (
                     <span
                       key={index}
-                      className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
+                      className="badge badge-lg"
                     >
                       {tag}
                     </span>
@@ -184,17 +247,24 @@ const ProductPage: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-bold">Total Price</span>
                   <span className="font-bold text-xl">
-                    ${currentProduct?.price || 0 * quantity}
+                    ${currentProduct?.price ? currentProduct?.price * quantity || 0 : 0}
                   </span>
                 </div>
 
                 <div className="flex justify-center">
-                  {account?._id !== currentProduct?.postInfo.author && (<button
-                    className="w-48 bg-black text-white py-3 rounded-lg font-bold"
-                    onClick={() => handleAddToCart(recipeData._id)}
-                  >
-                    Add To Cart
-                  </button>)}
+                  {account?._id !== currentProduct?.postInfo.author && (
+                    <button
+                      className={`btn ${
+                        remainingQuantity === 0
+                          ? "btn-disabled"
+                          : "btn-primary"
+                      } w-48`}
+                      onClick={() => handleAddToCart(recipeData._id)}
+                      disabled={remainingQuantity === 0}
+                    >
+                      {remainingQuantity > 0 ? "Add To Cart" : "Maximum In Cart"}
+                    </button>
+                  )}
                 </div>
               </div>
 

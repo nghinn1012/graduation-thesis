@@ -1,9 +1,10 @@
-// components/OrderActionButtons.tsx
 import React, { useState } from 'react';
 import { useProductContext } from '../../context/ProductContext';
 import { OrderWithUserInfo } from '../../api/post';
 import CancelOrderModal from "./CancelOrderModal";
+import ReviewModal from "./ReviewModal";
 import { useAuthContext } from '../../hooks/useAuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface OrderActionButtonsProps {
   order: OrderWithUserInfo;
@@ -15,9 +16,11 @@ interface OrderActionButtonsProps {
 const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrders, activeTab, tab }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string>('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const { cancelOrder, updateOrderStatus } = useProductContext();
   const { account } = useAuthContext();
+  const navigate = useNavigate();
 
   // Status options for shop orders
   const nextStatus: { [key: string]: string } = {
@@ -29,7 +32,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
     try {
       await cancelOrder(order._id, reason, activeTab === "My Orders", tab);
       setSelectedReason('');
-      setIsModalOpen(false);
+      setIsCancelModalOpen(false);
     } catch (error) {
       console.error('Error canceling order:', error);
     }
@@ -46,30 +49,61 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
     }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const handleSubmitReviews = async (reviews: Array<{ productId: string; rating: number; comment: string }>) => {
+    try {
+      // await submitOrderReview(order._id, reviews);
+      // Optionally refresh the orders list or update the local state
+    } catch (error) {
+      console.error('Error submitting reviews:', error);
+    }
+  };
+
+  const closeCancelModal = () => {
+    setIsCancelModalOpen(false);
     setSelectedReason('');
   };
 
-  if (isMyOrders) {
-    return order.status === 'Pending' ? (
+  if (order.status === 'Pending') {
+    return (
       <>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsCancelModalOpen(true)}
           className="btn btn-error btn-sm text-xs"
         >
           Cancel Order
         </button>
         <CancelOrderModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
+          isOpen={isCancelModalOpen}
+          onClose={closeCancelModal}
           onCancel={handleCancelOrder}
           selectedReason={selectedReason}
           onReasonChange={setSelectedReason}
+          isSeller={!isMyOrders}
         />
       </>
-    ) : null;
-  } else {
+    );
+  }
+
+  if (order.status === 'Completed' && !order.isReviewed && isMyOrders) {
+    return (
+      <>
+        <button
+          onClick={() => setIsReviewModalOpen(true)}
+          className="btn btn-accent btn-sm text-xs"
+        >
+          Review Order
+        </button>
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          onSubmit={handleSubmitReviews}
+          orderId={order._id}
+        />
+      </>
+    );
+  }
+
+  if (!isMyOrders) {
     return nextStatus[order.status] ? (
       <button
         onClick={handleStatusUpdate}
@@ -84,6 +118,8 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({ order, isMyOrde
       </button>
     ) : null;
   }
+
+  return null;
 };
 
 export default OrderActionButtons;

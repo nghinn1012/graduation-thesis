@@ -10,6 +10,8 @@ interface CartItemType {
   onIncrement: (item: ProductCart) => void;
   onRemove: (item: ProductCart) => void;
   formatPrice: (price: string | number) => string;
+  maxQuantity: number;
+  alreadyAddToCart: boolean;
 }
 
 const CartItem: React.FC<CartItemType> = ({
@@ -18,6 +20,8 @@ const CartItem: React.FC<CartItemType> = ({
   onIncrement,
   onRemove,
   formatPrice,
+  maxQuantity,
+  alreadyAddToCart,
 }) => {
   const navigate = useNavigate();
   const { setCurrentProduct } = useProductContext();
@@ -28,7 +32,9 @@ const CartItem: React.FC<CartItemType> = ({
         <div className="flex-grow opacity-50">
           <h3 className="font-semibold text-gray-400">Product not available</h3>
         </div>
-        <p className="ml-2 text-red-500 font-semibold text-sm">No longer exists</p>
+        <p className="ml-2 text-red-500 font-semibold text-sm">
+          No longer exists
+        </p>
         <button
           className="p-1.5 ml-2 text-red-500 hover:bg-red-50 rounded-full"
           onClick={() => onRemove(productInfo)}
@@ -75,8 +81,9 @@ const CartItem: React.FC<CartItemType> = ({
       <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
         <div className="flex items-center border rounded px-2 py-1">
           <button
-            className="p-1"
+            className={`p-1`}
             onClick={() => onDecrement(productInfo)}
+            disabled={alreadyAddToCart}
           >
             <FaMinus size={12} />
           </button>
@@ -84,8 +91,13 @@ const CartItem: React.FC<CartItemType> = ({
             {productInfo.quantity}
           </span>
           <button
-            className="p-1"
+            className={`p-1 ${
+              productInfo.quantity >= maxQuantity
+                ? "bg-gray-300 text-gray-500"
+                : "bg-white text-black"
+            }`}
             onClick={() => onIncrement(productInfo)}
+            disabled={productInfo.quantity >= maxQuantity || alreadyAddToCart}
           >
             <FaPlus size={12} />
           </button>

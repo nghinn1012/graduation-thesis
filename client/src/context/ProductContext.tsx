@@ -18,6 +18,7 @@ import {
 } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
+import { set } from "date-fns";
 
 interface ProductContextProps {
   products: ProductInfo[];
@@ -78,6 +79,10 @@ interface ProductContextProps {
   setLoadingOrder: React.Dispatch<React.SetStateAction<boolean>>;
   cancelOrder: (orderId: string, reason: string, isMyOrder: boolean, tab: string) => void;
   updateOrderStatus: (orderId: string, status: string, tab: string) => void;
+  alreadyAddToCart: boolean;
+  setAlreadyAddToCart: React.Dispatch<React.SetStateAction<boolean>>;
+  currentOrderReview: OrderWithUserInfo | null;
+  setCurrentOrderReview: React.Dispatch<React.SetStateAction<OrderWithUserInfo | null>>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(
@@ -116,7 +121,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
   const [limit, setLimit] = useState<number>(8);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
+  const [alreadyAddToCart, setAlreadyAddToCart] = useState<boolean>(false);
   const [currentOrderDetail, setCurrentOrderDetail] =
+    useState<OrderWithUserInfo | null>(null);
+  const [currentOrderReview, setCurrentOrderReview] =
     useState<OrderWithUserInfo | null>(null);
 
   useEffect(() => {
@@ -224,6 +232,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     async (productId: string, quantity: number) => {
       if (!auth?.token) return;
       try {
+        setAlreadyAddToCart(true);
         const updatedCart = (await postFetcher.addProductToCart(
           productId,
           quantity,
@@ -234,6 +243,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       } catch (err) {
         setError("Failed to add product to cart");
       } finally {
+        setAlreadyAddToCart(false);
       }
     },
     [auth?.token]
@@ -354,6 +364,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           auth?.token
         )) as unknown as OrderWithUserInfo;
         setCurrentOrderDetail(order);
+        setCurrentOrderReview(order);
       } catch (err) {
         setError("Failed to fetch order");
       } finally {
@@ -490,6 +501,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         setLoadingOrder,
         updateOrderStatus,
         cancelOrder,
+        alreadyAddToCart,
+        setAlreadyAddToCart,
+        currentOrderReview,
+        setCurrentOrderReview,
       }}
     >
       {children}

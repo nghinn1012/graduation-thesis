@@ -3,6 +3,7 @@ import CartItem from "../../components/product/CartItem";
 import { useProductContext } from "../../context/ProductContext";
 import { ProductCart } from "../../api/post";
 import { useNavigate } from "react-router-dom";
+import { useToastContext } from "../../hooks/useToastContext";
 
 const CartPage: React.FC = () => {
   const {
@@ -13,7 +14,10 @@ const CartPage: React.FC = () => {
     setSelectedItems,
     loadingCart,
     setLoadingCart,
+    alreadyAddToCart,
+    setAlreadyAddToCart,
   } = useProductContext();
+  const { error } = useToastContext();
   const [items, setItems] = useState<ProductCart[]>([]);
   const [promoCode, setPromoCode] = useState<string>("");
   const [selectAll, setSelectAll] = useState<boolean>(false);
@@ -33,7 +37,14 @@ const CartPage: React.FC = () => {
   }, [cart]);
 
   const handleIncrement = (item: ProductCart) => {
-    addProductToCart(item.productId, 1);
+    const availableQuantity = item.productInfo?.quantity || 0;
+
+    if (item.quantity >= availableQuantity) {
+      error(`Sorry, only ${availableQuantity} items available in stock`);
+      return;
+    } else {
+      addProductToCart(item.productId, 1);
+    }
   };
 
   const handleDecrement = (item: ProductCart) => {
@@ -50,6 +61,23 @@ const CartPage: React.FC = () => {
   };
 
   const handleCheckout = () => {
+    const invalidItems = items
+      .filter(item => selectedItems.includes(item._id))
+      .filter(item => item.quantity > (item.productInfo?.quantity || 0));
+
+    if (invalidItems.length > 0) {
+      const itemNames = invalidItems
+        .map(item => item.productInfo?.postInfo.title || 'Unknown product')
+        .join(', ');
+      error(`Some items exceed available quantity: ${itemNames}`);
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      error("Please select at least one item to checkout");
+      return;
+    }
+
     console.log("Proceeding to checkout");
     navigate("/checkout");
   };
@@ -230,9 +258,16 @@ const CartPage: React.FC = () => {
                             productInfo={item}
                             onIncrement={() => handleIncrement(item)}
                             onDecrement={() => handleDecrement(item)}
+                            alreadyAddToCart={alreadyAddToCart}
                             onRemove={() => handleRemove(item.productId)}
                             formatPrice={formatPrice}
+                            maxQuantity={item.productInfo?.quantity}
                           />
+                          {item.quantity > (item.productInfo?.quantity || 0) && (
+                            <div className="text-red-500 text-sm mt-2">
+                              Only {item.productInfo?.quantity} items available
+                            </div>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -244,10 +279,12 @@ const CartPage: React.FC = () => {
                           <CartItem
                             key={item._id}
                             productInfo={item}
+                            alreadyAddToCart={alreadyAddToCart}
                             onIncrement={() => handleIncrement(item)}
                             onDecrement={() => handleDecrement(item)}
                             onRemove={() => handleRemove(item.productId)}
                             formatPrice={formatPrice}
+                            maxQuantity={0}
                           />
                         </div>
                       </div>
@@ -269,7 +306,11 @@ const CartPage: React.FC = () => {
             </div>
           </div>
 
-          <button className="w-full btn btn-success" onClick={handleCheckout}>
+          <button
+            className="w-full btn btn-success"
+            onClick={handleCheckout}
+            disabled={selectedItems.length === 0}
+          >
             CHECKOUT
           </button>
         </>

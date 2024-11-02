@@ -182,7 +182,7 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+      <h1 className="text-2xl font-semibold text-gray-900">
         TAGS.
       </h1>
       <div className="w-full">
