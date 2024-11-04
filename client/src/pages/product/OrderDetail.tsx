@@ -152,9 +152,10 @@ const OrderDetails: React.FC = () => {
   } = useProductContext();
   const [orderId, setOrderId] = React.useState<string>("");
   const { account } = useAuthContext();
+  const [isUpdating, setIsUpdating] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -219,6 +220,8 @@ const OrderDetails: React.FC = () => {
     if (!currentOrderDetail) return;
     try {
       await cancelOrder(currentOrderDetail._id, reason, true, "My Orders");
+      setIsCancelModalOpen(false);
+      setCancelReason("");
       await fetchOrderById(orderId);
     } catch (error) {
       console.error("Error cancelling order:", error);
@@ -229,11 +232,12 @@ const OrderDetails: React.FC = () => {
     try {
       if (!currentOrderDetail) return;
       await createOrderReview(currentOrderDetail._id, reviews);
+      setIsReviewModalOpen(false);
+      await fetchOrderById(orderId);
     } catch (error) {
       console.error("Error submitting reviews:", error);
     }
   };
-
   if (!currentOrderDetail) {
     return <LoadingSkeleton />;
   }
@@ -531,13 +535,32 @@ const OrderDetails: React.FC = () => {
               order={currentOrderDetail}
               account={account}
               onUpdateStatus={handleUpdateStatus}
-              onCancelOrder={handleCancelOrder}
               isMyOrders={account?._id === currentOrderDetail.userId}
-              onSubmitReviews={handleSubmitReviews}
+              onOpenCancelModal={() => setIsCancelModalOpen(true)}
+              onOpenReviewModal={() => setIsReviewModalOpen(true)}
+              // isUpdating={isUpdating}
             />
           </div>
         </div>
       </div>
+      <CancelOrderModal
+        isOpen={isCancelModalOpen}
+        onClose={() => {
+          setIsCancelModalOpen(false);
+          setCancelReason("");
+        }}
+        onCancel={handleCancelOrder}
+        selectedReason={cancelReason}
+        onReasonChange={setCancelReason}
+        isSeller={account?._id !== currentOrderDetail.userId}
+      />
+
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onSubmit={handleSubmitReviews}
+        orderId={currentOrderDetail._id}
+      />
     </div>
   );
 };

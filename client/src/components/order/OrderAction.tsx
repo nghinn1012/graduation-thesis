@@ -15,8 +15,8 @@ interface OrderActionsProps {
   order: OrderWithUserInfo;
   account?: IAccountInfo;
   onUpdateStatus: (status: string) => Promise<void>;
-  onCancelOrder: (reason: string) => Promise<void>;
-  onSubmitReviews: (reviews: ReviewCreate[]) => Promise<void>;
+  onOpenCancelModal: () => void;
+  onOpenReviewModal: () => void;
   isMyOrders: boolean;
 }
 
@@ -24,15 +24,11 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   order,
   account,
   onUpdateStatus,
-  onCancelOrder,
-  onSubmitReviews,
+  onOpenCancelModal,
+  onOpenReviewModal,
   isMyOrders,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState(order.status);
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const isBuyer = isMyOrders;
   const canCancel = order.status === "Pending";
@@ -55,16 +51,6 @@ const OrderActions: React.FC<OrderActionsProps> = ({
     }
   };
 
-  const handleCancelOrder = async (reason: string) => {
-    try {
-      await onCancelOrder(reason);
-      setIsCancelModalOpen(false);
-      setCancelReason("");
-    } catch (error) {
-      console.error("Error cancelling order:", error);
-    }
-  };
-
   return (
     <>
       <div className="card bg-base-100 shadow-xl">
@@ -74,7 +60,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
             {canCancel && (
               <button
                 className="btn btn-outline btn-block btn-error"
-                onClick={() => setIsCancelModalOpen(true)}
+                onClick={onOpenCancelModal}
               >
                 <BsX className="w-4 h-4 mr-2" />
                 Cancel Order
@@ -103,7 +89,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
             {isBuyer && order.status === "Completed" && !order.isReviewed && (
               <button
                 className="btn btn-accent btn-block"
-                onClick={() => setIsReviewModalOpen(true)}
+                onClick={onOpenReviewModal}
               >
                 Review Order
               </button>
@@ -123,28 +109,6 @@ const OrderActions: React.FC<OrderActionsProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Modals */}
-      <CancelOrderModal
-        isOpen={isCancelModalOpen}
-        onClose={() => {
-          setIsCancelModalOpen(false);
-          setCancelReason("");
-        }}
-        onCancel={handleCancelOrder}
-        selectedReason={cancelReason}
-        onReasonChange={setCancelReason}
-        isSeller={!isMyOrders}
-      />
-
-      {onSubmitReviews && (
-        <ReviewModal
-          isOpen={isReviewModalOpen}
-          onClose={() => setIsReviewModalOpen(false)}
-          onSubmit={onSubmitReviews}
-          orderId={order._id}
-        />
-      )}
     </>
   );
 };
