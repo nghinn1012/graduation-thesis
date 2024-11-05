@@ -23,18 +23,6 @@ interface ProductPageProps {
   recipeId: string;
 }
 
-interface Topping {
-  name: string;
-  emoji: string;
-}
-
-const toppings: Topping[] = [
-  { name: "Tomato", emoji: "🍅" },
-  { name: "Lettuce", emoji: "🥬" },
-  { name: "Onion", emoji: "🧅" },
-  { name: "Strawberry", emoji: "🍓" },
-];
-
 const ProductPage: React.FC = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<number[]>([]);
@@ -60,12 +48,6 @@ const ProductPage: React.FC = () => {
   useEffect(() => {
     fetchProductByPostId(recipeData.recipeId);
   }, [recipeData.recipeId]);
-
-  const handleToppingToggle = (index: number): void => {
-    setSelectedToppings((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
-  };
 
   const decreaseQuantity = (): void => {
     setQuantity((prev) => Math.max(1, prev - 1));

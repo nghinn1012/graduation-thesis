@@ -55,7 +55,7 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
   addHashtag,
   removeHashtag,
   isSubmitting,
-  setIsHashtagTabValid
+  setIsHashtagTabValid,
 }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const courses: ItemType[] = [
@@ -182,22 +182,26 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold text-gray-900">
-        TAGS.
-      </h1>
+      <h1 className="text-2xl font-semibold text-gray-900">TAGS.</h1>
       <div className="w-full">
         <div className="mt-2">
-          <h2 className="font-bold text-lg">COURSES.</h2>
+          <h2 className="font-bold text-lg inline-flex items-center">
+            COURSES.<span className="text-red-500 ml-1">*</span>
+          </h2>
           {renderPillGroup(courses, course, toggleCourse)}
         </div>
 
         <div className="mt-2">
-          <h2 className="font-bold text-lg">DIFFICULTY.</h2>
+          <h2 className="font-bold text-lg inline-flex items-center">
+            DIFFICULTY.<span className="text-red-500 ml-1">*</span>
+          </h2>
           {renderDifficultyGroup(difficulties, difficulty, selectDifficulty)}
         </div>
 
         <div className="mt-2">
-          <h2 className="font-bold text-lg">DIETARY RESTRICTIONS.</h2>
+          <h2 className="font-bold text-lg inline-flex items-center">
+            DIETARY RESTRICTIONS.<span className="text-red-500 ml-1">*</span>
+          </h2>
           {renderDietaryGroup(dietaryRestrictions, dietary, toggleDietary)}
         </div>
         <div className="mt-4">

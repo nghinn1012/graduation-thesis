@@ -47,5 +47,38 @@
   "Footer": {
     "english": "Tiếng Anh",
     "vietnamese": "Tiếng Việt"
+  },
+  "CreatePostBox": {
+    "placeholder": "Bạn đang nghĩ gì, {0}?",
+    "create-post-success": "Tạo bài viết thành công",
+    "error-create-post": "Tạo bài viết thất bại: {0}",
+    "error-update-post": "Cập nhật bài viết thất bại: {0}"
+  },
+  "BasicInfoTab": {
+    "new-post": "Bài viết mới",
+    "edit-post": "Chỉnh sửa bài viết",
+    "post-intro": "Hãy bắt đầu bằng cách thêm một số thông tin cơ bản về bài viết của bạn.",
+    "product-details": "Chi tiết sản phẩm",
+    "is-sold-by-you": "Bạn có bán sản phẩm này không?",
+    "title-required": "Tiêu đề là bắt buộc",
+    "about-required": "Thông tin là bắt buộc",
+    "image-required": "Cần có ít nhất một hình ảnh",
+    "price-required": "Giá là bắt buộc",
+    "price-positive": "Giá phải là một số dương",
+    "quantity-required": "Số lượng là bắt buộc",
+    "quantity-positive": "Số lượng phải ít nhất là 1",
+    "time-required": "Thời gian chuẩn bị là bắt buộc",
+    "time-positive": "Thời gian chuẩn bị phải ít nhất là 1 phút",
+    "title": "Tiêu đề",
+    "about": "Giới thiệu",
+    "image": "Thêm ảnh",
+    "price": "Giá",
+    "quantity": "Số lượng",
+    "time": "Thời gian chuẩn bị (phút)",
+    "title-placeholder": "Nhập tiêu đề bài viết",
+    "about-placeholder": "Hãy chia sẻ thêm về bài viết của bạn",
+    "price-placeholder": "Nhập giá",
+    "quantity-placeholder": "Nhập số lượng",
+    "time-placeholder": "Nhập thời gian chuẩn bị (phút)"
   }
 }

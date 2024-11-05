@@ -303,7 +303,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
       <div className="flex flex-row justify-between mb-4">
         <div className="flex flex-1 flex-row">
           <div className="flex-1 mr-4">
-            <label className="block text-sm font-semibold mb-1">HOURS</label>
+            <label className="block text-sm font-semibold mb-1">HOURS<span className="text-red-500 ml-1">*</span></label>
             <input
               type="number"
               min="0"
@@ -316,7 +316,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             {errors.hours && <p className="text-red-500">{errors.hours}</p>}
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-semibold mb-1">MINUTES</label>
+            <label className="block text-sm font-semibold mb-1">MINUTES<span className="text-red-500 ml-1">*</span></label>
             <input
               type="number"
               min="0"
@@ -344,7 +344,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           <p className="text-red-500">{errors.timeToTake}</p>
         )}
         <div className="flex-1 ml-4">
-          <label className="block text-sm font-semibold mb-1">SERVINGS</label>
+          <label className="block text-sm font-semibold mb-1">SERVINGS<span className="text-red-500 ml-1">*</span></label>
           <input
             type="number"
             className="w-full input input-bordered"
@@ -358,7 +358,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
       </div>
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-semibold">INGREDIENTS</label>
+          <label className="block text-sm font-semibold">INGREDIENTS<span className="text-red-500 ml-1">*</span></label>
           <span
             className="cursor-pointer text-red-500 text-sm flex items-center"
             onClick={() => setIsModalOpen(true)}
@@ -438,7 +438,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
         </div>
       </div>
       <div className="mt-4">
-        <label className="block text-sm font-semibold mb-1">INSTRUCTIONS</label>
+        <label className="block text-sm font-semibold mb-1">INSTRUCTIONS<span className="text-red-500 ml-1">*</span></label>
         {instructions.map((instruction, index) => (
           <div key={index} className="mb-4">
             <div className="flex flex-row gap-2">

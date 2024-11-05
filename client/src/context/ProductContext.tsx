@@ -146,31 +146,6 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     if (!auth?.token) return;
-
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        console.log("chay qua sau reset");
-        const fetchedProducts = (await postFetcher.getAllProducts(
-          auth?.token,
-          page,
-          limit
-        )) as unknown as ProductList;
-        console.log(fetchedProducts);
-        setProducts(fetchedProducts.products);
-        setTotalPages(fetchedProducts.totalPages);
-      } catch (err) {
-        setError("Failed to fetch products");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [auth?.token, page, location.pathname]);
-
-  useEffect(() => {
-    if (!auth?.token) return;
     const fetchCart = async () => {
       try {
         setLoadingCart(true);
@@ -285,9 +260,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
+        setSearchTerm(searchTerm);
+        setSelectedCategory(filter);
         const fetchedProducts = (await postFetcher.searchProduct(
           searchTerm,
-          filter,
+          filter === "all" ? "" : filter,
           page,
           limit,
           auth?.token
@@ -300,8 +277,26 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         setLoading(false);
       }
     },
-    [auth?.token, page]
+    [auth?.token, page, searchTerm, selectedCategory, limit]
   );
+
+  useEffect(() => {
+    if (!auth?.token) return;
+
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        console.log("chay qua sau reset");
+        await searchProducts(searchTerm, selectedCategory);
+      } catch (err) {
+        setError("Failed to fetch products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [auth?.token, page, location.pathname]);
 
   const fetchOrdersByUser = useCallback(async () => {
     if (!auth?.token) return;

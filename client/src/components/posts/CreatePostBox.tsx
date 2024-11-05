@@ -12,6 +12,7 @@ import { BsPostcardHeart } from "react-icons/bs";
 import { BiDish } from "react-icons/bi";
 import ProductModal from "../product/CreateProductFromPost";
 import { useProductContext } from "../../context/ProductContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const CreatePostBox: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -24,7 +25,9 @@ const CreatePostBox: React.FC = () => {
   const { fetchPost, setPosts } = usePostContext();
   const { socket } = useSocket();
   const { success, error } = useToastContext();
-  const {setPage} = useProductContext();
+  const { setPage } = useProductContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of(CreatePostBox);
 
   useEffect(() => {
     if (!socket || !auth?.account) return;
@@ -32,7 +35,7 @@ const CreatePostBox: React.FC = () => {
     const handleUploadsComplete = async (message: string) => {
       console.log(`Received message: ${message}`);
       setIsLoading(true);
-1
+      1;
       try {
         const newPostId = message;
         const newPost = (await fetchPost(newPostId)) as PostInfo;
@@ -138,24 +141,30 @@ const CreatePostBox: React.FC = () => {
         },
         JSON.parse(token).token
       );
-      success("Created post successfully");
+      success(lang("create-post-success"));
 
       setIsModalOpen(false);
       setIsLoading(true);
       setIsSubmitting(false);
     } catch (err) {
-      error(
-        `Failed to ${isEditing ? "update" : "create"} post: ${
-          (err as Error) || "Unknown error"
-        }`
-      );
+      const errorMessage = isEditing
+        ? lang(
+            "error-update-post",
+            (err as Error)?.message || "Unknown error"
+          )
+        : lang(
+            "error-create-post",
+            (err as Error)?.message || "Unknown error"
+          );
+
+      error(errorMessage);
       console.log(`Error ${isEditing ? "updating" : "creating"} post:`, error);
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="relative border-b border-gray-300">
+    <div className="relative">
       <Toaster />
       <div className="flex p-4 items-start gap-4 border-b border-gray-300">
         <div className="avatar">
@@ -166,37 +175,17 @@ const CreatePostBox: React.FC = () => {
             />
           </div>
         </div>
-        <input
-          type="text"
-          className="flex-grow text-white rounded-full px-4 py-2 focus:outline-none"
-          placeholder={`${data?.name} ơi, bạn đang nghĩ gì?`}
-          readOnly
+        <textarea
+          className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-300 cursor-pointer"
+          placeholder={lang("placeholder", data?.name)}
+          onClick={() => {
+            setEditPost(null);
+            setIsModalOpen(true);
+          }}
         />
       </div>
-      <div className="flex my-3">
-        <div className="flex-1 flex justify-center">
-          <button
-            className="flex items-center gap-2"
-            onClick={() => {
-              setEditPost(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <BsPostcardHeart size={20} className="text-red-400" />
-            <span>New post</span>
-          </button>
-        </div>
-        <div className="flex-1 flex justify-center">
-          <button
-            className="flex items-center gap-2"
-            onClick={() => setIsProductModalOpen(true)}
-          >
-            <BiDish size={20} className="text-yellow-500" />
-            <span>Product from post</span>
-          </button>
-        </div>
-      </div>
 
+      {/* Modal */}
       <PostModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -205,19 +194,11 @@ const CreatePostBox: React.FC = () => {
         post={editPost}
         isEditing={!!editPost}
       />
-      <ProductModal
-        isOpen={isProductModalOpen}
-        onClose={() => setIsProductModalOpen(false)}
-        onSubmit={() => {}}
-        isSubmitting={isSubmitting}
-        // selectedPost={selectedPost}
-        // setSelectedPost={setSelectedPost}
-      />
-      {isLoading && (
-        <div className="mt-4">
+      {isLoading ? (
+        <div className="border-b border-gray-300">
           <PostSkeleton />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

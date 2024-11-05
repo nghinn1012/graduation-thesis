@@ -47,5 +47,38 @@
   "Footer": {
     "english": "English",
     "vietnamese": "Vietnamese"
+  },
+  "CreatePostBox": {
+    "placeholder": "What's on your mind, {0}?",
+    "create-post-success": "Create post successfully",
+    "error-create-post": "Failed to create post: {0}",
+    "error-update-post": "Failed to update post: {0}"
+  },
+  "BasicInfoTab": {
+    "new-post": "New Post",
+    "edit-post": "Edit Post",
+    "post-intro": "Let's get started by adding some basic information about your post.",
+    "product-details": "Product Details",
+    "is-sold-by-you": "Is this product sold by you?",
+    "title-required": "Title is required",
+    "about-required": "About is required",
+    "image-required": "At least one image is required",
+    "price-required": "Price is required",
+    "price-positive": "Price must be a positive number",
+    "quantity-required": "Quantity is required",
+    "quantity-positive": "Quantity must be at least 1",
+    "time-required": "Time to prepare is required",
+    "time-positive": "Time to prepare must be at least 1 minute",
+    "title": "Title",
+    "about": "About",
+    "image": "Add photo",
+    "price": "Price",
+    "quantity": "Quantity",
+    "time": "Time to prepare (mins)",
+    "title-placeholder": "Enter post title",
+    "about-placeholder": "Tell us more about your post",
+    "price-placeholder": "Enter price",
+    "quantity-placeholder": "Enter quantity",
+    "time-placeholder": "Enter time to prepare"
   }
 }
