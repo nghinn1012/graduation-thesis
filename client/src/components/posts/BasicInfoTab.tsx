@@ -155,9 +155,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
       <h1 className="text-2xl font-semibold text-gray-900 mb-4 uppercase">
         {post ? lang("edit-post") : lang("new-post")}.
       </h1>
-      {!post && (
-        <p className="text-gray-900">{lang("post-intro")}</p>
-      )}
+      {!post && <p className="text-gray-900">{lang("post-intro")}</p>}
       <div className="mt-4">
         <div className="flex flex-col gap-4 justify-center items-center">
           <button
@@ -170,6 +168,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
           </button>
           <input
             type="file"
+            accept="image/png, image/jpeg, image/gif"
             className="hidden"
             onChange={handleImgChange}
             multiple
@@ -265,7 +264,9 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
         {hasProduct && (
           <div className="mt-4 space-y-4">
             <div>
-              <h2 className="font-bold text-lg uppercase">{lang("product-details")}</h2>
+              <h2 className="font-bold text-lg uppercase">
+                {lang("product-details")}
+              </h2>
               <label className="block text-sm font-medium text-gray-700">
                 {lang("price")}
                 <span className="text-red-500 ml-1">*</span>

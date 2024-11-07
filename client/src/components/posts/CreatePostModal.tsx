@@ -7,6 +7,7 @@ import * as yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
 import { useToastContext } from "../../hooks/useToastContext";
 import HashtagTab from "./HashTagTab";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -114,6 +115,8 @@ const CreatePostModal: React.FC<PostModalProps> = ({
   const [isBasicTabValid, setIsBasicTabValid] = useState(false);
   const [isRecipeTabValid, setIsRecipeTabValid] = useState(false);
   const [isHashtagTabValid, setIsHashtagTabValid] = useState(false);
+  const language = useI18nContext();
+  const lang = language.of("CreatePostModal");
   useEffect(() => {
     fileInputRef.current = fileInputRef.current.slice(0, instructions.length);
   }, [instructions]);
@@ -455,7 +458,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             }`}
             onClick={() => setActiveTab(0)}
           >
-            Basic
+            {lang("basic")}
           </a>
           <a
             role="tab"
@@ -464,7 +467,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             }`}
             onClick={() => setActiveTab(1)}
           >
-            Recipe
+            {lang("recipe")}
           </a>
           <a
             role="tab"
@@ -473,7 +476,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
             }`}
             onClick={() => setActiveTab(2)}
           >
-            Hashtags
+            {lang("hashtags")}
           </a>
         </div>
         <form
@@ -561,7 +564,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               onClick={handlePreviousTab}
               disabled={activeTab === 0}
             >
-              Previous
+              {lang("previous")}
             </button>
 
             <button
@@ -569,7 +572,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               onClick={handleNextTab}
               disabled={activeTab === 2}
             >
-              Next
+              {lang("next")}
             </button>
           </div>
           {activeTab === 2 && (
@@ -577,9 +580,9 @@ const CreatePostModal: React.FC<PostModalProps> = ({
               type="submit"
               disabled={isSubmitting || !isBasicTabValid ||
                 !isRecipeTabValid || !isHashtagTabValid || Object.keys(validationErrors).length !== 0}
-              className="btn bg-red-500 w-full text-white mt-6 font-semibold"
+              className="btn bg-red-500 w-full text-white mt-6 font-semibold uppercase"
             >
-              {post ? "EDIT POST" : "POST NOW"}
+              {post ? lang("editPost") : lang("postNow")}
             </button>
           )}
         </form>

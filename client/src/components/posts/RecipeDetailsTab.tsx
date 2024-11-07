@@ -9,35 +9,7 @@ import * as Yup from "yup";
 import QuickPasteModal from "./QuickPasteModal";
 import { BiSolidMagicWand } from "react-icons/bi";
 import { useToastContext } from "../../hooks/useToastContext";
-
-const validationSchema = Yup.object({
-  hours: Yup.string().required("Hours are required"),
-  minutes: Yup.string().required("Minutes are required"),
-  timeToTake: Yup.string().required("Time to take is required"),
-  servings: Yup.number()
-    .typeError("Servings must be a number")
-    .required("Servings are required")
-    .positive("Servings must be a positive number")
-    .integer("Servings must be an integer"),
-  inputFields: Yup.array()
-    .of(
-      Yup.object({
-        name: Yup.string().required("Ingredient name is required"),
-        quantity: Yup.string().required("Quantity is required"),
-      })
-    )
-    .min(1, "At least one ingredient is required"),
-  instructions: Yup.array()
-    .of(
-      Yup.object({
-        description: Yup.string().required(
-          "Instruction description is required"
-        ),
-        image: Yup.string().nullable(),
-      })
-    )
-    .min(1, "At least one instruction is required"),
-});
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface RecipeDetailsTabProps {
   timeToTake: number | string;
@@ -135,6 +107,39 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   const [modalInput, setModalInput] = useState("");
   const [instructionInput, setInstructionInput] = useState("");
   const { error } = useToastContext();
+  const language = useI18nContext();
+  const lang = language.of(RecipeDetailsTab);
+
+  const validationSchema = Yup.object({
+    hours: Yup.string().required(lang("hours-required")),
+    minutes: Yup.string().required(lang("minutes-required")),
+    timeToTake: Yup.string().required(lang("timeToTake-required")),
+    servings: Yup.number()
+      .typeError(lang("servings-number"))
+      .required(lang("servings-required"))
+      .positive(lang("servings-positive"))
+      .integer(lang("servings-integer")),
+    inputFields: Yup.array()
+      .of(
+        Yup.object({
+          name: Yup.string().required(lang("inputFields-name-required")),
+          quantity: Yup.string().required(lang("inputFields-quantity-required")),
+        })
+      )
+      .min(1, lang("inputFields-min")),
+    instructions: Yup.array()
+      .of(
+        Yup.object({
+          description: Yup.string().required(
+            lang("instructions-description-required")
+          ),
+          image: Yup.string().nullable(),
+        })
+      )
+      .min(1, lang("instructions-min")),
+  });
+
+
   const parseIngredients = (input: string) => {
     const lines = input
       .trim()
@@ -298,17 +303,17 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   return (
     <div className="flex flex-col w-full">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold">RECIPE DETAILS</h2>
+        <h2 className="text-2xl font-bold uppercase">{lang("recipe-details")}</h2>
       </div>
       <div className="flex flex-row justify-between mb-4">
         <div className="flex flex-1 flex-row">
           <div className="flex-1 mr-4">
-            <label className="block text-sm font-semibold mb-1">HOURS<span className="text-red-500 ml-1">*</span></label>
+            <label className="block text-sm font-semibold mb-1 uppercase">{lang("hours")}<span className="text-red-500 ml-1">*</span></label>
             <input
               type="number"
               min="0"
               className="w-full input input-bordered"
-              placeholder="Hours"
+              placeholder={lang("hours")}
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               disabled={isSubmitting}
@@ -316,13 +321,13 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             {errors.hours && <p className="text-red-500">{errors.hours}</p>}
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-semibold mb-1">MINUTES<span className="text-red-500 ml-1">*</span></label>
+            <label className="block text-sm font-semibold mb-1 uppercase">{lang("minutes")}<span className="text-red-500 ml-1">*</span></label>
             <input
               type="number"
               min="0"
               max="59"
               className="w-full input input-bordered"
-              placeholder="Minutes"
+              placeholder={lang("minutes")}
               value={minutes}
               onChange={(e) => {
                 const value = Number(e.target.value);
@@ -344,11 +349,11 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           <p className="text-red-500">{errors.timeToTake}</p>
         )}
         <div className="flex-1 ml-4">
-          <label className="block text-sm font-semibold mb-1">SERVINGS<span className="text-red-500 ml-1">*</span></label>
+          <label className="block text-sm font-semibold mb-1">{lang("servings")}<span className="text-red-500 ml-1">*</span></label>
           <input
             type="number"
             className="w-full input input-bordered"
-            placeholder="Servings"
+            placeholder={lang("servings")}
             value={servings}
             onChange={handleServings}
             disabled={isSubmitting}
@@ -358,13 +363,13 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
       </div>
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-semibold">INGREDIENTS<span className="text-red-500 ml-1">*</span></label>
+          <label className="block text-sm font-semibold uppercase">{lang("ingredient")}<span className="text-red-500 ml-1">*</span></label>
           <span
             className="cursor-pointer text-red-500 text-sm flex items-center"
             onClick={() => setIsModalOpen(true)}
           >
             <BiSolidMagicWand className="mr-1" />
-            Quick Paste
+            {lang("quickpaste")}
           </span>
         </div>
 
@@ -375,7 +380,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                 <input
                   type="text"
                   className="w-full input input-bordered"
-                  placeholder="Ingredient"
+                  placeholder={lang("ingredient")}
                   value={inputField.name}
                   onChange={(e) =>
                     handleInputChange(index, "name", e.target.value)
@@ -392,7 +397,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
                 <input
                   type="text"
                   className="w-full input input-bordered"
-                  placeholder="Quantity"
+                  placeholder={lang("ingredient-quantity")}
                   value={inputField.quantity}
                   onChange={(e) =>
                     handleInputChange(index, "quantity", e.target.value)
@@ -433,7 +438,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             disabled={isSubmitting}
           >
             <IoAddCircleOutline className="mr-2" />
-            Add Ingredient
+            {lang("add-ingredient")}
           </button>
         </div>
       </div>
@@ -444,7 +449,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             <div className="flex flex-row gap-2">
               <textarea
                 className="textarea textarea-bordered w-full mb-2"
-                placeholder={`Step ${index + 1}`}
+                placeholder={lang("instruction-description", index + 1)}
                 value={instruction.description}
                 onChange={(e) =>
                   handleInstructionChange(index, "description", e.target.value)
@@ -470,6 +475,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
             <input
               type="file"
               className="hidden"
+              accept="image/*"
               ref={(el) => (fileInputRef.current[index] = el)}
               onChange={(e) =>
                 handleImageChange(index, e.target.files?.[0] || null)
@@ -507,7 +513,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
           disabled={isSubmitting}
         >
           <IoAddCircleOutline className="mr-2" />
-          Add Instruction
+          {lang("add-instruction")}
         </button>
       </div>
     </div>

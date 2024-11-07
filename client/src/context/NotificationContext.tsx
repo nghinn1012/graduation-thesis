@@ -91,7 +91,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [socket, account]);
 
   const markNotificationAsRead = async (notificationId: string) => {
-    if (!account || !auth?.token) return;
+    if (!account || !auth?.token
+      || !notifications.find(notification => notification._id === notificationId && !notification.read)
+    ) return;
 
     try {
       const response = await notificationFetcher.markNotificationAsRead(auth?.token, { notificationId: notificationId });
@@ -107,7 +109,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             : notification
         )
       );
-      setUnreadCount(prevCount => Math.max(0, prevCount - 1));  // Decrease unread count
+      setUnreadCount(prevCount => Math.max(0, prevCount - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }

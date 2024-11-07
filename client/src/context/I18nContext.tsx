@@ -12,6 +12,10 @@ export type I18nReactComponent =
   | "VerifyForm"
   | "Footer"
   | "CreatePostBox"
+  | "HashtagTab"
+  | "QuickPasteTab"
+  | "CreatePostModal"
+  | "PostInfo"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

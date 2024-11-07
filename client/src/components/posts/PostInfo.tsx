@@ -16,6 +16,7 @@ import { Toaster } from "react-hot-toast";
 import { useToastContext } from "../../hooks/useToastContext";
 import { useSearchContext } from "../../context/SearchContext";
 import { useProfileContext } from "../../context/ProfileContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface Ingredient {
   name: string;
@@ -63,7 +64,6 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const [isLiked, setIsLiked] = useState(post.liked);
   const [isSaved, setIsSaved] = useState(post.saved);
   const [isMyPost, setIsMyPost] = useState(false);
-  const formattedDate = "1h";
   const navigate = useNavigate();
   const auth = useAuthContext();
   const { posts, setPosts, toggleLikePost, toggleSavePost, postCommentCounts } =
@@ -78,6 +78,9 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const location = useLocation();
+  const language = useI18nContext();
+  const lang = language.of("PostInfo");
+
   useEffect(() => {
     setCommentCount(postCommentCounts[post._id] || post.commentCount);
   }, [postCommentCounts, post._id, post.commentCount]);
@@ -100,7 +103,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
     const token = auth?.auth?.token;
     if (!token) return;
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this post?"
+      lang("delete")
     );
 
     if (!confirmDelete) return;
@@ -111,12 +114,12 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         if (setPosts) {
           setPosts(posts.filter((p) => p._id !== post._id));
         }
-        success("Post deleted successfully");
+        success(lang("delete-success"));
       } else {
-        error("Failed to delete post");
+        error(lang("delete-fail"));
       }
     } catch (err) {
-      error("An error occurred while deleting the post");
+      error(lang("delete-fail"), (err as Error).message);
     }
   };
 
@@ -179,6 +182,28 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
     }
   };
 
+  const getFormattedTime = (timestamp: string): string => {
+    const now = new Date();
+    const postTime = new Date(timestamp);
+    console.log(postTime);
+    const diff = now.getTime() - postTime.getTime();
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) {
+      return lang("justNow");
+    } else if (minutes < 60) {
+      return lang("minutesAgo", minutes);
+    } else if (hours < 24) {
+      return lang("hoursAgo", hours);
+    } else {
+      return lang("daysAgo", days);
+    }
+  };
+  const formattedTime = getFormattedTime(new Date(post.createdAt).toISOString());
+
   useEffect(() => {
     const account = auth.account;
     if (!account) return;
@@ -214,7 +239,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
             to={`/users/profile/${postAuthor?._id}`}
             className="w-8 h-8 rounded-full overflow-hidden"
           >
-            <img src={postAuthor?.avatar || "/boy1.png"} alt="Profile" />
+            <img src={postAuthor?.avatar || "/avatar-placeholder.png"} alt="Profile" />
           </Link>
         </div>
         <div className="flex flex-col flex-1">
@@ -235,7 +260,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
                 @{postAuthor?.username}
               </Link>
               <span>·</span>
-              <span>{formattedDate}</span>
+              <span>{formattedTime}</span>
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">

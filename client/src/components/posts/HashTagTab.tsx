@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import * as Yup from "yup";
+import { useI18nContext } from "../../hooks/useI18nContext";
 type ItemType = {
   label: string;
 };
@@ -58,6 +59,8 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
   setIsHashtagTabValid,
 }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const language = useI18nContext();
+  const lang = language.of("HashtagTab");
   const courses: ItemType[] = [
     { label: "breakfast" },
     { label: "lunch" },
@@ -129,7 +132,7 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
             }`}
             onClick={(event) => onClick(item.label, event)}
           >
-            {item.label}
+            {lang(item.label)}
           </button>
         ))}
       </div>
@@ -151,7 +154,7 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
             }`}
             onClick={(event) => onClick(item.label, event)}
           >
-            {item.label}
+           {lang(item.label)}
           </button>
         ))}
       </div>
@@ -173,7 +176,7 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
             }`}
             onClick={(event) => onClick(item.label, event)}
           >
-            {item.label}
+            {lang(item.label)}
           </button>
         ))}
       </div>
@@ -182,35 +185,35 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
 
   return (
     <>
-      <h1 className="text-2xl font-semibold text-gray-900">TAGS.</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 uppercase">{lang("tags")}.</h1>
       <div className="w-full">
         <div className="mt-2">
-          <h2 className="font-bold text-lg inline-flex items-center">
-            COURSES.<span className="text-red-500 ml-1">*</span>
+          <h2 className="font-bold text-lg inline-flex items-center uppercase">
+            {lang("courses")}.<span className="text-red-500 ml-1">*</span>
           </h2>
           {renderPillGroup(courses, course, toggleCourse)}
         </div>
 
         <div className="mt-2">
-          <h2 className="font-bold text-lg inline-flex items-center">
-            DIFFICULTY.<span className="text-red-500 ml-1">*</span>
+          <h2 className="font-bold text-lg inline-flex items-center uppercase">
+            {lang("difficulty")}.<span className="text-red-500 ml-1">*</span>
           </h2>
           {renderDifficultyGroup(difficulties, difficulty, selectDifficulty)}
         </div>
 
         <div className="mt-2">
-          <h2 className="font-bold text-lg inline-flex items-center">
-            DIETARY RESTRICTIONS.<span className="text-red-500 ml-1">*</span>
+          <h2 className="font-bold text-lg inline-flex items-center uppercase">
+            {lang("diery")}.<span className="text-red-500 ml-1">*</span>
           </h2>
           {renderDietaryGroup(dietaryRestrictions, dietary, toggleDietary)}
         </div>
         <div className="mt-4">
-          <label className="block mb-2 text-sm">Hashtags</label>
+          <label className="block mb-2 text-sm">{lang("hashtags")}</label>
           <div className="flex items-center space-x-2 mb-2">
             <input
               type="text"
               className="input input-bordered w-full"
-              placeholder="Enter a hashtag"
+              placeholder={lang("enter-tag")}
               value={newHashtag}
               onChange={(e) => setNewHashtag(e.target.value)}
               disabled={isSubmitting}
@@ -221,7 +224,7 @@ const HashtagTab: React.FC<HashtagTabProps> = ({
               onClick={addHashtag}
               disabled={isSubmitting}
             >
-              Add
+              {lang("add")}
             </button>
           </div>
           {errors.newHashtag && (

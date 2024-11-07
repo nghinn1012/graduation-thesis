@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { IoAddCircleOutline, IoCloseSharp } from "react-icons/io5";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface QuickPasteModalProps {
   isModalOpen: boolean;
@@ -20,6 +21,8 @@ const QuickPasteModal: React.FC<QuickPasteModalProps> = ({
   setInstructionInput,
   handleModalSubmit,
 }) => {
+  const language = useI18nContext();
+  const lang = language.of("QuickPasteTab");
   return (
     <div className={`modal ${isModalOpen ? "modal-open" : ""}`}>
       <div className="modal-box w-3/4 max-h-screen relative">
@@ -29,27 +32,27 @@ const QuickPasteModal: React.FC<QuickPasteModalProps> = ({
         >
           <IoCloseSharp className="w-6 h-6" />
         </button>
-        <h3 className="font-bold text-lg">Quick Add Ingredients & Instructions</h3>
+        <h3 className="font-bold text-lg">{lang("title")}</h3>
 
-        <p className="py-4">Add your ingredients in the format: name quantity</p>
+        <p className="py-4">{lang("ingredientsLabel")}</p>
         <textarea
           className="textarea textarea-bordered w-full h-32"
-          placeholder="Example: Tomato 2, Onion 3"
+          placeholder={lang("ingredientPlaceholder")}
           value={modalInput}
           onChange={(e) => setModalInput(e.target.value)}
         ></textarea>
 
-        <p className="py-4">Add your instructions:</p>
+        <p className="py-4">{lang("instructionsLabel")}</p>
         <textarea
           className="textarea textarea-bordered w-full h-32"
-          placeholder="Example: Chop the tomatoes, Sauté the onions"
+          placeholder={lang("instructionPlaceholder")}
           value={instructionInput}
           onChange={(e) => setInstructionInput(e.target.value)}
         ></textarea>
 
         <div className="modal-action flex justify-between mt-4">
           <button className="btn btn-outline" onClick={handleModalSubmit}>
-            Add Ingredients & Instructions
+            {lang("submitButton")}
           </button>
         </div>
       </div>
