@@ -5,6 +5,7 @@ import { IAuthor, rpcGetUser, rpcGetUsers } from "./rpc.services";
 import { io } from '../../index';
 import postModel from "../models/postModel";
 import { notifyMadeFood } from "./notify.services";
+import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
   if (!madeRecipeData.userId) {
     throw new Error("User not found");
@@ -31,7 +32,14 @@ export const createMadeRecipeService = async (madeRecipeData: IMadeRecipe) => {
           console.error("Error uploading image:", error);
         }
       }
-      io.emit('made-create', madeRecipe.id);
+      RabbitMQ.instance.publicMessage(
+        BrokerSource.NOTIFICATION,
+        brokerOperations.food.NOTIFY_MADE_UPLOAD_COMPLETE,
+        {
+          _id: madeRecipe._id,
+          type: "made-create",
+        }
+      );
     };
 
     handleImageUpload();
@@ -97,7 +105,14 @@ export const updateMadeRecipeService = async (madeRecipeId: string, madeRecipeDa
           console.error("Error uploading image:", error);
         }
       }
-      io.emit('made-update', madeRecipeId);
+      RabbitMQ.instance.publicMessage(
+        BrokerSource.NOTIFICATION,
+        brokerOperations.food.NOTIFY_MADE_UPLOAD_COMPLETE,
+        {
+          _id: madeRecipeId,
+          type: "made-update",
+        }
+      );
     };
 
     handleImageUpload();

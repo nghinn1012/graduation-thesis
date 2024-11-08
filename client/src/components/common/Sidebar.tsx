@@ -3,7 +3,7 @@ import XSvg from "../svgs/X";
 import { GoHome } from "react-icons/go";
 import { IoNotificationsOutline, IoSearchOutline } from "react-icons/io5";
 import { FaCartArrowDown, FaRegUser } from "react-icons/fa6";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { BiDish, BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { PiPackageFill, PiShoppingCartLight } from "react-icons/pi";
@@ -11,10 +11,13 @@ import { LuCalendarDays, LuMail } from "react-icons/lu";
 import { MdOutlineExplore } from "react-icons/md";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { useNotificationContext } from "../../context/NotificationContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 const Sidebar = () => {
   const auth = useAuthContext();
   const { account } = useAuthContext();
   const { unreadCount } = useNotificationContext();
+  const language = useI18nContext();
+  const lang = language.of("Sidebar");
 
   const logout = () => {
     sessionStorage.clear();
@@ -24,41 +27,63 @@ const Sidebar = () => {
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-60">
       <div className="sticky top-0 left-0 h-screen flex flex-col border-r border-gray-300 w-20 md:w-full">
-        <Link to="/" className="flex justify-center md:justify-start">
+        <NavLink to="/" className="flex justify-center md:justify-start">
           <XSvg className="px-2 w-12 h-12 rounded-full fill-white" />
-        </Link>
+        </NavLink>
         <ul className="flex flex-col gap-3 mt-6">
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="/"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <GoHome className="w-8 h-8" />
-              <span className="text-lg hidden md:block mt-1">Home</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("home")}
+              </span>
+            </NavLink>
           </li>
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="/posts/explore"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <MdOutlineExplore className="w-8 h-8" />
-              <span className="text-lg hidden md:block mt-1">Explore</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("explore")}
+              </span>
+            </NavLink>
           </li>
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="/users/search"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <IoSearchOutline className="w-8 h-8" />
-              <span className="text-lg hidden md:block mt-1">Search</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("search")}
+              </span>
+            </NavLink>
           </li>
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="/users/notifications"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <div className="relative">
                 <IoNotificationsOutline className="w-6 h-6" />
@@ -69,87 +94,125 @@ const Sidebar = () => {
                 )}
               </div>
               <span className="text-lg hidden md:block mt-1 ml-1">
-                Notifications
+                {lang("notifications")}
               </span>
-            </Link>
+            </NavLink>
           </li>
 
-          <li className="flex justify-center md:justify-start">
-            <Link
+          <li className="flex juLinkstify-center md:justify-start">
+            <NavLink
               to="/message"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <LuMail className="w-6 h-6" />
-              <span className="text-lg hidden md:block mt-1 ml-1">Message</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1 ml-1">
+                {lang("messages")}
+              </span>
+            </NavLink>
           </li>
 
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to={`/users/profile/${account?._id}`}
-              className="flex gap-4 items-cente hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <FaRegUser className="w-6 h-6" />
-              <span className="text-lg hidden md:block mt-1 ml-1">Profile</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1 ml-1">
+                {lang("profile")}
+              </span>
+            </NavLink>
           </li>
-
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="users/shoppingList"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <HiOutlineShoppingBag className="w-6 h-6" />
               <span className="text-lg hidden md:block mt-1">
-                Shopping List
+                {lang("shopping-list")}
               </span>
-            </Link>
+            </NavLink>
           </li>
 
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="users/mealPlanner"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <LuCalendarDays className="w-6 h-6" />
-              <span className="text-lg hidden md:block mt-1">Meal Planner</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("plan")}
+              </span>
+            </NavLink>
           </li>
 
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="products"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <BiDish className="w-6 h-6" />
-              <span className="text-lg hidden md:block mt-1">Product</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("product")}
+              </span>
+            </NavLink>
           </li>
 
-
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="cart"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <PiShoppingCartLight className="w-6 h-6" />
-              <span className="text-lg hidden md:block mt-1">Cart</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("cart")}
+              </span>
+            </NavLink>
           </li>
 
           <li className="flex justify-center md:justify-start">
-            <Link
+            <NavLink
               to="orders"
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
             >
               <PiPackageFill className="w-6 h-6" />
-              <span className="text-lg hidden md:block mt-1">Orders</span>
-            </Link>
+              <span className="text-lg hidden md:block mt-1">
+                {lang("orders")}
+              </span>
+            </NavLink>
           </li>
         </ul>
         {account && (
           <div className="mt-auto mb-10 flex gap-2 items-start transition-all duration-300 py-2 px-4 rounded-full">
-            <Link
+            <NavLink
               to={`/users/profile/${account._id}`}
               className="flex gap-2 items-start flex-1"
             >
@@ -169,7 +232,7 @@ const Sidebar = () => {
                   <p className="text-slate-500 text-sm">@{account?.username}</p>
                 </div>
               </div>
-            </Link>
+            </NavLink>
             <BiLogOut
               className="w-5 h-5 cursor-pointer ml-1"
               onClick={() => logout()}

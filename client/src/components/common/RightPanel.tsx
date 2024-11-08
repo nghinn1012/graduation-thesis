@@ -35,6 +35,7 @@ const RightPanel: React.FC = () => {
     setDifficulty,
     hashtagsSearch,
     setHashtagsSearch,
+    setSearchQuery
   } = useSearchContext();
   const { suggestUsers, fetchSuggestions, setSuggestUsers } = useUserContext();
   const { followUser } = useFollowContext();
@@ -177,22 +178,33 @@ const RightPanel: React.FC = () => {
     } as unknown as AccountInfo);
   };
 
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    if (searchTerm !== searchQuery) {
+      setSearchQuery(searchTerm);
+    }
+    navigate(`/users/search?query=${encodeURIComponent(searchTerm)}`);
+    setSearchTerm("");
+  };
+
   return (
     <div className="hidden lg:block">
       {location.pathname === "/" && (
-        <div className="relative mt-4">
+        <form onSubmit={handleSubmit} className="relative mt-4">
           <input
             type="text"
             placeholder="Search posts, users, ingredients..."
-            className="w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none
-					focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out hover:bg-white"
+            className="w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out hover:bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2">
+          <button
+            type="submit"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2"
+          >
             <FiSearch className="w-5 h-5 text-gray-400" />
-          </span>
-        </div>
+          </button>
+        </form>
       )}
 
       {location.pathname === "/users/search" && (
@@ -448,60 +460,62 @@ const RightPanel: React.FC = () => {
         </div>
       )}
 
-      {location.pathname !== "/message" && location.pathname !== "/products"
-      && location.pathname.split("/")[1] !== "orders" && location.pathname !== "/checkout" && (
-        <div className="mt-8 p-4 rounded-md border border-gray-300">
-          <p className="font-bold my-4">Who to follow</p>
-          <div className="flex flex-col gap-6">
-            {/* Loading State */}
-            {isLoading ||
-              (!suggestUsers && (
-                <>
-                  <RightPanelSkeleton />
-                  <RightPanelSkeleton />
-                  <RightPanelSkeleton />
-                  <RightPanelSkeleton />
-                </>
-              ))}
+      {location.pathname !== "/message" &&
+        location.pathname !== "/products" &&
+        location.pathname.split("/")[1] !== "orders" &&
+        location.pathname !== "/checkout" && (
+          <div className="mt-8 p-4 rounded-md border border-gray-300">
+            <p className="font-bold my-4">Who to follow</p>
+            <div className="flex flex-col gap-6">
+              {/* Loading State */}
+              {isLoading ||
+                (!suggestUsers && (
+                  <>
+                    <RightPanelSkeleton />
+                    <RightPanelSkeleton />
+                    <RightPanelSkeleton />
+                    <RightPanelSkeleton />
+                  </>
+                ))}
 
-            {/* User List */}
-            {!isLoading &&
-              suggestUsers.slice(0, 5).map((user: User) => (
-                <div
-                  className="flex items-center justify-between gap-4"
-                  key={user._id}
-                >
-                  <div className="flex gap-2 items-center">
-                    <div className="avatar">
-                      <div className="w-8 rounded-full">
-                        <img src={user.avatar || "/avatar-placeholder.png"} />
+              {/* User List */}
+              {!isLoading &&
+                suggestUsers.slice(0, 5).map((user: User) => (
+                  <div
+                    className="flex items-center justify-between gap-4"
+                    key={user._id}
+                  >
+                    <div className="flex gap-2 items-center">
+                      <div className="avatar">
+                        <div className="w-8 rounded-full">
+                          <img src={user.avatar || "/avatar-placeholder.png"} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <Link
+                          to={`/users/profile/${user._id}`}
+                          className="font-semibold tracking-tight truncate w-40"
+                        >
+                          {user.name}
+                        </Link>
+                        <span className="text-sm text-slate-500">
+                          @{user.username}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex flex-col">
-                      <Link
-                        to={`/users/profile/${user._id}`}
-                        className="font-semibold tracking-tight truncate w-40"
+                    <div>
+                      <button
+                        className="btn btn-neutral text-white hover:bg-white hover:opacity-90 rounded-full btn-sm"
+                        onClick={(event) => handleFollowUser(user._id, event)}
                       >
-                        {user.name}
-                      </Link>
-                      <span className="text-sm text-slate-500">
-                        @{user.username}
-                      </span>
+                        Follow
+                      </button>
                     </div>
                   </div>
-                  <div>
-                    <button
-                      className="btn btn-neutral text-white hover:bg-white hover:opacity-90 rounded-full btn-sm"
-                      onClick={(event) => handleFollowUser(user._id, event)}
-                    >
-                      Follow
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };

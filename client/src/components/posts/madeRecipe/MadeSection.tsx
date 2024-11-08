@@ -5,6 +5,8 @@ import { MadePostData, MadePostUpdate, postFetcher, PostInfo } from '../../../ap
 import MadePostSkeleton from '../../skeleton/MadePostSkeleton';
 import { useToastContext } from '../../../hooks/useToastContext';
 import { useSocket } from '../../../hooks/useSocketContext';
+import { MadeSectionSkeleton } from '../../skeleton/MadeSectionSkeleton';
+import { useI18nContext } from '../../../hooks/useI18nContext';
 
 interface MadeSectionProps {
   post: PostInfo;
@@ -17,22 +19,23 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
   const [loading, setLoading] = useState(true);
   const { success, error } = useToastContext();
   const { socket } = useSocket();
+  const language = useI18nContext();
+  const lang = language.of("MadeSection");
 
-  // State để lưu lỗi xác thực
   const [validationError, setValidationError] = useState<{rating?: string, review?: string}>({});
 
-  // Schema xác thực với yup
   const madePostSchema = yup.object().shape({
-    review: yup.string().required('Review is required'),
+    review: yup.string().required(lang("required-review")),
     rating: yup
       .number()
-      .required('Rating is required')
-      .min(1, 'Rating must be at least 1')
-      .max(5, 'Rating cannot exceed 5'),
+      .required(lang("required-rating"))
+      .min(1, lang("rating-min"))
+      .max(5, lang("rating-max")),
   });
 
   useEffect(() => {
     if (!socket || !token) return;
+
     const fetchPosts = async () => {
       try {
         const response = await postFetcher.getMadeRecipeOfPost(post._id, token);
@@ -44,15 +47,20 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
         setLoading(false);
       }
     };
-    socket.on("made-create", () => {
+
+    const handleMadeCreateEvent = () => {
+      console.log('made-create event received');
       fetchPosts();
-      return;
-    });
-    fetchPosts();
-    return () => {
-      socket.off('made-create', () => {});
     };
-  }, [post, token]);
+
+    socket.on('made-create', handleMadeCreateEvent);
+
+    fetchPosts();
+
+    return () => {
+      socket.off('made-create', handleMadeCreateEvent);
+    };
+  }, [post, token, socket]);
 
   useEffect(() => {
     if (!socket) return;
@@ -75,8 +83,9 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
           newSet.delete(id);
           return newSet;
         });
-      } catch (error) {
-        console.error('Error updating post:', error);
+      } catch (err) {
+        console.error('Error updating post:', (err as Error).message);
+        error(lang("fail-update-made-it", (err as Error).message));
       }
     };
 
@@ -106,16 +115,15 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     }
 
     try {
-      // Xác thực dữ liệu với yup
       await madePostSchema.validate({ review, rating });
-      setValidationError({}); // Xóa lỗi trước đó nếu xác thực thành công
+      setValidationError({});
 
       if (!socket || !token) return;
 
       setLoadingPosts((prev) => new Set(prev).add(_id));
 
       await postFetcher.updateMadeRecipe(_id, data, token);
-      success('Updated made successfully');
+      success(lang("update-made-success"));
 
       const handleMadeUpdate = async (id: string) => {
         if (id === _id) {
@@ -138,8 +146,9 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
             });
 
             socket.off('made-update', handleMadeUpdate);
-          } catch (error) {
-            console.error('Error updating post:', error);
+          } catch (err) {
+            console.error('Error updating post:', err);
+            error(lang("fail-update-made-it", (err as Error).message));
           }
         }
       };
@@ -152,7 +161,7 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
           rating: err.path === 'rating' ? err.message : undefined,
         });
       } else {
-        error("Can't update made", (err as Error).message);
+        error(lang("fail-update-made-it", (err as Error).message));
       }
 
       setLoadingPosts((prev) => {
@@ -167,9 +176,9 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
     try {
       await postFetcher.deleteMadeRecipe(_id, token);
       setMadePosts((prevPosts) => prevPosts.filter((post) => post._id !== _id));
-      success('Deleted made successfully');
+      success(lang("delete-made-success"));
     } catch (err) {
-      error("Can't delete made", (err as Error).message);
+      error(lang("fail-delete-made-it", (err as Error).message));
     }
   }
 
@@ -182,35 +191,18 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
   return (
     <div className="mt-4 flex flex-col gap-4">
       {loading ? (
-        <div className="flex flex-col gap-4">
-          {/* Summary Skeleton */}
-          <div className="p-4 flex flex-row items-center justify-center gap-20">
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-6 bg-gray-300 animate-pulse mb-2"></div>
-              <div className="w-16 h-8 bg-gray-300 animate-pulse"></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-6 bg-gray-300 animate-pulse mb-2"></div>
-              <div className="w-16 h-8 bg-gray-300 animate-pulse"></div>
-            </div>
-          </div>
-
-          {/* Post Skeletons */}
-          {[1, 2, 3].map((_, index) => (
-            <MadePostSkeleton key={index} />
-          ))}
-        </div>
+        <MadeSectionSkeleton />
       ) : (
         <>
           {/* Summary Section */}
           <div className="p-4 flex flex-row items-center justify-center gap-20">
             <div className="flex flex-col items-center">
-              <p className="text-lg font-semibold">Total Posts</p>
+              <p className="text-lg font-semibold">{lang("total-posts")}</p>
               <p className="text-2xl font-bold mt-1">{totalPosts}</p>
             </div>
 
             <div className="flex flex-col items-center">
-              <p className="text-lg font-semibold">Average Rating</p>
+              <p className="text-lg font-semibold">{lang("average-rating")}</p>
               <div className="flex items-center mt-1">
                 <p className="text-2xl font-bold mr-2">{averageRating.toFixed(1)}</p>
                 <div className="flex">

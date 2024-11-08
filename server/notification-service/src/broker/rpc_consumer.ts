@@ -22,6 +22,7 @@ export const brokerOperations = {
   food: {
     NOTIFY_NEW_FOOD: "NOTIFY_NEW_FOOD",
     NOTIFY_FOOD_UPLOAD_COMPLETE: "NOTIFY_FOOD_UPLOAD_COMPLETE",
+    NOTIFY_MADE_UPLOAD_COMPLETE: "NOTIFY_MADE_UPLOAD_COMPLETE",
     NOTIFY_FOOD_LIKED: "NOTIFY_FOOD_LIKED",
     NOTIFY_FOOD_COMMENTED: "NOTIFY_FOOD_COMMENTED",
     NOTIFY_FOOD_SAVED: "NOTIFY_FOOD_SAVED",
@@ -120,6 +121,14 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
       io.emit(msg.data.type, msg.data._id);
     }
   );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_MADE_UPLOAD_COMPLETE,
+    (msg: IBrokerMessage<NotifiFoodUploadResponse>) => {
+      console.log("Message data:", msg.data);
+      io.emit(msg.data.type, msg.data._id);
+    }
+  )
 
   rabbit.listenMessage(
     brokerOperations.food.NOTIFY_FOOD_LIKED,

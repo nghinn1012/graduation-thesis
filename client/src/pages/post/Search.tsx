@@ -36,6 +36,10 @@ const SearchPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
+
   return (
     <div className="mx-auto p-4">
       <div className="relative my-4">

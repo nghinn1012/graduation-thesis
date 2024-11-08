@@ -185,7 +185,6 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const getFormattedTime = (timestamp: string): string => {
     const now = new Date();
     const postTime = new Date(timestamp);
-    console.log(postTime);
     const diff = now.getTime() - postTime.getTime();
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);

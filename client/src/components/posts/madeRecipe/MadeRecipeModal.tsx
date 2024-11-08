@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PostInfo } from "../../../api/post";
 import * as yup from "yup";
+import { useI18nContext } from "../../../hooks/useI18nContext";
 interface MadeRecipeModalProps {
   post: PostInfo;
   postAuthor: any;
@@ -39,14 +40,16 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
     rating?: string;
     review?: string;
   }>({});
+  const language = useI18nContext();
+  const lang = language.of("MadeSection");
 
   const madePostSchema = yup.object().shape({
-    review: yup.string().required("Review is required"),
+    review: yup.string().required(lang("required-review")),
     rating: yup
       .number()
-      .required("Rating is required")
-      .min(1, "Rating must be at least 1")
-      .max(5, "Rating cannot exceed 5"),
+      .required(lang("required-rating"))
+      .min(1, lang("rating-min"))
+      .max(5, lang("rating-max")),
   });
   useEffect(() => {
     if (isOpen) {
@@ -99,13 +102,13 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-xl font-bold mb-2">
-          {isEditing ? "EDIT YOUR WORK." : "SHARE YOUR WORK."}
+        <h2 className="text-xl font-bold mb-2 uppercase">
+          {isEditing ? lang("edit-made") : lang("share-made")}
         </h2>
         <p className="text-gray-600 mb-4">
           {isEditing
-            ? "Update your review and rating."
-            : "Masterpiece! Feel free to add a review too."}
+            ? lang("edit-intro")
+            : lang("share-intro")}
         </p>
 
         {/* Original and Your Image Section */}
@@ -119,7 +122,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
               />
             </div>
             <div className="w-1/2 p-4">
-              <h3 className="font-bold text-lg">ORIGINAL.</h3>
+              <h3 className="font-bold text-lg uppercase">{lang("original")}.</h3>
               <p className="mt-2 text-base font-semibold">{post.title}</p>
               <div className="flex items-center mt-2">
                 <img
@@ -139,7 +142,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
             </div>
           </div>
           <div className="w-full flex flex-col items-center bg-gray-100 rounded-lg overflow-hidden">
-            <h3 className="font-bold text-lg">YOURS.</h3>
+            <h3 className="font-bold text-lg">{lang("yours")}.</h3>
             <img
               src={newImage || "path-to-original-image.jpg"}
               alt="Yours"
@@ -153,7 +156,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
                 className="w-full py-3 bg-red-500 text-white font-semibold rounded-lg mb-6"
                 onClick={handleClick}
               >
-                Change photo
+                 {lang("change-photo")}
               </button>
               <input
                 type="file"
@@ -168,7 +171,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
 
         {/* Rating Section */}
         <div className="my-4 flex flex-col items-center justify-center">
-          <h3 className="font-bold">REVIEW.</h3>
+          <h3 className="font-bold uppercase">{lang("review")}.</h3>
           <div className="flex items-center mb-2 gap-4">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -187,7 +190,7 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
           )}
           <textarea
             className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Tell us what you thought of this recipe and anything you changed"
+            placeholder={lang("review-placeholder")}
             value={review}
             onChange={(e) => setReview(e.target.value)}
           ></textarea>
@@ -199,13 +202,13 @@ const MadeRecipeModal: React.FC<MadeRecipeModalProps> = ({
         {/* Action Buttons */}
         <div className="flex justify-end gap-2 mt-4">
           <button className="btn bg-gray-300 text-black" onClick={onClose}>
-            Cancel
+            {lang("cancel")}
           </button>
           <button
             className="btn bg-gradient-to-r from-red-500 to-orange-500 text-white"
             onClick={handleSubmit}
           >
-            {isEditing ? "Save" : "Post"}
+            {isEditing ? lang("save") : lang("post")}
           </button>
         </div>
       </div>

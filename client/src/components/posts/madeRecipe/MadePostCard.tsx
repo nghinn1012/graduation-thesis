@@ -3,6 +3,7 @@ import { IoIosMore } from "react-icons/io";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import MadeRecipeModal from "./MadeRecipeModal"; // Import MadeRecipeModal
 import { PostInfo } from "../../../api/post";
+import { useI18nContext } from "../../../hooks/useI18nContext";
 
 interface MadePostCardProps {
   author: {
@@ -50,6 +51,8 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
   const auth = useAuthContext();
   const currentUser = auth?.account;
   const isMyPostMade = currentUser?.email === author.email;
+  const language = useI18nContext();
+  const lang = language.of("MadeSection");
 
   const handleDropdownToggle = () => {
     setDropdownOpen(!dropdownOpen);
@@ -61,7 +64,7 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
   };
 
   const handleDelete = () => {
-    const isConfirmed = window.confirm("Are you sure to delete this made?");
+    const isConfirmed = window.confirm(lang("delete-confirm"));
 
     if (isConfirmed) {
       onDelete(_id);
@@ -75,7 +78,7 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
     newRating: number,
     newImage: string | undefined
   ) => {
-    onSubmit(_id, newReview, newRating, newImage); // Pass the _id here
+    onSubmit(_id, newReview, newRating, newImage);
     console.log("Edit submitted", _id);
     setIsEditModalOpen(false);
   };
@@ -123,13 +126,13 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
                     className="block w-full text-left px-3 py-2 sm:px-4 sm:py-2 text-gray-700 text-sm sm:text-base hover:bg-gray-100"
                     onClick={handleEdit}
                   >
-                    Edit
+                    {lang("edit")}
                   </button>
                   <button
                     className="block w-full text-left px-3 py-2 sm:px-4 sm:py-2 text-gray-700 text-sm sm:text-base hover:bg-gray-100"
                     onClick={handleDelete}
                   >
-                    Delete
+                    {lang("delete")}
                   </button>
                 </div>
               )}

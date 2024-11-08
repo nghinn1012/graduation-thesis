@@ -4,6 +4,8 @@ import { usePostContext } from '../../context/PostContext';
 import { PostInfo } from '../../api/post';
 import { IoMdHeart } from 'react-icons/io';
 import { TbMessageCircleFilled } from "react-icons/tb";
+import { ExploreSkeleton } from '../../components/skeleton/ExploreSkeleton';
+
 
 const Explore: React.FC = () => {
   const { posts, isLoading, loadMorePosts } = usePostContext();
@@ -30,9 +32,9 @@ const Explore: React.FC = () => {
             <img
               src={post.images[0]}
               alt={post.about}
-              className="w-full aspect-square object-cover"
+              className="w-full aspect-square object-cover rounded"
             />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded">
               <div className="flex items-center text-white">
                 <span className="flex items-center mr-4">
                   <IoMdHeart className="text-white"/>
@@ -47,7 +49,7 @@ const Explore: React.FC = () => {
           </div>
         </Link>
       ))}
-      {isLoading && <div>Loading...</div>}
+      {isLoading && <ExploreSkeleton />}
       {posts.length > 0 && <div ref={lastPostRef} />}
     </div>
   );

@@ -6,6 +6,9 @@ import * as yup from "yup";
 import { FaHeart as FaHeartSolid } from "react-icons/fa";
 import { usePostContext } from "../../../context/PostContext";
 import { Link } from "react-router-dom";
+import { useI18nContext } from "../../../hooks/useI18nContext";
+import { useToastContext } from "../../../hooks/useToastContext";
+import { vi, enUS } from "date-fns/locale";
 interface CommentSectionProps {
   postId: string;
   token: string;
@@ -37,7 +40,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [editCommentError, setEditCommentError] = useState<string | null>(null);
   const [newCommentError, setNewCommentError] = useState<string | null>(null);
   const {postCommentCounts, updateCommentCount} = usePostContext();
-
+  const language = useI18nContext();
+  const lang = language.of("CommentSection");
+  const {success, error} = useToastContext();
   const getTotalCommentCount = (comments: Comment[]): number => {
     let count = comments.length;
 
@@ -133,11 +138,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       setNewComment("");
       setParentCommentId(null);
       setUserMention({} as CommentAuthor);
-    } catch (error) {
-      if (error instanceof yup.ValidationError) {
-        setNewCommentError(error.message);
+    } catch (err) {
+      if (err instanceof yup.ValidationError) {
+        setNewCommentError(err.message);
       } else {
-        console.error("Failed to post comment", error);
+        console.error("Failed to post comment", err);
+        error(lang("fail-post-comment"), (err as Error).message);
       }
     }
   };
@@ -195,11 +201,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       setEditingCommentId(null);
       setEditContent("");
       setUserMention({} as CommentAuthor);
-    } catch (error) {
-      if (error instanceof yup.ValidationError) {
-        setEditCommentError(error.message);
+    } catch (err) {
+      if (err instanceof yup.ValidationError) {
+        setEditCommentError(err.message);
       } else {
         console.error("Failed to update comment", error);
+        error(lang("fail-update-comment"), (err as Error).message);
       }
     }
   };
@@ -213,7 +220,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     parentCommentId?: string
   ) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this comment?"
+      lang("confirm-delete-comment")
     );
     if (!confirmDelete) return;
 
@@ -237,8 +244,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           return prev.filter((comment) => comment._id !== commentId);
         }
       });
-    } catch (error) {
-      console.error("Failed to delete comment", error);
+    } catch (err) {
+      console.error("Failed to delete comment", err);
+      error(lang("fail-delete-comment"), (err as Error).message);
     }
   };
 
@@ -301,6 +309,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                   <span className="text-xs text-gray-500">
                     {formatDistanceToNow(new Date(reply.createdAt), {
                       addSuffix: true,
+                      locale: language.language.code === "vi" ? vi : enUS,
                     })}{" "}
                   </span>
                 </div>
@@ -327,7 +336,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                   userMention?.username != undefined && (
                     <div className="mb-4 text-gray-500 flex items-center">
                       <span className="mr-2">
-                        Replying to{" "}
+                        {lang("replying-to")}{" "}
                         <span className="font-semibold">
                           @{userMention.username}
                         </span>
@@ -352,7 +361,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     onClick={handleUpdateComment}
                     className="ml-3 btn btn-primary"
                   >
-                    Update
+                    {lang("update")}
                   </button>
                   <button
                     onClick={() => {
@@ -361,7 +370,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     }}
                     className="ml-3 btn btn-secondary"
                   >
-                    Cancel
+                    {lang("cancel")}
                   </button>
                 </div>
                 {editCommentError && (
@@ -394,7 +403,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     );
                   }}
                 >
-                  Edit
+                  {lang("edit")}
                 </button>
                 <button
                   className="mr-4 text-red-500 hover:underline text-xs mt-2"
@@ -402,7 +411,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     handleDeleteComment(reply._id, parentCommentId)
                   }
                 >
-                  Delete
+                  {lang("delete")}
                 </button>
               </>
             )}
@@ -417,7 +426,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 )
               }
             >
-              Reply
+              {lang("reply")}
             </button>
           </div>
         </div>
@@ -432,7 +441,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         userMention.username != undefined && (
           <div className="mb-4 text-gray-500 flex items-center">
             <span className="mr-2">
-              Replying to{" "}
+              {lang("replying-to")}{" "}
               <span className="font-semibold">@{userMention.username}</span>
             </span>
             <button
@@ -450,7 +459,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             <input
               ref={inputRef}
               type="text"
-              placeholder="Add a comment"
+              placeholder={lang("comment-placeholder")}
               disabled={editingCommentId !== null}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -460,7 +469,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               onClick={handlePostComment}
               className="ml-3 btn btn-primary"
             >
-              Post
+              {lang("post")}
             </button>
           </div>
           {newCommentError && (
@@ -495,6 +504,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                         <span className="text-xs text-gray-500">
                           {formatDistanceToNow(new Date(comment.createdAt), {
                             addSuffix: true,
+                            locale:
+                              language.language.code === "vi" ? vi : enUS,
                           })}
                         </span>
                       </div>
@@ -518,7 +529,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                       {userMention && userMention.username != undefined && (
                         <div className="mb-4 text-gray-500 flex items-center">
                           <span className="mr-2">
-                            Replying to{" "}
+                            {lang("replying-to")}{" "}
                             <span className="font-semibold">
                               @{userMention?.username}
                             </span>
@@ -534,7 +545,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                       <div className="mb-4 flex items-center border-b border-gray-200 pb-3">
                         <input
                           type="text"
-                          placeholder="Edit comment"
+                          placeholder={lang("edit-comment-placeholder")}
                           value={editContent}
                           onChange={(e) => {
                             setEditContent(e.target.value);
@@ -545,7 +556,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                           onClick={handleUpdateComment}
                           className="ml-3 btn btn-primary"
                         >
-                          Update
+                          {lang("update")}
                         </button>
                         <button
                           onClick={() => {
@@ -555,7 +566,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                           }}
                           className="ml-3 btn btn-secondary"
                         >
-                          Cancel
+                          {lang("cancel")}
                         </button>
                       </div>
                       {editCommentError && (
@@ -591,13 +602,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                           );
                         }}
                       >
-                        Edit
+                        {lang("edit")}
                       </button>
                       <button
                         className="mr-4 text-red-500 hover:underline text-xs mt-2"
                         onClick={() => handleDeleteComment(comment._id)}
                       >
-                        Delete
+                        {lang("delete")}
                       </button>
                     </>
                   )}
@@ -608,7 +619,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                       handleReplyClick(comment.author, comment._id.toString())
                     }
                   >
-                    Reply
+                    {lang("reply")}
                   </button>
                   {comment.replies && comment.replies.length > 0 && (
                     <>
@@ -617,8 +628,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                         className="text-blue-500 hover:underline mt-2 text-xs"
                       >
                         {openReplies[comment._id]
-                          ? "Hide replies"
-                          : "Show replies"}
+                          ? lang("hide-replies")
+                          : lang("show-replies")}
                       </button>
                       {openReplies[comment._id] &&
                         renderReplies(comment.replies, comment._id.toString())}

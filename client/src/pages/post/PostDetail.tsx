@@ -39,6 +39,7 @@ import { useProfileContext } from "../../context/ProfileContext";
 import { useFollowContext } from "../../context/FollowContext";
 import { AccountInfo, PostAuthor, userFetcher } from "../../api/user";
 import { useProductContext } from "../../context/ProductContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
@@ -150,6 +151,8 @@ const PostDetails: React.FunctionComponent = () => {
   const [product, setProduct] = useState<ProductInfo>(
     [] as unknown as ProductInfo
   );
+  const language = useI18nContext();
+  const lang = language.of("PostDetails", "HashtagTab");
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -447,20 +450,12 @@ const PostDetails: React.FunctionComponent = () => {
         await postFetcher.updatePost(editPost._id, changes, token);
         await setPostUpdated(editPost._id);
         await setPostUpdatedHome(editPost._id);
-        success("Post updated successfully");
+        success(lang("update-success"));
       }
       setIsModalOpen(false);
       setIsLoading(true);
     } catch (err) {
-      error(
-        `Failed to ${isEditing ? "update" : "create"} post: ${
-          (err as Error).message || "Unknown error"
-        }`
-      );
-      console.error(
-        `Error ${isEditing ? "updating" : "creating"} post:`,
-        error
-      );
+      error(lang("fail-fetch-update", (err as Error).message));
     } finally {
       setIsSubmitting(false);
     }
@@ -484,7 +479,7 @@ const PostDetails: React.FunctionComponent = () => {
       }
     } catch (err) {
       console.error("An error occurred while liking the post:", err);
-      error("An error occurred while liking the post");
+      error(lang("fail-like-post"), (err as Error).message);
     }
   };
 
@@ -506,7 +501,7 @@ const PostDetails: React.FunctionComponent = () => {
       }
     } catch (err) {
       console.error("An error occurred while saving the post:", err);
-      error("An error occurred while saving the post");
+      error(lang("fail-save-post"), (err as Error).message);
     }
   };
 
@@ -573,9 +568,8 @@ const PostDetails: React.FunctionComponent = () => {
   ) => {
     const token = auth?.token;
     if (!token) return;
-    console.log("Submit image:", selectedImage);
     if (selectedImage == null) {
-      error("No image selected");
+      error(lang("select-image"));
     }
     const data = {
       image: selectedImage || "",
@@ -584,9 +578,9 @@ const PostDetails: React.FunctionComponent = () => {
     };
     try {
       const result = await postFetcher.createMadeRecipe(post._id, token, data);
-      success("Created made successfully");
+      success(lang("created-made-it"));
     } catch (err) {
-      error("Can't create made", err);
+      error(lang("fail-create-made-it"), (err as Error).message);
     }
     handleCloseModal();
   };
@@ -603,7 +597,7 @@ const PostDetails: React.FunctionComponent = () => {
     if (response) {
       setIsSavedToShoppingList(!isSavedToShoppingList);
     } else {
-      error("Failed to add/remove post to shopping list");
+      error(lang("fail-add-remove-shopping-list"));
     }
   };
 
@@ -626,18 +620,18 @@ const PostDetails: React.FunctionComponent = () => {
     if (response) {
       setIsInSchedule(!isInSchedule);
     } else {
-      error("Failed to add/remove post to shopping list");
+      error(lang("fail-add-remove-plan"));
     }
   };
 
   const handleShowTimeToTake = (timeToTake: number) => {
-    if (!timeToTake) return "Unknown";
-    if (Number(timeToTake) < 60) return `${timeToTake} minutes`;
+    if (!timeToTake) return lang("unknown");
+    if (Number(timeToTake) < 60) return lang("minutes", timeToTake);
     const hours = Math.floor(Number(timeToTake) / 60);
     const minutes = Number(timeToTake) % 60;
-    const modifiedHours = hours > 0 ? `${hours}` : "";
-    const modifiedMinutes = minutes > 0 ? `${minutes}` : "";
-    return `${modifiedHours} hours ${modifiedMinutes} minutes`;
+    const modifiedHours = hours > 0 ? lang("hours", hours) : "";
+    const modifiedMinutes = minutes > 0 ? lang("minutes", minutes) : "";
+    return `${modifiedHours} ${modifiedMinutes}`;
   };
 
   const handleFollowOrUnfollow = async (
@@ -701,7 +695,8 @@ const PostDetails: React.FunctionComponent = () => {
             />
 
             <button
-              className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center"
+              className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full shadow-md flex items-center
+               justify-center"
               onClick={handleBackClick}
             >
               ❮
@@ -736,7 +731,7 @@ const PostDetails: React.FunctionComponent = () => {
                   key={index}
                   className="badge badge-md badge-success py-4 px-2 font-bold text-white"
                 >
-                  {tag}
+                  {lang(tag)}
                 </span>
               ))}
             </div>
@@ -776,12 +771,12 @@ const PostDetails: React.FunctionComponent = () => {
                     {isSavedToShoppingList ? (
                       <>
                         <FaClipboardList className="w-6 h-6 text-green-500" />{" "}
-                        <span>List</span>
+                        <span>{lang("list")}</span>
                       </>
                     ) : (
                       <>
                         <FaClipboardList className="w-6 h-6 text-gray-500" />{" "}
-                        <span>List</span>
+                        <span>{lang("list")}</span>
                       </>
                     )}
                   </button>
@@ -793,12 +788,12 @@ const PostDetails: React.FunctionComponent = () => {
                     {isInSchedule ? (
                       <>
                         <FaRegCalendarCheck className="w-6 h-6 text-green-500" />{" "}
-                        <span>Plan</span>
+                        <span>{lang("plan")}</span>
                       </>
                     ) : (
                       <>
                         <FaRegCalendarPlus className="w-6 h-6 text-gray-500" />{" "}
-                        <span>Plan</span>
+                        <span>{lang("plan")}</span>
                       </>
                     )}
                   </button>
@@ -829,7 +824,7 @@ const PostDetails: React.FunctionComponent = () => {
                     handleFollowOrUnfollow(postAuthor._id, event)
                   }
                 >
-                  {postAuthor.followed ? "Unfollow" : "Follow"}
+                  {postAuthor.followed ? lang("unfollow") : lang("follow")}
                 </button>
               )}
             </div>
@@ -839,7 +834,7 @@ const PostDetails: React.FunctionComponent = () => {
                 role="tab"
                 onClick={() => setActiveTab("recipe")}
               >
-                Recipe
+                {lang("recipe")}
               </a>
               <a
                 className={`tab ${
@@ -848,14 +843,14 @@ const PostDetails: React.FunctionComponent = () => {
                 role="tab"
                 onClick={() => setActiveTab("comments")}
               >
-                Comments
+                {lang("comments")}
               </a>
               <a
                 className={`tab ${activeTab === "made" ? "tab-active" : ""}`}
                 role="tab"
                 onClick={() => setActiveTab("made")}
               >
-                Made
+                {lang("made")}
               </a>
             </div>
 
@@ -864,7 +859,7 @@ const PostDetails: React.FunctionComponent = () => {
                 <div className="mt-4">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold uppercase text-lg md:text-xl">
-                      Ingredients
+                      {lang("ingredients")}
                     </span>
 
                     <div className="flex items-center border border-gray-300 rounded-full">
@@ -875,7 +870,7 @@ const PostDetails: React.FunctionComponent = () => {
                         <span className="text-xl md:text-lg sm:text-xs">−</span>
                       </button>
                       <span className="px-4 py-1.5 md:px-3 md:py-1 md:text-sm sm:px-1.5 sm:py-0.5 sm:text-xs">
-                        {servings} servings
+                        {lang("servings", servings)}
                       </span>
                       <button
                         className="px-3 py-1.5 text-red-500 border-l border-gray-300 md:px-2.5 md:py-1 md:text-sm sm:px-2 sm:py-0.5 sm:text-xs"
@@ -919,11 +914,12 @@ const PostDetails: React.FunctionComponent = () => {
                       {isSavedToShoppingList ? (
                         <>
                           <AiOutlineCheckCircle className="w-6 h-6 mr-2" />{" "}
-                          Added to List
+                          {lang("added-to-list")}
                         </>
                       ) : (
                         <>
-                          <AiOutlinePlus className="w-6 h-6 mr-2" /> Add to List
+                          <AiOutlinePlus className="w-6 h-6 mr-2" />
+                          {lang("add-to-list")}
                         </>
                       )}
                     </button>
@@ -932,7 +928,7 @@ const PostDetails: React.FunctionComponent = () => {
                         className="btn btn-md btn-success w-full md:w-auto"
                         onClick={handleOrderNow}
                       >
-                        Order Now
+                        {lang("order-now")}
                       </button>
                     )}
                   </div>
@@ -940,7 +936,7 @@ const PostDetails: React.FunctionComponent = () => {
 
                 <div className="mt-6 ml-4">
                   <h2 className="text-lg font-semibold uppercase">
-                    Instructions
+                    {lang("instructions")}
                   </h2>
                   <div className="instructions-container mt-4">
                     {post.instructions.map((instruction, index) => (
@@ -974,7 +970,7 @@ const PostDetails: React.FunctionComponent = () => {
                   </div>
                 </div>
                 <div className="mt-6 ml-4">
-                  <span className="font-semibold uppercase">MADE IT?</span>
+                  <span className="font-semibold uppercase">{lang("made-it")}</span>
                   <div className="flex flex-col gap-2 items-center justify-between">
                     <input
                       type="file"
@@ -991,7 +987,7 @@ const PostDetails: React.FunctionComponent = () => {
                     >
                       <IoCameraOutline />
                       <span className="text-base md:text-lg sm:text-md xs:text-sm">
-                        Share the finished product!
+                        {lang("share-the-finished-product")}
                       </span>
                     </button>
                   </div>

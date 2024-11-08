@@ -16,6 +16,11 @@ export type I18nReactComponent =
   | "QuickPasteTab"
   | "CreatePostModal"
   | "PostInfo"
+  | "PostDetails"
+  | "CommentSection"
+  | "MadeSection"
+  | "Sidebar"
+  | "HomePage"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;
