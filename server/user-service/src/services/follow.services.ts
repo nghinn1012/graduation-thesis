@@ -52,6 +52,7 @@ export const followAndUnFollowUserService = async (currentUserId: string, userId
     return "User followed successfully!"
   }
 }
+
 export const getSuggestUserService = async (currentUserId: string) => {
   const currentUser = await UserModel.findById(currentUserId).populate('following');
   const followedUserIds = currentUser?.following.map((user: any) => user._id.toString());

@@ -266,5 +266,24 @@
   "HomePage": {
     "for-you": "Dành cho bạn",
     "following": "Đang theo dõi"
+  },
+  "RightPanel": {
+    "search-placeholder": "Tìm kiếm bài đăng, người dùng, v.v.",
+    "who-to-follow": "Đề xuất",
+    "follow": "Theo dõi",
+    "search-filter": "Bộ lọc tìm kiếm",
+    "cooking-time": "Thời gian nấu (phút)",
+    "min-rating": "Đánh giá tối thiểu",
+    "all": "Tất cả",
+    "difficulty": "Độ khó",
+    "easy": "Dễ",
+    "medium": "Trung bình",
+    "hard": "Khó",
+    "haved-made": "Đã được thực hiện?",
+    "filter-by-hashtags": "Lọc theo hashtags",
+    "hashtag-placeholder": "Nhập hashtag",
+    "apply-filter": "Áp dụng bộ lọc",
+    "hours": "{0} giờ",
+    "minutes": "{0} phút"
   }
 }

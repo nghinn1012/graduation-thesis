@@ -9,6 +9,7 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import { useFollowContext } from "../../context/FollowContext";
 import { useProfileContext } from "../../context/ProfileContext";
 import { AccountInfo } from "../../api/user";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface User {
   _id: string;
@@ -54,6 +55,8 @@ const RightPanel: React.FC = () => {
   const { auth } = useAuthContext();
   const navigate = useNavigate();
   const { user, setUser } = useProfileContext();
+  const language = useI18nContext();
+  const lang = language.of("RightPanel");
 
   useEffect(() => {
     fetchSuggestions();
@@ -160,12 +163,15 @@ const RightPanel: React.FC = () => {
     navigate(newUrl);
   };
 
+
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours > 0 ? `${hours} hour${hours > 1 ? "s" : ""}` : ""} ${
-      mins > 0 ? `${mins} minute${mins > 1 ? "s" : ""}` : ""
-    }`;
+
+    const hoursText = hours > 0 ? lang("hours", hours) : "";
+    const minsText = mins > 0 ? lang("minutes", mins) : "";
+
+    return `${hoursText} ${minsText}`.trim();
   };
 
   const handleFollowUser = (userId: string, event: any) => {
@@ -193,7 +199,7 @@ const RightPanel: React.FC = () => {
         <form onSubmit={handleSubmit} className="relative mt-4">
           <input
             type="text"
-            placeholder="Search posts, users, ingredients..."
+            placeholder={lang("search-placeholder")}
             className="w-full pl-10 pr-4 py-3 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out hover:bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -209,11 +215,11 @@ const RightPanel: React.FC = () => {
 
       {location.pathname === "/users/search" && (
         <div className="rounded-md border border-gray-300 p-6 mt-12 bg-white shadow-md">
-          <h2 className="text-lg font-bold mb-4">Search Filters</h2>
+          <h2 className="text-lg font-bold mb-4">{lang("search-filter")}</h2>
 
           <div className="mb-4">
             <label className="block text-gray-600 font-medium mb-2">
-              Cooking Time (in minutes)
+              {lang("cooking-time")}
             </label>
 
             {/* Range Slider */}
@@ -313,7 +319,7 @@ const RightPanel: React.FC = () => {
             {/* Search by Rating */}
             <div className="mb-4">
               <label className="block text-gray-600 font-medium mb-2">
-                Min Rating
+                {lang("min-rating")}
               </label>
               <div className="flex items-center">
                 <div className="flex items-center">
@@ -338,7 +344,7 @@ const RightPanel: React.FC = () => {
                     } btn-sm cursor-pointer px-3 py-1 text-sm mx-2`}
                     onClick={() => handleRatingClick(0)}
                   >
-                    All
+                    {lang("all")}
                   </button>
                 </div>
               </div>
@@ -348,7 +354,7 @@ const RightPanel: React.FC = () => {
 
             <div className="mb-4">
               <label className="block text-gray-600 font-medium mb-2">
-                Difficulty Level
+                {lang("difficulty")}
               </label>
               <div className="flex space-x-4">
                 <button
@@ -365,7 +371,7 @@ const RightPanel: React.FC = () => {
                     })
                   }
                 >
-                  Easy
+                  {lang("easy")}
                 </button>
                 <button
                   type="button"
@@ -381,7 +387,7 @@ const RightPanel: React.FC = () => {
                     })
                   }
                 >
-                  Medium
+                  {lang("medium")}
                 </button>
                 <button
                   type="button"
@@ -397,7 +403,7 @@ const RightPanel: React.FC = () => {
                     })
                   }
                 >
-                  Hard
+                  {lang("hard")}
                 </button>
               </div>
             </div>
@@ -407,7 +413,7 @@ const RightPanel: React.FC = () => {
             <div className="form-control">
               <label className="label cursor-pointer">
                 <span className="block text-gray-600 font-medium">
-                  Haved made this recipe
+                  {lang("haved-made")}
                 </span>
                 <input
                   type="checkbox"
@@ -422,12 +428,12 @@ const RightPanel: React.FC = () => {
 
             <div className="mt-4">
               <label className="block text-gray-600 font-medium mb-2">
-                Filter by Hashtags
+                {lang("filter-by-hashtags")}
               </label>
               <div className="flex items-center">
                 <input
                   type="text"
-                  placeholder="Enter a hashtag"
+                  placeholder={lang("hashtag-placeholder")}
                   value={hashtagInput}
                   onChange={(e) => setHashtagInput(e.target.value)}
                   onKeyDown={handleHashtagKeyDown}
@@ -453,7 +459,7 @@ const RightPanel: React.FC = () => {
                 className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 onClick={handleFilterSubmit}
               >
-                Apply Filter
+                {lang("apply-filter")}
               </button>
             </div>
           </div>
@@ -465,7 +471,7 @@ const RightPanel: React.FC = () => {
         location.pathname.split("/")[1] !== "orders" &&
         location.pathname !== "/checkout" && (
           <div className="mt-8 p-4 rounded-md border border-gray-300">
-            <p className="font-bold my-4">Who to follow</p>
+            <p className="font-bold my-4">{lang("who-to-follow")}</p>
             <div className="flex flex-col gap-6">
               {/* Loading State */}
               {isLoading ||
@@ -508,7 +514,7 @@ const RightPanel: React.FC = () => {
                         className="btn btn-neutral text-white hover:bg-white hover:opacity-90 rounded-full btn-sm"
                         onClick={(event) => handleFollowUser(user._id, event)}
                       >
-                        Follow
+                        {lang("follow")}
                       </button>
                     </div>
                   </div>

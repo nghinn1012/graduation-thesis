@@ -86,25 +86,41 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchSuggestions = useCallback(async () => {
     if (!auth || !auth.token) return;
     setLoading(true);
+
     try {
       const response = (await userFetcher.suggest(auth.token)) as unknown as AccountInfo[];
+
       if (response.length === 0) {
         setHasMore(false);
+      } else {
+        setSuggestUsers((prevUsers) => {
+          const existingUserIds = new Set(prevUsers.map((user) => user._id));
+          const newUsers = response.filter((user) => !existingUserIds.has(user._id));
+          const updatedUsers = [...prevUsers, ...newUsers];
+          return updatedUsers;
+        });
+
+        if (suggestUsers.length < 5) {
+          const additionalResponse = (await userFetcher.suggest(auth.token)) as unknown as AccountInfo[];
+
+          if (additionalResponse.length === 0) {
+            setHasMore(false);
+          } else {
+            setSuggestUsers((prevUsers) => {
+              const existingUserIds = new Set(prevUsers.map((user) => user._id));
+              const newUsers = additionalResponse.filter((user) => !existingUserIds.has(user._id));
+              const updatedUsers = [...prevUsers, ...newUsers];
+              return updatedUsers;
+            });
+          }
+        }
       }
-      setSuggestUsers((prevUsers) => {
-        const existingUserIds = new Set(prevUsers.map((user) => user._id));
-        const newUsers = response.filter(
-          (user) => !existingUserIds.has(user._id)
-        );
-        const updatedUsers = [...prevUsers, ...newUsers];
-        return updatedUsers;
-      });
     } catch (err) {
       console.error("Failed to load suggestions:", err);
     } finally {
       setLoading(false);
     }
-  }, [auth?.token]);
+  }, [auth?.token, suggestUsers.length]);
 
   const fetchUser = useCallback(async (userId: string) => {
     if (!auth?.token) return;

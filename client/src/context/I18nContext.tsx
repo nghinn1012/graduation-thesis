@@ -21,6 +21,7 @@ export type I18nReactComponent =
   | "MadeSection"
   | "Sidebar"
   | "HomePage"
+  | "RightPanel"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;
