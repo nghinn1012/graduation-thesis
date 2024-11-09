@@ -284,6 +284,10 @@
     "hashtag-placeholder": "Nhập hashtag",
     "apply-filter": "Áp dụng bộ lọc",
     "hours": "{0} giờ",
-    "minutes": "{0} phút"
+    "minutes": "{0} phút",
+    "search": "Tìm kiếm",
+    "posts": "Bài viết",
+    "users": "Người dùng",
+    "no-users-found": "Không tìm thấy người dùng"
   }
 }

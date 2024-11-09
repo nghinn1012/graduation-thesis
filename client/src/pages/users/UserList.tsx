@@ -4,6 +4,7 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import { useSearchContext } from "../../context/SearchContext";
 import { useFollowContext } from "../../context/FollowContext";
 import { Link } from "react-router-dom";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const UsersList = () => {
   const { allUsers, loading, loadMoreUsers, hasMore, fetchUsers } =
@@ -11,6 +12,8 @@ const UsersList = () => {
   const { auth } = useAuthContext();
   const { followUser } = useFollowContext();
   const observerRef = useRef<HTMLDivElement | null>(null);
+  const language = useI18nContext();
+  const lang = language.of("HomePage");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -73,7 +76,7 @@ const UsersList = () => {
                           handleFollowOrUnfollow(user._id, event)
                         }
                       >
-                        {user.followed ? "Unfollow" : "Follow"}
+                        {user.followed ? lang("unfollow") : lang("follow")}
                       </button>
                     </div>
                   </div>
@@ -83,7 +86,7 @@ const UsersList = () => {
           ) : null
         )}
 
-      {allUsers.length === 0 && !loading && <p>No users found.</p>}
+      {allUsers.length === 0 && !loading && <p>{lang("no-users-found")}</p>}
       <div ref={observerRef} style={{ height: 20 }}></div>
     </div>
   );
