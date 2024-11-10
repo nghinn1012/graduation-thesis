@@ -101,7 +101,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (err) {
       console.error("Failed to load posts:", err);
-      error("Failed to load posts: " + (err as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +138,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (err) {
       console.error("Failed to load following posts:", err);
-      error("Failed to load following posts: " + (err as Error).message);
     } finally {
       setIsLoadingFollowing(false);
     }

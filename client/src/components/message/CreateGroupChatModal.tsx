@@ -3,6 +3,8 @@ import { AccountInfo } from '../../api/user';
 import { useUserContext } from '../../context/UserContext';
 import { createChatGroup } from '../../api/notification';
 import { useAuthContext } from '../../hooks/useAuthContext';
+import { useMessageContext } from '../../context/MessageContext';
+import { useToastContext } from '../../hooks/useToastContext';
 
 interface CreateChatModalProps {
   isOpen: boolean;
@@ -21,8 +23,10 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
   const [selectedUsers, setSelectedUsers] = useState<AccountInfo[]>([]);
   const [groupName, setGroupName] = useState<string>('');
   const [isGroupChat, setIsGroupChat] = useState<boolean>(initialChatType === 'group');
-  const {allUsers} = useUserContext();
-  const {account} = useAuthContext();
+  const { allUsers } = useUserContext();
+  const { account } = useAuthContext();
+  const { chatGroups, setChatGroupSelect } = useMessageContext();
+  const { error } = useToastContext();
 
   const resetForm = (): void => {
     setSelectedUsers([]);
@@ -55,11 +59,40 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     setSelectedUsers(selectedUsers.filter(user => user._id !== userId));
   };
 
+  const findExistingGroup = (members: string[]): typeof chatGroups[0] | undefined => {
+    const sortedNewMembers = [...members].sort();
+
+    return chatGroups.find(group => {
+      if (group.isPrivate !== !isGroupChat) return false;
+
+      if (!isGroupChat) {
+        return group.members.length === members.length &&
+               group.members.every(m => members.includes(m));
+      }
+
+      const sortedGroupMembers = [...group.members].sort();
+      console.log(sortedGroupMembers, sortedNewMembers);
+      return sortedGroupMembers.length === sortedNewMembers.length &&
+             sortedGroupMembers.every((member, index) => member === sortedNewMembers[index]);
+    });
+  };
+
   const handleCreateChat = (): void => {
     if (selectedUsers.length === 0) return;
 
+    const members = [...selectedUsers.map(user => user._id), account?._id ?? ''];
+    console.log(members);
+    const existingGroup = findExistingGroup(members);
+
+    if (existingGroup) {
+      setChatGroupSelect(existingGroup);
+      error('Chat already exists');
+      onClose();
+      return;
+    }
+
     const chatData: createChatGroup = {
-      members: [...selectedUsers.map(user => user._id), account?._id ?? ''],
+      members,
       createdBy: account?._id || '',
       isPrivate: !isGroupChat,
       groupName: isGroupChat ? groupName : selectedUsers[0].name

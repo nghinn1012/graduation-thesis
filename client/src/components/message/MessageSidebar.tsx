@@ -135,7 +135,6 @@ const MessageSidebar: React.FC = () => {
 
     return (
       <img src={chatGroup.avatarUrl} className="w-12 h-12 rounded-full flex items-center justify-center"/>
-
     );
   };
 
@@ -189,7 +188,8 @@ const MessageSidebar: React.FC = () => {
   };
 
   const getFilteredChats = () => {
-    return chatGroups.filter((chat) => {
+    // First filter the chats based on search term
+    const filtered = chatGroups.filter((chat) => {
       const otherUser = getOtherUserInChat(chat);
       if (otherUser) {
         return otherUser?.name
@@ -197,6 +197,19 @@ const MessageSidebar: React.FC = () => {
           .includes(searchTerm?.toLowerCase());
       }
       return chat?.groupName?.toLowerCase().includes(searchTerm?.toLowerCase());
+    });
+
+    // Then sort the filtered chats by last message time
+    return filtered.sort((a, b) => {
+      const timeA = a?.lastMessageInfo?.createdAt || "";
+      const timeB = b?.lastMessageInfo?.createdAt || "";
+
+      // If no last message, put at the bottom
+      if (!timeA) return 1;
+      if (!timeB) return -1;
+
+      // Sort in descending order (newest first)
+      return new Date(timeB).getTime() - new Date(timeA).getTime();
     });
   };
 
@@ -271,7 +284,7 @@ const MessageSidebar: React.FC = () => {
             >
               <div className="relative flex-shrink-0">
                 {renderChatAvatar(chatGroup)}
-                {chatInfo.isOnline && (
+                               {chatInfo.isOnline && (
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
                 )}
               </div>

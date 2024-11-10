@@ -99,7 +99,7 @@ const Sidebar = () => {
             </NavLink>
           </li>
 
-          <li className="flex juLinkstify-center md:justify-start">
+          <li className="flex justify-center md:justify-start">
             <NavLink
               to="/message"
               className={({ isActive }) =>
