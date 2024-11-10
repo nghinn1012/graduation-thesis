@@ -21,7 +21,7 @@ const chatGroupSchema = new Schema({
   },
   lastMessage: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Message',
+    ref: "Message",
     default: null,
   },
   createdAt: {
@@ -35,5 +35,7 @@ const chatGroupSchema = new Schema({
 });
 
 const chatGroupModel = model("ChatGroup", chatGroupSchema);
-
+chatGroupSchema.index({ members: 1, createdAt: -1 });
+chatGroupSchema.index({ groupName: "text" });
+chatGroupSchema.index({ lastMessageAt: -1 });
 export default chatGroupModel;
