@@ -111,8 +111,12 @@ export const getMessagesService = async (
     if (!chatGroup) {
       throw new Error("Chat group not found");
     }
+    console.log(page, limit);
 
     const query: any = { chatGroup: chatGroupId };
+
+    const totalMessages = await messageModel.countDocuments(query).exec();
+    const totalPages = Math.ceil(totalMessages / limit);
 
     const skip = (page - 1) * limit;
 
@@ -122,11 +126,18 @@ export const getMessagesService = async (
       .limit(limit)
       .exec();
 
-    return messages.reverse();
+    return {
+      messages,
+      page,
+      limit,
+      totalPages,
+      totalMessages,
+    };
   } catch (error) {
     throw new Error(`Error fetching messages: ${(error as Error).message}`);
   }
 };
+
 
 export const getChatGroupsService = async (userId: string) => {
   try {

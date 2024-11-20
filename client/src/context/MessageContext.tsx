@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { AccountInfo } from "../api/user";
-import { ChatGroupInfo, EnhancedChatGroupInfo, MessageInfo, notificationFetcher } from "../api/notification";
+import { ChatGroupInfo, EnhancedChatGroupInfo, MessageFetchInfo, MessageInfo, notificationFetcher } from "../api/notification";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useUserContext } from "./UserContext";
 
@@ -39,6 +39,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
   const [chatGroups, setChatGroups] = useState<EnhancedChatGroupInfo[]>([]);
   const [chatMessages, setChatMessages] = useState<MessageInfo[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
   const limit = 10;
   const { auth, account } = useAuthContext();
@@ -88,18 +89,17 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
       auth.token,
       page,
       limit
-    );
-    const data = response.data as unknown as MessageInfo[];
+    ) as unknown as MessageFetchInfo;
+    const data = response.data.messages;
 
-    if (data.length > 0) {
-      if (page === 1) {
-        setChatMessages(data);
+    if (response.data.page) {
+      if (response.data.page == 1) {
+        setChatMessages(data.reverse());
       } else {
-        setChatMessages(prevMessages => [...data, ...prevMessages]);
+        setChatMessages([...data.reverse(), ...chatMessages]);
       }
-      setHasMoreMessages(data.length === limit);
-    } else {
-      setHasMoreMessages(false);
+      setHasMoreMessages(response.data.page < response.data.totalPages);
+      setTotalPages(response.data.totalPages);
     }
   };
 
@@ -108,12 +108,13 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
       setChatMessages([]);
       setHasMoreMessages(true);
       setCurrentPage(1);
+      setTotalPages(1);
       getMessagesOfChatGroup(chatGroupSelect._id, 1);
     }
   }, [chatGroupSelect]);
 
   const loadMoreMessages = () => {
-    if (chatGroupSelect && hasMoreMessages) {
+    if (chatGroupSelect && hasMoreMessages && currentPage < totalPages) {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
       getMessagesOfChatGroup(chatGroupSelect._id, nextPage);

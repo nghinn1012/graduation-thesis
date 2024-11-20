@@ -140,9 +140,20 @@ export interface updateChatGroupAvatar {
 export interface MarkAsReadInfo {
   notificationId: string;
 }
+
+export interface MessageFetchInfo {
+  data: {
+    messages: MessageInfo[];
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalMessages: number;
+  }
+}
+
 export interface NotificationFetcher {
   getChatGroups: (token: string) => Promise<NotificationResponse<ChatGroupInfo[]>>;
-  getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageInfo[]>>;
+  getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageFetchInfo>>;
   sendMessage: (token: string, messageInfo: createMessage) => Promise<NotificationResponse<MessageInfo>>;
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
   getNotifications: (token: string, page?: number) => Promise<NotificationResponse<NotificationLoad>>;

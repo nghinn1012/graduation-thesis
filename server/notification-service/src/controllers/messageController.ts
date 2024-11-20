@@ -32,16 +32,23 @@ export const getMessagesController = async (req: AuthRequest, res: Response) => 
     const { chatGroupId } = req.params;
 
     if (!chatGroupId || !userId) {
-      return res.status(400).json({ message: 'ChatGroupId and userId are required' });
+      return res.status(400).json({
+        success: false,
+        message: 'ChatGroupId and userId are required',
+      });
+    }
+    console.log(req.query);
+    const page = parseInt(req.query.page as string, 10);
+    const limit = parseInt(req.query.limit as string, 10);
+
+    if (page <= 0 || limit <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Page and limit must be positive numbers',
+      });
     }
 
-    const { page, limit } = req.query;
-
-    const messageLimit = parseInt(limit as string, 10) || 20;
-
-    const messagePage = parseInt(page as string, 10) || 1;
-
-    const messages = await getMessagesService(chatGroupId, userId, messagePage, messageLimit);
+    const messages = await getMessagesService(chatGroupId, userId, page, limit);
 
     return res.json({
       success: true,
@@ -51,9 +58,14 @@ export const getMessagesController = async (req: AuthRequest, res: Response) => 
 
   } catch (error) {
     console.error('Error in getMessagesController:', error);
-    return res.status(500).json({ message: 'An error occurred while fetching messages' });
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching messages',
+      error: (error as Error).message,
+    });
   }
 };
+
 
 export const getChatGroupsController = async (req: AuthRequest, res: Response) => {
   const userId = req?.authContent?.data.userId;

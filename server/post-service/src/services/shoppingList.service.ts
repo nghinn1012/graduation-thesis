@@ -1,7 +1,6 @@
 import { IngredientOfList, updateIngredientInShoppingList } from "../data/interface/shoppingList_interface";
 import ShoppingListModel from "../models/shoppingListModel.model";
 import PostModel from "../models/postModel";
-import { isValidObjectId } from "mongoose";
 
 export const addIngredientToShoppingListService = async (
   postId: string | null,
@@ -36,10 +35,8 @@ export const addIngredientToShoppingListService = async (
       const postIndex = shoppingList.posts.findIndex(post => post?.postId?.toString() === postId);
 
       if (postIndex !== -1) {
-        // Post đã tồn tại, cập nhật servings
         shoppingList.posts[postIndex].servings += servings;
       } else {
-        // Nếu post chưa tồn tại trong shoppingList
         const post = await PostModel.findById(postId).exec();
         if (!post) {
           throw new Error(`Post with id ${postId} not found`);
@@ -50,7 +47,6 @@ export const addIngredientToShoppingListService = async (
           checked: false,
         }));
 
-        // Kiểm tra title và imageUrl
         const postTitle = post?.title || "No title available";
         const postImageUrl = post?.images?.[0] || "No image available";
 
@@ -67,7 +63,6 @@ export const addIngredientToShoppingListService = async (
         });
       }
     } else {
-      // Thêm các ingredient không liên kết với post
       shoppingList.standaloneIngredients.push(...ingredients);
     }
 
@@ -79,7 +74,6 @@ export const addIngredientToShoppingListService = async (
     throw new Error((error as Error).message);
   }
 };
-
 
 export const getShoppingListService = async (userId: string) => {
   try {
@@ -154,7 +148,6 @@ export const updateIngredientInShoppingListService = async (
         throw new Error("Ingredient not found in post");
       }
 
-      // Update ingredient in post
       shoppingList.posts[postIndex].ingredients[ingredientIndex].set({
         name: ingredient.name,
         quantity: ingredient.quantity,
@@ -168,7 +161,6 @@ export const updateIngredientInShoppingListService = async (
         throw new Error("Ingredient not found in standalone ingredients");
       }
 
-      // Update standalone ingredient
       shoppingList.standaloneIngredients[ingredientIndex].set({
         name: ingredient.name,
         quantity: ingredient.quantity,
@@ -176,7 +168,6 @@ export const updateIngredientInShoppingListService = async (
       });
     }
 
-    // Save the updated shopping list
     await shoppingList.save();
     return shoppingList;
   } catch (error) {
