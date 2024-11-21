@@ -12,6 +12,7 @@ export const notificationEndpoints = {
   sendMessage: "/notifications/sendMessage",
   createChatGroup: "/notifications/createChatGroup",
   updateChatGroupAvatar: "/notifications/updateChatGroupAvatar",
+  updateChatGroupName: "/notifications/updateChatGroupName",
 
   // notifications
   getNotifications: "/notifications/getAllNotifications",
@@ -151,6 +152,11 @@ export interface MessageFetchInfo {
   }
 }
 
+export interface NameUpdateInfo {
+  chatGroupId: string;
+  groupName: string;
+}
+
 export interface NotificationFetcher {
   getChatGroups: (token: string) => Promise<NotificationResponse<ChatGroupInfo[]>>;
   getMessagesOfGroup: (chatGroupId: string, token: string, page: number, limit: number) => Promise<NotificationResponse<MessageFetchInfo>>;
@@ -158,6 +164,7 @@ export interface NotificationFetcher {
   createChatGroup: (token: string, groupData: createChatGroup) => Promise<NotificationResponse<ChatGroupInfo>>;
   getNotifications: (token: string, page?: number) => Promise<NotificationResponse<NotificationLoad>>;
   updateChatGroupAvatar: (token: string, updateData: updateChatGroupAvatar) => Promise<NotificationResponse<ChatGroupInfo>>;
+  updateChatGroupName: (token: string, updateData: NameUpdateInfo) => Promise<NotificationResponse<ChatGroupInfo>>;
   markNotificationAsRead: (token: string, markAsReadInfo: MarkAsReadInfo) => Promise<NotificationResponse<NotificationInfo>>;
   markAllNotificationsAsRead: (token: string) => Promise<NotificationResponse<NotificationInfo>>;
 }
@@ -212,6 +219,14 @@ export const notificationFetcher: NotificationFetcher = {
   },
   updateChatGroupAvatar: async (token: string, updateData: updateChatGroupAvatar) => {
     return notificationInstance.patch(notificationEndpoints.updateChatGroupAvatar, updateData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  },
+  updateChatGroupName: async (token, updateData) => {
+    return notificationInstance.patch(notificationEndpoints.updateChatGroupName, updateData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

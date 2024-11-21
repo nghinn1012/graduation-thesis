@@ -138,7 +138,6 @@ export const getMessagesService = async (
   }
 };
 
-
 export const getChatGroupsService = async (userId: string) => {
   try {
     console.log(userId);
@@ -229,3 +228,17 @@ export const updateChatGroupAvatarService = async (chatGroupId: string, newImage
     throw new Error(`Error updating chat group avatar: ${(error as Error).message}`);
   }
 };
+
+export const renameChatGroupService = async (chatGroupId: string, newName: string) => {
+  try {
+    let chatGroup = await chatGroupModel.findByIdAndUpdate(
+      chatGroupId,
+      { groupName: newName },
+      { new: true }
+    ).exec();
+    return chatGroup;
+  } catch (error) {
+    throw new Error(`Error renaming chat group: ${(error as Error).message}`);
+  }
+}
+

@@ -1,18 +1,33 @@
-import { Request, Response } from 'express';
-import { createChatGroupService, getChatGroupsService, getMessagesService, sendMessageService, updateChatGroupAvatarService } from '../services/messageService';
-import { AuthRequest } from '../data';
+import { Request, Response } from "express";
+import {
+  createChatGroupService,
+  getChatGroupsService,
+  getMessagesService,
+  renameChatGroupService,
+  sendMessageService,
+  updateChatGroupAvatarService,
+} from "../services/messageService";
+import { AuthRequest } from "../data";
 
-export const sendMessageController = async (req: AuthRequest, res: Response) => {
+export const sendMessageController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const senderId = req?.authContent?.data.userId;
   const { receiverId, messageContent, chatGroupId } = req.body;
   console.log(senderId, receiverId, messageContent, chatGroupId);
   if (!receiverId || !messageContent || !senderId) {
-    res.status(400).json({ message: 'ReceiverId and message are required' });
+    res.status(400).json({ message: "ReceiverId and message are required" });
     return;
   }
-  const result = await sendMessageService(senderId, receiverId, messageContent, chatGroupId);
+  const result = await sendMessageService(
+    senderId,
+    receiverId,
+    messageContent,
+    chatGroupId
+  );
   res.json(result);
-}
+};
 
 // export const getMessagesController = async (req: AuthRequest, res: Response) => {
 //   const userId = req?.authContent?.data.userId;
@@ -26,7 +41,10 @@ export const sendMessageController = async (req: AuthRequest, res: Response) => 
 //   res.json(messages);
 // }
 
-export const getMessagesController = async (req: AuthRequest, res: Response) => {
+export const getMessagesController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const userId = req?.authContent?.data?.userId;
     const { chatGroupId } = req.params;
@@ -34,7 +52,7 @@ export const getMessagesController = async (req: AuthRequest, res: Response) => 
     if (!chatGroupId || !userId) {
       return res.status(400).json({
         success: false,
-        message: 'ChatGroupId and userId are required',
+        message: "ChatGroupId and userId are required",
       });
     }
     console.log(req.query);
@@ -44,7 +62,7 @@ export const getMessagesController = async (req: AuthRequest, res: Response) => 
     if (page <= 0 || limit <= 0) {
       return res.status(400).json({
         success: false,
-        message: 'Page and limit must be positive numbers',
+        message: "Page and limit must be positive numbers",
       });
     }
 
@@ -53,24 +71,25 @@ export const getMessagesController = async (req: AuthRequest, res: Response) => 
     return res.json({
       success: true,
       data: messages,
-      message: 'Messages fetched successfully',
+      message: "Messages fetched successfully",
     });
-
   } catch (error) {
-    console.error('Error in getMessagesController:', error);
+    console.error("Error in getMessagesController:", error);
     return res.status(500).json({
       success: false,
-      message: 'An error occurred while fetching messages',
+      message: "An error occurred while fetching messages",
       error: (error as Error).message,
     });
   }
 };
 
-
-export const getChatGroupsController = async (req: AuthRequest, res: Response) => {
+export const getChatGroupsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = req?.authContent?.data.userId;
   if (!userId) {
-    res.status(400).json({ message: 'UserId is required' });
+    res.status(400).json({ message: "UserId is required" });
     return;
   }
   try {
@@ -79,13 +98,16 @@ export const getChatGroupsController = async (req: AuthRequest, res: Response) =
   } catch (error) {
     res.status(400).json({ message: (error as Error).message });
   }
-}
+};
 
-export const createChatGroupController = async (req: AuthRequest, res: Response) => {
+export const createChatGroupController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const groupData = req.body;
   const userId = req?.authContent?.data.userId;
   if (!groupData || !userId) {
-    res.status(400).json({ message: 'Group data is required' });
+    res.status(400).json({ message: "Group data is required" });
     return;
   }
   try {
@@ -94,18 +116,44 @@ export const createChatGroupController = async (req: AuthRequest, res: Response)
   } catch (error) {
     res.status(400).json({ message: (error as Error).message });
   }
-}
+};
 
-export const updateChatGroupAvatarController = async (req: AuthRequest, res: Response) => {
+export const updateChatGroupAvatarController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const { chatGroupId, avatarUrl } = req.body;
   if (!chatGroupId || !avatarUrl) {
-    res.status(400).json({ message: 'ChatGroupId and avatarUrl are required' });
+    res.status(400).json({ message: "ChatGroupId and avatarUrl are required" });
     return;
   }
   try {
-    const chatGroup = await updateChatGroupAvatarService(chatGroupId, avatarUrl);
+    const chatGroup = await updateChatGroupAvatarService(
+      chatGroupId,
+      avatarUrl
+    );
     res.json(chatGroup);
   } catch (error) {
     res.status(400).json({ message: (error as Error).message });
   }
-}
+};
+
+export const renameChatGroupController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { chatGroupId, groupName } = req.body;
+  if (!chatGroupId || !groupName) {
+    res.status(400).json({ message: "ChatGroupId and groupName are required" });
+    return;
+  }
+  try {
+    const chatGroup = await renameChatGroupService(
+      chatGroupId,
+      groupName
+    );
+    res.json(chatGroup);
+  } catch (error) {
+    res.status(400).json({ message: (error as Error).message });
+  }
+};

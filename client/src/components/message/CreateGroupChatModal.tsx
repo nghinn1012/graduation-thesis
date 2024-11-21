@@ -5,6 +5,7 @@ import { createChatGroup } from '../../api/notification';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { useMessageContext } from '../../context/MessageContext';
 import { useToastContext } from '../../hooks/useToastContext';
+import { useI18nContext } from '../../hooks/useI18nContext';
 
 interface CreateChatModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
   const { account } = useAuthContext();
   const { chatGroups, setChatGroupSelect } = useMessageContext();
   const { error } = useToastContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of('MessageSection');
 
   const resetForm = (): void => {
     setSelectedUsers([]);
@@ -71,7 +74,6 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
       }
 
       const sortedGroupMembers = [...group.members].sort();
-      console.log(sortedGroupMembers, sortedNewMembers);
       return sortedGroupMembers.length === sortedNewMembers.length &&
              sortedGroupMembers.every((member, index) => member === sortedNewMembers[index]);
     });
@@ -81,12 +83,11 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     if (selectedUsers.length === 0) return;
 
     const members = [...selectedUsers.map(user => user._id), account?._id ?? ''];
-    console.log(members);
     const existingGroup = findExistingGroup(members);
 
     if (existingGroup) {
       setChatGroupSelect(existingGroup);
-      error('Chat already exists');
+      error(lang('chatExists'));
       onClose();
       return;
     }
@@ -110,17 +111,17 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
     <dialog className="modal modal-open">
       <div className="modal-box w-11/12 max-w-xl">
         <h3 className="font-bold text-lg">
-          Create New {isGroupChat ? 'Group Chat' : 'Private Chat'}
+          {lang(isGroupChat ? 'createGroupChat' : 'createPrivateChat')}
         </h3>
 
         {isGroupChat && (
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text">Group Name</span>
+              <span className="label-text">{lang('groupName')}</span>
             </label>
             <input
               type="text"
-              placeholder="Enter group name"
+              placeholder={lang('enterGroupName')}
               className="input input-bordered w-full"
               value={groupName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGroupName(e.target.value)}
@@ -131,7 +132,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
         {selectedUsers.length > 0 && (
           <div className="mt-4">
             <label className="label">
-              <span className="label-text">Selected Users</span>
+              <span className="label-text">{lang('selectedUsers')}</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {selectedUsers.map(user => (
@@ -151,11 +152,11 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
 
         <div className="form-control w-full mt-4">
           <label className="label">
-            <span className="label-text">Search Users</span>
+            <span className="label-text">{lang('searchUsers')}</span>
           </label>
           <input
             type="text"
-            placeholder="Type to search..."
+            placeholder={lang('typeToSearch')}
             className="input input-bordered w-full"
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
@@ -181,7 +182,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
         </div>
 
         <div className="modal-action">
-          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn" onClick={onClose}>{lang('cancel')}</button>
           <button
             className="btn btn-primary"
             onClick={handleCreateChat}
@@ -190,7 +191,7 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
               (isGroupChat && !groupName.trim())
             }
           >
-            Create {isGroupChat ? 'Group' : 'Chat'}
+            {lang(isGroupChat ? 'createGroup' : 'createChat')}
           </button>
         </div>
       </div>

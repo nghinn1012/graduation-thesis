@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import { FiUserPlus, FiUsers, FiChevronDown } from "react-icons/fi";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface NewChatButtonsProps {
   onNewChat: () => void;
   onNewGroup: () => void;
 }
 
-const NewChatButtons: React.FC<NewChatButtonsProps> = ({ onNewChat, onNewGroup }) => {
+const NewChatButtons: React.FC<NewChatButtonsProps> = ({
+  onNewChat,
+  onNewGroup,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("MessageSection");
 
   const handleCloseModal = () => setIsModalOpen(false);
 
@@ -20,14 +26,14 @@ const NewChatButtons: React.FC<NewChatButtonsProps> = ({ onNewChat, onNewGroup }
           onClick={onNewChat}
         >
           <FiUserPlus className="w-5 h-5 mr-2" />
-          New Chat
+          {lang("newChat")}
         </button>
         <button
           className="btn btn-ghost flex-1 justify-start normal-case"
           onClick={onNewGroup}
         >
           <FiUsers className="w-5 h-5 mr-2" />
-          New Group
+          {lang("newGroup")}
         </button>
       </div>
 
@@ -45,7 +51,9 @@ const NewChatButtons: React.FC<NewChatButtonsProps> = ({ onNewChat, onNewGroup }
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-md shadow-lg p-4">
-            <h2 className="text-lg font-semibold mb-4">Select an Option</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {lang("selectOption")}
+            </h2>
             <button
               className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center"
               onClick={() => {
@@ -54,7 +62,7 @@ const NewChatButtons: React.FC<NewChatButtonsProps> = ({ onNewChat, onNewGroup }
               }}
             >
               <FiUserPlus className="w-5 h-5 mr-2" />
-              New Chat
+              {lang("newChat")}
             </button>
             <button
               className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center"
@@ -64,13 +72,13 @@ const NewChatButtons: React.FC<NewChatButtonsProps> = ({ onNewChat, onNewGroup }
               }}
             >
               <FiUsers className="w-5 h-5 mr-2" />
-              New Group
+              {lang("newGroup")}
             </button>
             <button
               className="mt-4 w-full text-center text-red-500"
               onClick={handleCloseModal}
             >
-              Cancel
+              {lang("cancel")}
             </button>
           </div>
         </div>

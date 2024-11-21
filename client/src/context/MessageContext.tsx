@@ -24,6 +24,7 @@ interface MessageContextProps {
   loadMoreMessages: () => void;
   hasMoreMessages: boolean;
   addMessage: (newMessage: MessageInfo) => void;
+  updateChatGroupName: (chatGroupId: string, newName: string) => void;
 }
 
 const MessageContext = createContext<MessageContextProps | undefined>(
@@ -103,6 +104,27 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const updateChatGroupName = async (chatGroupId: string, newName: string) => {
+    if (!auth?.token) return;
+    const response = await notificationFetcher.updateChatGroupName(
+      auth.token,
+      {
+        chatGroupId,
+        groupName: newName,
+      }
+    );
+    if (response) {
+      setChatGroups((prev) =>
+        prev.map((group) => {
+          if (group._id === chatGroupId) {
+            return { ...group, groupName: newName };
+          }
+          return group;
+        })
+      );
+    }
+  };
+
   useEffect(() => {
     if (chatGroupSelect) {
       setChatMessages([]);
@@ -144,7 +166,8 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
         getInfoUsersOfGroup,
         loadMoreMessages,
         hasMoreMessages,
-        addMessage
+        addMessage,
+        updateChatGroupName,
       }}
     >
       {children}

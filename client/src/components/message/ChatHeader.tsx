@@ -8,6 +8,8 @@ import {
   notificationFetcher,
 } from "../../api/notification";
 import { useSocket } from "../../hooks/useSocketContext";
+import AvatarUpdateModal from "./AvatarUpdateModal";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const ChatHeader: React.FC = () => {
   const {
@@ -25,6 +27,8 @@ const ChatHeader: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { socket } = useSocket();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("MessageSection");
 
   const userIfPrivate =
     chatGroupSelect && chatGroupSelect.isPrivate
@@ -54,19 +58,16 @@ const ChatHeader: React.FC = () => {
     if (!auth?.token || !chatGroupSelect?._id) return;
     if (selectedFile) {
       try {
-        const response = await notificationFetcher.updateChatGroupAvatar(
-          auth.token,
-          {
-            chatGroupId: chatGroupSelect?._id,
-            avatarUrl: avatarPreview || "",
-          }
-        );
+        await notificationFetcher.updateChatGroupAvatar(auth.token, {
+          chatGroupId: chatGroupSelect?._id,
+          avatarUrl: avatarPreview || "",
+        });
       } catch (error) {
-        console.error("Failed to update avatar", error);
+        console.error(lang("fail-change-avatar"), error);
       }
     }
 
-    setIsModalOpen(false);
+    closeModal();
   };
 
   useEffect(() => {
@@ -102,43 +103,43 @@ const ChatHeader: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setAvatarPreview(null);
+    setSelectedFile(null);
   };
 
   return (
     <div className="flex items-center justify-between border-b border-gray-300 p-2 bg-white">
       {chatGroupSelect ? (
-        <>
+        <div className="flex items-center w-full">
           {chatGroupSelect.isPrivate && userIfPrivate ? (
-            <div className="flex items-center">
+            <div className="flex items-center flex-1 min-w-0">
               <img
-                src={
-                  userIfPrivate.avatar ||
-                  "default_user_icon.png"
-                }
+                src={userIfPrivate.avatar || "default_user_icon.png"}
                 alt={userIfPrivate.name}
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full flex-shrink-0"
               />
-              <div className="ml-2">
-                <p className="font-bold">{userIfPrivate.name}</p>
-                <p className="text-sm text-gray-600">
+              <div className="ml-2 min-w-0">
+                <p className="font-bold truncate">{userIfPrivate.name}</p>
+                <p className="text-sm text-gray-600 truncate">
                   @{userIfPrivate.username}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="flex items-center">
+            <div className="flex items-center flex-1 min-w-0">
               <img
                 src={chatGroupSelect.avatarUrl || "default_group_icon.png"}
                 alt={chatGroupSelect.groupName}
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full flex-shrink-0"
               />
-              <div className="ml-2">
-                <p className="font-bold">{chatGroupSelect.groupName}</p>
+              <div className="ml-2 min-w-0">
+                <p className="font-bold truncate">
+                  {chatGroupSelect.groupName}
+                </p>
               </div>
             </div>
           )}
           {!chatGroupSelect.isPrivate && (
-            <div className="ml-4">
+            <div className="ml-4 flex-shrink-0">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -154,34 +155,17 @@ const ChatHeader: React.FC = () => {
               </button>
             </div>
           )}
-        </>
+        </div>
       ) : (
-        <p className="font-bold">Select a user to chat</p>
+        <p className="font-bold">{lang("selectUser")}</p>
       )}
 
-      {/* DaisyUI Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Preview Avatar</h3>
-            {avatarPreview && (
-              <img
-                src={avatarPreview}
-                alt="Avatar Preview"
-                className="w-32 h-32 rounded-full mx-auto my-4"
-              />
-            )}
-            <div className="modal-action">
-              <button onClick={handleSubmit} className="btn btn-primary">
-                Submit
-              </button>
-              <button onClick={closeModal} className="btn">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AvatarUpdateModal
+        isOpen={isModalOpen}
+        avatarPreview={avatarPreview}
+        onSubmit={handleSubmit}
+        onClose={closeModal}
+      />
     </div>
   );
 };

@@ -22,6 +22,7 @@ export type I18nReactComponent =
   | "Sidebar"
   | "HomePage"
   | "RightPanel"
+  | "MessageSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

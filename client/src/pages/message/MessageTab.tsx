@@ -13,6 +13,7 @@ import {
 import { useUserContext } from "../../context/UserContext";
 import { AccountInfo } from "../../api/user";
 import ChatContainer from "../../components/message/ChatContainer";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface MessageTabProps {}
 
@@ -29,6 +30,8 @@ const MessageTab: React.FC<MessageTabProps> = () => {
   } = useMessageContext();
   const { auth, account } = useAuthContext();
   const { allUsers } = useUserContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("MessageSection");
 
   const [senders, setSenders] = useState<{ [key: string]: AccountInfo }>({});
 
@@ -92,7 +95,7 @@ const MessageTab: React.FC<MessageTabProps> = () => {
         })
       );
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error(lang("fail-send-message"), error);
     }
   };
 
@@ -120,10 +123,10 @@ const MessageTab: React.FC<MessageTabProps> = () => {
           <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center">
               <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-                Welcome to Messages
+                {lang("welcome")}
               </h2>
               <p className="text-gray-500">
-                Select a chat from the sidebar to start messaging
+                {lang("selectChat")}
               </p>
             </div>
           </div>

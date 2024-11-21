@@ -4,6 +4,7 @@ import { CiFaceSmile, CiImageOn } from "react-icons/ci";
 import { IoSend } from "react-icons/io5";
 import { AiOutlineCloseCircle } from "react-icons/ai"; // Icon để xóa ảnh
 import { useMessageContext } from "../../context/MessageContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface MessageInputProps {
   onSendMessage: (message: string, image?: string) => void; // Chấp nhận image là string (base64) hoặc File
@@ -15,6 +16,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const [image, setImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { chatGroupSelect } = useMessageContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("MessageSection");
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
@@ -98,7 +101,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
             <input
               type="text"
-              placeholder="Start a new message"
+              placeholder={lang("messagePlaceholder")}
               value={message}
               onKeyDown={handleKeyPress}
               onChange={handleChange}
