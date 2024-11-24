@@ -6,7 +6,7 @@ import {
   updateUserControler, verifyUser
 } from '../controllers/index.controllers';
 import { validateRegistration, checkLoginBodyAndParams, protectedRequest, authenticateUser } from '../middlewares/index.middlewares';
-import { getAllUsersController } from '../controllers/users.controllers';
+import { getAllUsersController, getFollowersController, getFollowingController } from '../controllers/users.controllers';
 
 const userRouter = Router();
 
@@ -26,4 +26,6 @@ userRouter.get('/', protectedRequest, getAllUsersController);
 // Follow routes
 userRouter.post('/followUser/:id', protectedRequest, followAndUnFollowUserController)
 userRouter.get('/suggest', protectedRequest, getSuggestUserController)
+userRouter.get('/followers/:id', protectedRequest, getFollowersController)
+userRouter.get('/following/:id', protectedRequest, getFollowingController)
 export default userRouter;

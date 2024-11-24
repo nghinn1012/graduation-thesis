@@ -6,6 +6,7 @@ import { followAndUnFollowUserService,
   getSuggestUserService, searchAndFilterUserService,
   updateUserService
 } from "../services/index.services";
+import { getFollowersService, getFollowingService } from "../services/follow.services";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -124,6 +125,30 @@ export const getAllUsersController = async (req: Request, res: Response) => {
   try {
     const users = await UserModel.find();
     res.status(200).json(users);
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getFollowersController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const followers = await getFollowersService(userId);
+    res.status(200).json(followers);
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const getFollowingController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const following = await getFollowingService(userId);
+    res.status(200).json(following);
   } catch (error) {
     return res.status(400).json({
       error: (error as Error).message,

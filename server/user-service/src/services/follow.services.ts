@@ -78,3 +78,23 @@ export const getSuggestUserService = async (currentUserId: string) => {
 
   return suggestedUsers;
 };
+
+export const getFollowersService = async (userId: string) => {
+  const user = await UserModel.findById(userId).populate('followers');
+  const followers = user?.followers.map((user: any) => {
+    user.password = null;
+    user.refreshToken = null;
+    return user;
+  });
+  return followers;
+}
+
+export const getFollowingService = async (userId: string) => {
+  const user = await UserModel.findById(userId).populate('following');
+  const following = user?.following.map((user: any) => {
+    user.password = null;
+    user.refreshToken = null;
+    return user;
+  });
+  return following;
+}

@@ -16,11 +16,13 @@ export const userEndpoints = {
   search: "/users/search",
   suggest: "/users/suggest",
   follow: "/users/followUser/:userId",
+  getFollowers: "/users/followers/:userId",
+  getFollowing: "/users/following/:userId",
   updateUser: "/users/update/:userId",
 } as const;
 
 export interface UserResponseError
-  extends ResponseErrorLike<UserErrorTarget, UserErrorReason> { }
+  extends ResponseErrorLike<UserErrorTarget, UserErrorReason> {}
 export interface UserResponse<DataLike>
   extends ResponseLike<DataLike, UserResponseError> {
   token(token: any): unknown;
@@ -64,6 +66,8 @@ export interface AccountInfo {
   followers: string[];
   following: string[];
   followed: boolean;
+  followingData?: AccountInfo[];
+  followersData?: AccountInfo[];
   coverImage?: string;
   bio?: string;
   postCount?: number;
@@ -117,10 +121,21 @@ export interface UserFetcher {
   loginWithGoogle(token: string): Promise<UserResponse<AccountInfo>>;
   getUserById(id: string, token: string): Promise<UserResponse<AccountInfo>>;
   getAllUsers(token: string): Promise<UserResponse<AccountInfo[]>>;
-  search(name: string, page: number, pageSize: number, token: string): Promise<UserResponse<searchInfoData>>;
+  search(
+    name: string,
+    page: number,
+    pageSize: number,
+    token: string
+  ): Promise<UserResponse<searchInfoData>>;
   suggest(token: string): Promise<UserResponse<AccountInfo[]>>;
   followUser(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
-  updateUser(userId: string, data: UpdateDataInfo, token: string): Promise<UserResponse<AccountInfo>>;
+  getFollowers(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
+  getFollowing(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
+  updateUser(
+    userId: string,
+    data: UpdateDataInfo,
+    token: string
+  ): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -136,74 +151,114 @@ export const userFetcher: UserFetcher = {
     return userInstance.post(userEndpoints.login, data);
   },
   refreshToken: async (token: string): Promise<UserResponse<AccountInfo>> => {
-    return userInstance.post(userEndpoints.refeshToken,
+    return userInstance.post(
+      userEndpoints.refeshToken,
       { refreshToken: token },
       {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
   },
-  loginWithGoogle: async (token: string): Promise<UserResponse<AccountInfo>> => {
+  loginWithGoogle: async (
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
     return userInstance.post(userEndpoints.loginWithGoogle, { idToken: token });
   },
-  getUserById: async (id: string, token: string): Promise<UserResponse<AccountInfo>> => {
-    return userInstance.get(`${userEndpoints.getUserById}/${id}`,
-      {
+  getUserById: async (
+    id: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.get(`${userEndpoints.getUserById}/${id}`, {
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   },
   getAllUsers: async (token: string): Promise<UserResponse<AccountInfo[]>> => {
-    return userInstance.get(userEndpoints.getAllUsers,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+    return userInstance.get(userEndpoints.getAllUsers, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   },
-  search: async (name: string,  page: number, pageSize: number,token: string): Promise<UserResponse<searchInfoData>> => {
-    return userInstance.get(userEndpoints.search,
-      {
-        params: {
-          name,
-          page,
-          pageSize
-         },
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+  search: async (
+    name: string,
+    page: number,
+    pageSize: number,
+    token: string
+  ): Promise<UserResponse<searchInfoData>> => {
+    return userInstance.get(userEndpoints.search, {
+      params: {
+        name,
+        page,
+        pageSize,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   },
   suggest: async (token: string): Promise<UserResponse<AccountInfo[]>> => {
-    return userInstance.get(userEndpoints.suggest,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+    return userInstance.get(userEndpoints.suggest, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   },
-  followUser: async (userId: string, token: string): Promise<UserResponse<AccountInfo>> => {
-    return userInstance.post(userEndpoints.follow.replace(":userId", userId),
+  followUser: async (
+    userId: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(
+      userEndpoints.follow.replace(":userId", userId),
       {},
       {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
   },
-  updateUser: async (userId: string, data: UpdateDataInfo, token: string): Promise<UserResponse<AccountInfo>> => {
-    return userInstance.patch(userEndpoints.updateUser.replace(":userId", userId), data,
+  getFollowers: async (
+    userId: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.get(
+      userEndpoints.getFollowers.replace(":userId", userId),
       {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getFollowing: async (
+    userId: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.get(
+      userEndpoints.getFollowing.replace(":userId", userId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  updateUser: async (
+    userId: string,
+    data: UpdateDataInfo,
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.patch(
+      userEndpoints.updateUser.replace(":userId", userId),
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
   },

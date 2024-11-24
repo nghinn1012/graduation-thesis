@@ -39,7 +39,7 @@ interface PostProps {
       avatar: string;
       username: string;
       email: string;
-      followers: string[];
+      followers?: string[];
       followed?: boolean;
     };
     images: string[];

@@ -447,7 +447,7 @@ const MessageSidebar: React.FC = () => {
 
                 {/* Chat Options for Group Chats */}
                 {!chatGroup.isPrivate && (
-                  <div className="dropdown dropdown-end">
+                  <div className="dropdown dropdown-end z-100">
                     <label
                       tabIndex={0}
                       className="btn btn-ghost btn-square btn-xs cursor-pointer"

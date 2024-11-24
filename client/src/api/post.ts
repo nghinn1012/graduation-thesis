@@ -116,7 +116,8 @@ export interface PostInfo {
     avatar: string;
     email: string;
     username: string;
-    followers: string[];
+    following?: string[];
+    followers?: string[];
     followed?: boolean;
   };
   images: string[];

@@ -15,7 +15,7 @@ import {
 } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
-import { AccountInfo } from "../api/user";
+import { AccountInfo, userFetcher } from "../api/user";
 import { set } from "date-fns";
 
 interface ProfileContextType {
@@ -53,6 +53,8 @@ interface ProfileContextType {
   pageLike: number;
   setPageLike: React.Dispatch<React.SetStateAction<number>>;
   loadMorePostsLike: () => void;
+  fetchUserFollowers: () => Promise<void>;
+  fetchUserFollowing: () => Promise<void>;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -339,6 +341,51 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [auth?.token]);
 
+  const fetchUserFollowers = useCallback(async () => {
+    if (!auth?.token) return;
+    try {
+      const response = await userFetcher.getFollowers(userId || "", auth.token) as unknown as AccountInfo[];
+      const followersWithFollowed = response.map(user => ({
+        ...user,
+        followed: user.followers?.includes(account?._id as string)
+      }));
+      setUser((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              followersData: followersWithFollowed,
+            }
+          : prevUser
+      );
+    } catch (err) {
+      console.error("Failed to fetch followers:", err);
+      error(`Failed to fetch followers: ${(err as Error).message}`);
+    }
+  }, [auth?.token, userId]);
+
+  const fetchUserFollowing = useCallback(async () => {
+    if (!auth?.token) return;
+    try {
+      const response = await userFetcher.getFollowing(userId || "", auth.token) as unknown as AccountInfo[];
+      const followingWithFollowed = response.map(user => ({
+        ...user,
+        followed: true
+      }));
+
+      setUser((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              followingData: followingWithFollowed,
+            }
+          : prevUser
+      );
+    } catch (err) {
+      console.error("Failed to fetch following:", err);
+      error(`Failed to fetch following: ${(err as Error).message}`);
+    }
+  }, [auth?.token, userId]);
+
   useEffect(() => {
     if (auth?.token) {
       fetchPosts(userId || "");
@@ -395,6 +442,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         pageLike,
         setPageLike,
         loadMorePostsLike,
+        fetchUserFollowers,
+        fetchUserFollowing,
       }}
     >
       {children}

@@ -47,10 +47,12 @@ const ProfilePage: React.FC = () => {
     isLoadingLike,
     loadMorePostsLike,
     setIsLoading,
+    fetchUserFollowers,
+    fetchUserFollowing,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
-  const { auth, account, setAccount} = useAuthContext();
+  const { auth, account, setAccount } = useAuthContext();
   const { posts: postsHome, setPosts: setPostsHome } = usePostContext();
   const { id } = useParams();
   const isMyProfile = account?._id === id;
@@ -59,6 +61,9 @@ const ProfilePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const { socket } = useSocket();
+  const [networkType, setNetworkType] = useState<"followers" | "following">(
+    "followers"
+  );
   const handleFollow = async () => {
     if (!user || !auth?.token || !account?._id) return;
     followUser(user._id);
@@ -66,8 +71,10 @@ const ProfilePage: React.FC = () => {
       (prev) =>
         ({
           ...prev,
-          followers: prev?.followers?.includes(account?._id || "")
-            ? prev?.followers?.filter((id) => id !== account?._id)
+          followers: prev?.followers?.some(
+            (follower) => follower === account?._id
+          )
+            ? prev?.followers?.filter((follower) => follower !== account?._id)
             : [...(prev?.followers || []), account?._id || ""],
           followed: !prev?.followed,
         } as AccountInfo)
@@ -82,14 +89,17 @@ const ProfilePage: React.FC = () => {
           const updatedUser = response as unknown as AccountInfo;
           setUser({
             ...updatedUser,
-            followed: user?.followers?.includes(account?._id || "") || false,
+            followed:
+              user?.followers.some(
+                (follower) => follower === updatedUser._id
+              ) || false,
             postCount: user?.postCount,
           });
 
           setPosts((prev) =>
             prev.map((post) =>
               post.author._id === id
-                ? { ...post, author: updatedUser } as unknown as PostInfo
+                ? ({ ...post, author: updatedUser } as unknown as PostInfo)
                 : post
             )
           );
@@ -97,23 +107,20 @@ const ProfilePage: React.FC = () => {
           setPostsHome((prev) =>
             prev.map((post) =>
               post.author._id === id
-                ? { ...post, author: updatedUser } as unknown as PostInfo
+                ? ({ ...post, author: updatedUser } as unknown as PostInfo)
                 : post
             )
           );
           setPostLikes((prev) =>
             prev.map((post) =>
               post.author._id === id
-                ? { ...post, author: updatedUser } as unknown as PostInfo
+                ? ({ ...post, author: updatedUser } as unknown as PostInfo)
                 : post
             )
           );
           setAccount((prev) =>
-            prev?._id === id
-              ? { ...prev, ...updatedUser }
-              : prev
+            prev?._id === id ? { ...prev, ...updatedUser } : prev
           );
-
         } catch (error) {
           console.error("Error fetching user:", error);
         }
@@ -136,7 +143,6 @@ const ProfilePage: React.FC = () => {
       }
     };
   }, [auth?.token, socket, setPosts, setPostsHome]);
-
 
   useEffect(() => {
     const loadData = async () => {
@@ -167,6 +173,19 @@ const ProfilePage: React.FC = () => {
     };
     loadData();
   }, [fetchSavedPostInProfile, id]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setUserId(id);
+        fetchUserFollowers();
+        fetchUserFollowing();
+      } catch (error) {
+        console.error("Error loading posts:", error);
+      }
+    };
+    loadData();
+  }, [fetchUserFollowers, fetchUserFollowing, networkType, id]);
 
   const handleImgChange = (
     e: ChangeEvent<HTMLInputElement>,
@@ -319,7 +338,16 @@ const ProfilePage: React.FC = () => {
     <>
       <div className="flex-[4_4_0]  border-r border-gray-300 min-h-screen ">
         {/* HEADER */}
-        {isLoading && <ProfileHeaderSkeleton />}
+        {isLoading && (
+          <>
+            <ProfileHeaderSkeleton />
+            <div className="flex flex-col gap-4 w-full p-4">
+              <PostSkeleton />
+              <PostSkeleton />
+              <PostSkeleton />
+            </div>
+          </>
+        )}
         <div className="flex flex-col">
           {user && !isLoading && (
             <>
@@ -434,12 +462,21 @@ const ProfilePage: React.FC = () => {
                     <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary" />
                   )}
                 </div>
+                <div
+                  className="flex justify-center flex-1 p-3 text-slate-500 hover:bg-red-500 transition duration-300 relative cursor-pointer"
+                  onClick={() => setFeedType("networks")}
+                >
+                  Networks
+                  {feedType === "networks" && (
+                    <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary" />
+                  )}
+                </div>
               </div>
             </>
           )}
 
           {/* Integrated Profile Posts */}
-          {feedType === "posts" && (
+          {feedType === "posts" && !isLoading && (
             <div className="mt-5 px-4">
               {posts.length > 0 && (
                 <div>
@@ -461,7 +498,7 @@ const ProfilePage: React.FC = () => {
               <div id="postsLoader" />
             </div>
           )}
-          {feedType === "likes" && (
+          {feedType === "likes" && !isLoading && (
             <div className="mt-5 px-4">
               {postLikes.length > 0 && (
                 <div>
@@ -482,6 +519,110 @@ const ProfilePage: React.FC = () => {
               )}
               <div id="likesLoader" />
             </div>
+          )}
+          {feedType === "networks" && (
+            <>
+              <div className="tabs w-full border-b border-gray-300">
+                <a
+                  className={`tab tab-bordered flex-1 ${
+                    networkType === "followers" ? "tab-active" : ""
+                  }`}
+                  onClick={() => setNetworkType("followers")}
+                >
+                  Followers
+                </a>
+                <a
+                  className={`tab tab-bordered flex-1 ${
+                    networkType === "following" ? "tab-active" : ""
+                  }`}
+                  onClick={() => setNetworkType("following")}
+                >
+                  Following
+                </a>
+              </div>
+              <div className="p-4 w-full mx-auto bg-white rounded-lg shadow-sm">
+                {networkType === "followers" && (
+                  <div>
+                    {user?.followersData?.map((follower) => (
+                      <div
+                        key={follower._id}
+                        className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
+                      >
+                        <div className="flex items-center w-full">
+                          <div className="relative">
+                            <img
+                              src={follower.avatar}
+                              alt={follower.name}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            />
+                          </div>
+                          <div className="mx-2">
+                            <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
+                              {follower.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              @{follower.username}
+                            </p>
+                          </div>
+                        </div>
+                        {account?._id !== follower._id && (
+                          <button
+                            onClick={() => followUser(follower._id)}
+                            className={`px-6 py-2 rounded-full ${
+                              follower.followed
+                                ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                                : "bg-blue-500 hover:bg-blue-600 text-white"
+                            } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                          >
+                            {follower.followed ? "Unfollow" : "Follow"}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {networkType === "following" && (
+                  <div>
+                    {user?.followingData?.map((following) => (
+                      <div
+                        key={following._id}
+                        className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
+                      >
+                        <div className="flex items-center w-full">
+                          <div className="relative">
+                            <img
+                              src={following.avatar}
+                              alt={following.name}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            />
+                          </div>
+                          <div className="mx-2">
+                            <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
+                              {following.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              @{following.username}
+                            </p>
+                          </div>
+                        </div>
+                        {account?._id !== following._id && (
+                          <button
+                            onClick={() => followUser(following._id)}
+                            className={`px-6 py-2 rounded-full ${
+                              following.followed
+                                ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                                : "bg-blue-500 hover:bg-blue-600 text-white"
+                            } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                          >
+                            {following.followed ? "Unfollow" : "Follow"}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
