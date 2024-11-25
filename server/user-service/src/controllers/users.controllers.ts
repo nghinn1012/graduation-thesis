@@ -82,9 +82,7 @@ export const followAndUnFollowUserController = async (req: AuthenticatedRequest,
     }
     const result = await followAndUnFollowUserService(currentUserId as string, followId);
     if (result) {
-      res.status(200).json({
-        message: result,
-      })
+      res.status(200).json(result)
     }
     else {
       res.status(400).json({

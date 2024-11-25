@@ -178,6 +178,7 @@ const ProfilePage: React.FC = () => {
     const loadData = async () => {
       try {
         setUserId(id);
+        if (!id || !userId || feedType !== "networks") return;
         fetchUserFollowers();
         fetchUserFollowing();
       } catch (error) {
@@ -185,7 +186,7 @@ const ProfilePage: React.FC = () => {
       }
     };
     loadData();
-  }, [fetchUserFollowers, fetchUserFollowing, networkType, id]);
+  }, [fetchUserFollowers, fetchUserFollowing, networkType, feedType, id]);
 
   const handleImgChange = (
     e: ChangeEvent<HTMLInputElement>,
@@ -522,7 +523,7 @@ const ProfilePage: React.FC = () => {
           )}
           {feedType === "networks" && (
             <>
-              <div className="tabs w-full border-b border-gray-300">
+              <div role="tablist" className="tabs tabs-bordered w-full my-2 border-b border-gray-300">
                 <a
                   className={`tab tab-bordered flex-1 ${
                     networkType === "followers" ? "tab-active" : ""
@@ -585,36 +586,36 @@ const ProfilePage: React.FC = () => {
                   <div>
                     {user?.followingData?.map((following) => (
                       <div
-                        key={following._id}
+                        key={following?._id}
                         className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
                       >
                         <div className="flex items-center w-full">
                           <div className="relative">
                             <img
-                              src={following.avatar}
-                              alt={following.name}
+                              src={following?.avatar}
+                              alt={following?.name}
                               className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                             />
                           </div>
                           <div className="mx-2">
                             <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
-                              {following.name}
+                              {following?.name}
                             </p>
                             <p className="text-sm text-gray-500">
-                              @{following.username}
+                              @{following?.username}
                             </p>
                           </div>
                         </div>
-                        {account?._id !== following._id && (
+                        {account?._id !== following?._id && (
                           <button
                             onClick={() => followUser(following._id)}
                             className={`px-6 py-2 rounded-full ${
-                              following.followed
+                              following?.followed
                                 ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
                                 : "bg-blue-500 hover:bg-blue-600 text-white"
                             } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
                           >
-                            {following.followed ? "Unfollow" : "Follow"}
+                            {following?.followed ? "Unfollow" : "Follow"}
                           </button>
                         )}
                       </div>

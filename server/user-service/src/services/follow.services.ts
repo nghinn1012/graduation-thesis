@@ -31,7 +31,15 @@ export const followAndUnFollowUserService = async (currentUserId: string, userId
     (currentUserId, {
       $pull: { following: userId }
     });
-    return "User unfollowed successfully!"
+    return {
+      message: "User unfollowed successfully!",
+      user: {
+        _id: currentUser._id.toString(),
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+        username: currentUser.username
+      }
+    }
   } else {
     //follow
     await UserModel.findByIdAndUpdate
@@ -49,7 +57,15 @@ export const followAndUnFollowUserService = async (currentUserId: string, userId
       username: currentUser.username
     }
     )
-    return "User followed successfully!"
+    return {
+      message: "User followed successfully!",
+      user: {
+        _id: currentUser._id.toString(),
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+        username: currentUser.username
+      }
+    }
   }
 }
 

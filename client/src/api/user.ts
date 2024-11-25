@@ -113,6 +113,11 @@ export interface PostAuthor {
   followed: boolean;
 }
 
+export interface FollowData {
+  message: string;
+  user: AccountInfo;
+}
+
 export interface UserFetcher {
   manualRegister(data: ManualRegisterInfo): Promise<UserResponse<AccountInfo>>;
   verifyEmail(token: string): Promise<UserResponse<AccountInfo>>;
@@ -128,7 +133,7 @@ export interface UserFetcher {
     token: string
   ): Promise<UserResponse<searchInfoData>>;
   suggest(token: string): Promise<UserResponse<AccountInfo[]>>;
-  followUser(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
+  followUser(userId: string, token: string): Promise<UserResponse<FollowData>>;
   getFollowers(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
   getFollowing(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
   updateUser(
@@ -210,7 +215,7 @@ export const userFetcher: UserFetcher = {
   followUser: async (
     userId: string,
     token: string
-  ): Promise<UserResponse<AccountInfo>> => {
+  ): Promise<UserResponse<FollowData>> => {
     return userInstance.post(
       userEndpoints.follow.replace(":userId", userId),
       {},

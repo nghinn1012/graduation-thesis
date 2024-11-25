@@ -23,21 +23,21 @@ export default function AppContextProviders({
       <I18nContextProvider>
         <AuthContextProvider>
           <SearchProvider>
-            <UserProvider>
-              <MessageProvider>
-                <SocketProvider>
-                  <NotificationProvider>
-                    <PostProvider>
-                      <ProductProvider>
-                      <FollowProvider>
-                        <ProfileProvider>{children}</ProfileProvider>
-                      </FollowProvider>
-                      </ProductProvider>
-                    </PostProvider>
-                  </NotificationProvider>
-                </SocketProvider>
-              </MessageProvider>
-            </UserProvider>
+            <ProfileProvider>
+              <UserProvider>
+                <MessageProvider>
+                  <SocketProvider>
+                    <NotificationProvider>
+                      <PostProvider>
+                        <ProductProvider>
+                          <FollowProvider>{children}</FollowProvider>
+                        </ProductProvider>
+                      </PostProvider>
+                    </NotificationProvider>
+                  </SocketProvider>
+                </MessageProvider>
+              </UserProvider>
+            </ProfileProvider>
           </SearchProvider>
         </AuthContextProvider>
       </I18nContextProvider>

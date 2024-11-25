@@ -54,7 +54,6 @@ const RightPanel: React.FC = () => {
   const [haveMadeOn, setHaveMadeOn] = useState(false);
   const { auth } = useAuthContext();
   const navigate = useNavigate();
-  const { user, setUser } = useProfileContext();
   const language = useI18nContext();
   const lang = language.of("RightPanel");
 
@@ -175,13 +174,8 @@ const RightPanel: React.FC = () => {
   };
 
   const handleFollowUser = (userId: string, event: any) => {
-    event.preventDefault();
+    console.log('Follow User Context:', followUser);
     followUser(userId);
-    setSuggestUsers(suggestUsers.filter((user: User) => user._id !== userId));
-    setUser({
-      ...user,
-      following: [...(user?.following || []), userId],
-    } as unknown as AccountInfo);
   };
 
   const handleSubmit = (e: any) => {
