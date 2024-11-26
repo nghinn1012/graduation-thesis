@@ -43,7 +43,7 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
 
 export const getPostLikesByUserService = async (userId: string, page?: number, limit?: number) => {
   try {
-    const likes = await postLikeModel.find({ userId: userId });
+    const likes = await postLikeModel.find({ userId: userId }).sort({ createdAt: -1 });
 
     const postsLikesWithInfo = await Promise.all(
       likes.map(async (like) => {

@@ -2,6 +2,7 @@ import React, { useState, useRef, ChangeEvent } from "react";
 import { MdEdit } from "react-icons/md";
 import { AccountInfo } from "../../api/user";
 import imageCompression from "browser-image-compression";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const coverImgRef = useRef<HTMLInputElement | null>(null);
   const profileImgRef = useRef<HTMLInputElement | null>(null);
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ProfilePage");
 
   const handleImageChange = async (
     e: ChangeEvent<HTMLInputElement>,
@@ -88,7 +91,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           &times;
         </button>
 
-        <h3 className="font-bold text-xl mb-4">Edit Profile</h3>
+        <h3 className="font-bold text-xl mb-4">{lang("edit-profile")}</h3>
 
         <div className="relative group/cover">
           {/* Cover Image */}
@@ -140,7 +143,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
         {/* Name, Bio, and Location Fields */}
         <div className="mt-16 mb-4">
-          <label className="block text-gray-700">Name</label>
+          <label className="block text-gray-700">{lang("name")}</label>
           <input
             type="text"
             value={name}
@@ -150,7 +153,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700">Bio</label>
+          <label className="block text-gray-700">{lang("bio")}</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
@@ -161,7 +164,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         {/* Save Button */}
         <div className="flex justify-end">
           <button className="btn btn-primary" onClick={handleSave}>
-            Save
+            {lang("save")}
           </button>
         </div>
       </div>

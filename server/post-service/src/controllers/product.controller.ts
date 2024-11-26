@@ -53,7 +53,8 @@ export const getAllProductsController = async (
   try {
     const products = await getAllProductsService(
       page as unknown as number,
-      limit as unknown as number
+      limit as unknown as number,
+      userId
     );
     return res.status(200).json(products);
   } catch (error) {
@@ -170,6 +171,7 @@ export const searchProductsController = async (
   const { query, page, limit, filter } = req.query;
   try {
     const products = await searchProductsService(
+      userId,
       query as string,
       filter as unknown as string,
       page as unknown as number,

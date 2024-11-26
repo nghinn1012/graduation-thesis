@@ -14,6 +14,8 @@ import EditProfileModal from "../../components/profile/EditProfileModal";
 import { useFollowContext } from "../../context/FollowContext";
 import { useSocket } from "../../hooks/useSocketContext";
 import { PostInfo } from "../../api/post";
+import NetworkSkeleton from "../../components/skeleton/NetworkSkeleton";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const ProfilePage: React.FC = () => {
   const [coverImg, setCoverImg] = useState<string | null>(null);
@@ -49,6 +51,8 @@ const ProfilePage: React.FC = () => {
     setIsLoading,
     fetchUserFollowers,
     fetchUserFollowing,
+    isLoadingNetwork,
+    setIsLoadingNetwork,
   } = useProfileContext();
 
   const { followUser } = useFollowContext();
@@ -64,6 +68,8 @@ const ProfilePage: React.FC = () => {
   const [networkType, setNetworkType] = useState<"followers" | "following">(
     "followers"
   );
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ProfilePage");
   const handleFollow = async () => {
     if (!user || !auth?.token || !account?._id) return;
     followUser(user._id);
@@ -143,6 +149,11 @@ const ProfilePage: React.FC = () => {
       }
     };
   }, [auth?.token, socket, setPosts, setPostsHome]);
+
+  const handleFollowUser = async (userId: string, event: any) => {
+    event.preventDefault();
+    followUser(userId);
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -281,6 +292,8 @@ const ProfilePage: React.FC = () => {
     setUser(undefined);
     setPosts([]);
     setPostLikes([]);
+    setNetworkType("followers");
+    setFeedType("posts");
     setPage(1);
     setPageLike(1);
     setHasMore(true);
@@ -331,6 +344,20 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleViewFollowers = () => {
+    setFeedType("networks");
+    setNetworkType("followers");
+  };
+
+  const handleViewFollowing = () => {
+    setFeedType("networks");
+    setNetworkType("following");
+  };
+
+  const navigateToUser = (userId: string) => {
+    navigate(`/users/profile/${userId}`);
+  };
+
   useEffect(() => {
     console.log("isLoading state updated:", isLoading);
   }, [isLoading]);
@@ -359,7 +386,7 @@ const ProfilePage: React.FC = () => {
                 <div className="flex flex-col">
                   <p className="font-bold text-lg">{user?.name}</p>
                   <span className="text-sm text-slate-500">
-                    {user.postCount} posts
+                    {user.postCount} {lang("posts")}
                   </span>
                 </div>
               </div>
@@ -408,7 +435,7 @@ const ProfilePage: React.FC = () => {
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
                     onClick={handleOpenEditModal}
                   >
-                    Edit Profile
+                    {lang("edit-profile")}
                   </button>
                 )}
                 {isModalOpen && (
@@ -430,17 +457,23 @@ const ProfilePage: React.FC = () => {
                   <span className="text-sm my-1">{user?.bio}</span>
                 </div>
                 <div className="flex gap-2">
-                  <div className="flex gap-1 items-center">
+                  <div
+                    className="flex gap-1 items-center cursor-pointer"
+                    onClick={handleViewFollowing}
+                  >
                     <span className="font-bold text-sm">
                       {user?.following?.length}
                     </span>
-                    <span className="text-slate-500 text-sm">Following</span>
+                    <span className="text-slate-500 text-sm">{lang("following")}</span>
                   </div>
-                  <div className="flex gap-1 items-center">
+                  <div
+                    className="flex gap-1 items-center cursor-pointer"
+                    onClick={handleViewFollowers}
+                  >
                     <span className="font-bold text-sm">
                       {user?.followers?.length}
                     </span>
-                    <span className="text-slate-500 text-sm">Followers</span>
+                    <span className="text-slate-500 text-sm">{lang("followers")}</span>
                   </div>
                 </div>
               </div>
@@ -449,7 +482,7 @@ const ProfilePage: React.FC = () => {
                   className="flex justify-center flex-1 p-3 hover:bg-red-500 transition duration-300 relative cursor-pointer"
                   onClick={() => setFeedType("posts")}
                 >
-                  Posts
+                  {lang("posts")}
                   {feedType === "posts" && (
                     <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary" />
                   )}
@@ -458,7 +491,7 @@ const ProfilePage: React.FC = () => {
                   className="flex justify-center flex-1 p-3 text-slate-500 hover:bg-red-500 transition duration-300 relative cursor-pointer"
                   onClick={() => setFeedType("likes")}
                 >
-                  Likes
+                  {lang("likes")}
                   {feedType === "likes" && (
                     <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary" />
                   )}
@@ -467,7 +500,7 @@ const ProfilePage: React.FC = () => {
                   className="flex justify-center flex-1 p-3 text-slate-500 hover:bg-red-500 transition duration-300 relative cursor-pointer"
                   onClick={() => setFeedType("networks")}
                 >
-                  Networks
+                  {lang("networks")}
                   {feedType === "networks" && (
                     <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary" />
                   )}
@@ -523,14 +556,17 @@ const ProfilePage: React.FC = () => {
           )}
           {feedType === "networks" && (
             <>
-              <div role="tablist" className="tabs tabs-bordered w-full my-2 border-b border-gray-300">
+              <div
+                role="tablist"
+                className="tabs tabs-bordered w-full my-2 border-b border-gray-300"
+              >
                 <a
                   className={`tab tab-bordered flex-1 ${
                     networkType === "followers" ? "tab-active" : ""
                   }`}
                   onClick={() => setNetworkType("followers")}
                 >
-                  Followers
+                  {lang("followers")}
                 </a>
                 <a
                   className={`tab tab-bordered flex-1 ${
@@ -538,89 +574,99 @@ const ProfilePage: React.FC = () => {
                   }`}
                   onClick={() => setNetworkType("following")}
                 >
-                  Following
+                  {lang("following")}
                 </a>
               </div>
               <div className="p-4 w-full mx-auto bg-white rounded-lg shadow-sm">
-                {networkType === "followers" && (
-                  <div>
-                    {user?.followersData?.map((follower) => (
-                      <div
-                        key={follower._id}
-                        className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
-                      >
-                        <div className="flex items-center w-full">
-                          <div className="relative">
-                            <img
-                              src={follower.avatar}
-                              alt={follower.name}
-                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                            />
-                          </div>
-                          <div className="mx-2">
-                            <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
-                              {follower.name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              @{follower.username}
-                            </p>
-                          </div>
-                        </div>
-                        {account?._id !== follower._id && (
-                          <button
-                            onClick={() => followUser(follower._id)}
-                            className={`px-6 py-2 rounded-full ${
-                              follower.followed
-                                ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                                : "bg-blue-500 hover:bg-blue-600 text-white"
-                            } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                {isLoadingNetwork ? (
+                  <NetworkSkeleton />
+                ) : (
+                  <>
+                    {networkType === "followers" && (
+                      <div>
+                        {user?.followersData?.map((follower) => (
+                          <div
+                            key={follower._id}
+                            className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
+
                           >
-                            {follower.followed ? "Unfollow" : "Follow"}
-                          </button>
-                        )}
+                            <div className="flex items-center w-full">
+                              <div className="relative">
+                                <img
+                                  src={follower.avatar}
+                                  alt={follower.name}
+                                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                                />
+                              </div>
+                              <div className="mx-2" onClick={() => navigateToUser(follower._id)}>
+                                <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
+                                  {follower.name}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  @{follower.username}
+                                </p>
+                              </div>
+                            </div>
+                            {account?._id !== follower._id && (
+                              <button
+                              onClick={(event) => handleFollowUser(follower?._id, event)}
+                                className={`btn px-6 py-2 rounded-full ${
+                                  follower.followed
+                                    ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                                } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                              >
+                                {follower.followed ? lang("unfollow") : lang("follow")}
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-                {networkType === "following" && (
-                  <div>
-                    {user?.followingData?.map((following) => (
-                      <div
-                        key={following?._id}
-                        className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
-                      >
-                        <div className="flex items-center w-full">
-                          <div className="relative">
-                            <img
-                              src={following?.avatar}
-                              alt={following?.name}
-                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                            />
-                          </div>
-                          <div className="mx-2">
-                            <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
-                              {following?.name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              @{following?.username}
-                            </p>
-                          </div>
-                        </div>
-                        {account?._id !== following?._id && (
-                          <button
-                            onClick={() => followUser(following._id)}
-                            className={`px-6 py-2 rounded-full ${
-                              following?.followed
-                                ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                                : "bg-blue-500 hover:bg-blue-600 text-white"
-                            } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                    )}
+                    {networkType === "following" && (
+                      <div>
+                        {user?.followingData?.map((following) => (
+                          <div
+                            key={following?._id}
+                            className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out border border-gray-100 mb-4"
                           >
-                            {following?.followed ? "Unfollow" : "Follow"}
-                          </button>
-                        )}
+                            <div className="flex items-center w-full">
+                              <div className="relative">
+                                <img
+                                  src={following?.avatar}
+                                  alt={following?.name}
+                                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                                />
+                              </div>
+                              <div className="mx-2" onClick={() => navigateToUser(following._id)}>
+                                <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
+                                  {following?.name}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  @{following?.username}
+                                </p>
+                                <p className="font-thin">
+                                  {following?.bio}
+                                </p>
+                              </div>
+                            </div>
+                            {account?._id !== following?._id && (
+                              <button
+                                onClick={(event) => handleFollowUser(following?._id, event)}
+                                className={`btn px-6 py-2 rounded-full ${
+                                  following?.followed
+                                    ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                                } font-medium text-sm transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                              >
+                                {following?.followed ? lang("unfollow") : lang("follow")}
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             </>

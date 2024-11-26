@@ -55,6 +55,8 @@ interface ProfileContextType {
   loadMorePostsLike: () => void;
   fetchUserFollowers: () => Promise<void>;
   fetchUserFollowing: () => Promise<void>;
+  isLoadingNetwork: boolean;
+  setIsLoadingNetwork: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -65,6 +67,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const [posts, setPosts] = useState<PostInfo[]>([]);
   const [postLikes, setPostLikes] = useState<PostInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingNetwork, setIsLoadingNetwork] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingLike, setIsLoadingLike] = useState(false);
   const [hasMoreLike, setHasMoreLike] = useState(true);
@@ -344,6 +347,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchUserFollowers = useCallback(async () => {
     if (!auth?.token) return;
     try {
+      setIsLoadingNetwork(true);
       const response = await userFetcher.getFollowers(userId || "", auth.token) as unknown as AccountInfo[];
       const followersWithFollowed = response.map(user => ({
         ...user,
@@ -357,6 +361,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           : prevUser
       );
+      setIsLoadingNetwork(false);
     } catch (err) {
       console.error("Failed to fetch followers:", err);
       error(`Failed to fetch followers: ${(err as Error).message}`);
@@ -366,6 +371,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchUserFollowing = useCallback(async () => {
     if (!auth?.token) return;
     try {
+      setIsLoadingNetwork(true);
       const response = await userFetcher.getFollowing(userId || "", auth.token) as unknown as AccountInfo[];
       const followingWithFollowed = response.map(user => ({
         ...user,
@@ -380,6 +386,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           : prevUser
       );
+      setIsLoadingNetwork(false);
     } catch (err) {
       console.error("Failed to fetch following:", err);
       error(`Failed to fetch following: ${(err as Error).message}`);
@@ -444,6 +451,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         loadMorePostsLike,
         fetchUserFollowers,
         fetchUserFollowing,
+        isLoadingNetwork,
+        setIsLoadingNetwork,
       }}
     >
       {children}

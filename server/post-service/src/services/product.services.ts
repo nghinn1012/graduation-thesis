@@ -10,7 +10,7 @@ import postModel from "../models/postModel";
 import productModel from "../models/productModel";
 import { IAuthor, rpcGetUser, rpcGetUsers } from "./rpc.services";
 
-export const getAllProductsService = async (page: number, limit: number) => {
+export const getAllProductsService = async (page: number, limit: number, userId: string) => {
   try {
     const skip = (page - 1) * limit;
 
@@ -23,13 +23,18 @@ export const getAllProductsService = async (page: number, limit: number) => {
         const postInfo = await postModel.findOne({ _id: product.postId });
         return {
           ...product.toObject(),
-          postInfo,
+          postInfo: postInfo,
         };
       })
     );
+    console.log("productsWithPostInfo", productsWithPostInfo);
+
+    const sortedProducts = productsWithPostInfo.sort((a, b) =>
+      (a.postInfo?.author == userId) ? 1 : (b.postInfo?.author == userId) ? -1 : 0
+    );
 
     return {
-      products: productsWithPostInfo,
+      products: sortedProducts,
       total: totalProducts,
       page,
       totalPages: Math.ceil(totalProducts / limit),
@@ -291,6 +296,7 @@ export const createReviewProductService = async (
 };
 
 export const searchProductsService = async (
+  userId: string,
   query: string,
   filter: string,
   page: number,
@@ -317,7 +323,7 @@ export const searchProductsService = async (
       })
       .lean();
 
-    const productsWithPostInfo = await Promise.all(
+    let productsWithPostInfo = await Promise.all(
       allProducts.map(async (product) => {
         const postInfo = await postModel
           .findOne({ _id: product.postId })
@@ -328,6 +334,11 @@ export const searchProductsService = async (
         };
       })
     );
+
+    productsWithPostInfo = productsWithPostInfo.sort((a, b) =>
+      (a.postInfo?.author == userId) ? 1 : (b.postInfo?.author == userId) ? -1 : 0
+    );
+
 
     let filteredProducts = productsWithPostInfo.filter((product) => {
       if (filter === "") {

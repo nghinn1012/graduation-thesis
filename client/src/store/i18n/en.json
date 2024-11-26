@@ -305,5 +305,50 @@
     "previewAvatar": "Preview Avatar",
     "avatarPreview": "Avatar Preview",
     "submit": "Submit"
+  },
+  "ProfilePage": {
+    "posts": "Posts",
+    "followers": "Followers",
+    "following": "Following",
+    "edit-profile": "Edit Profile",
+    "likes": "Likes",
+    "networks": "Network",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "name": "Name",
+    "bio": "Bio",
+    "save": "Save"
+  },
+  "ShoppingListPage": {
+    "shoppinglist": "Shopping List",
+    "delete-selected": "Delete Selected",
+    "servings": "Servings",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "standardalone-ingredients": "Standardalone Ingredients",
+    "add-to-list": "Add to List",
+    "add-placeholder": "Enter ingredients and quantities, one per line. Ví dụ: Egg 2",
+    "add-ingredients": "Add Ingredients"
+  },
+  "ProductSection": {
+    "searchPlaceholder": "Search food",
+    "searchButton": "Search",
+    "exploreCategories": "Explore Categories",
+    "available": "Available",
+    "categoryAll": "all",
+    "categoryBreakfast": "breakfast",
+    "categoryLunch": "lunch",
+    "categoryDinner": "dinner",
+    "categoryDessert": "dessert",
+    "categorySnack": "snack",
+    "categoryAppetizer": "appetizer",
+    "categoryDrink": "drink",
+    "categorySide": "side",
+    "paginationPrevious": "Previous",
+    "paginationNext": "Next",
+    "noProductsFound": "No products found in this category."
+
   }
 }

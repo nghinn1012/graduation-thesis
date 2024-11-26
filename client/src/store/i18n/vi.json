@@ -345,5 +345,49 @@
     "previewAvatar": "Xem trước ảnh đại diện",
     "avatarPreview": "Ảnh đại diện xem trước",
     "submit": "Gửi"
+  },
+  "ProfilePage": {
+    "posts": "Bài viết",
+    "followers": "Người theo dõi",
+    "following": "Đang theo dõi",
+    "edit-profile": "Chỉnh sửa hồ sơ",
+    "likes": "Lượt thích",
+    "networks": "Mạng lưới",
+    "follow": "Theo dõi",
+    "unfollow": "Bỏ theo dõi",
+    "name": "Tên",
+    "bio": "Tiểu sử",
+    "save": "Lưu"
+  },
+  "ShoppingListPage": {
+    "shoppinglist": "Danh sách mua sắm",
+    "delete-selected": "Xóa các mục đã chọn",
+    "servings": "Khẩu phần",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "standardalone-ingredients": "Nguyên liệu đơn lẻ",
+    "add-to-list": "Thêm vào danh sách",
+    "add-placeholder": "Nhập nguyên liệu và số lượng, mỗi dòng một mục. Ví dụ: Trứng 1 quả",
+    "add-ingredients": "Thêm nguyên liệu"
+  },
+  "ProductSection": {
+    "searchPlaceholder": "Tìm kiếm món ăn",
+    "searchButton": "Tìm kiếm",
+    "exploreCategories": "Khám phá các danh mục",
+    "available": "Có sẵn",
+    "categoryAll": "tất cả",
+    "categoryBreakfast": "bữa sáng",
+    "categoryLunch": "bữa trưa",
+    "categoryDinner": "bữa tối",
+    "categoryDessert": "tráng miệng",
+    "categorySnack": "ăn nhẹ",
+    "categoryAppetizer": "khai vị",
+    "categoryDrink": "đồ uống",
+    "categorySide": "món phụ",
+    "paginationPrevious": "Trước",
+    "paginationNext": "Tiếp theo",
+    "noProductsFound": "Không tìm thấy sản phẩm nào trong danh mục này."
   }
 }

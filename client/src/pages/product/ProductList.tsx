@@ -3,23 +3,14 @@ import ProductCard from "../../components/product/ProductCard";
 import { useProductContext } from "../../context/ProductContext";
 import { MdOutlineSearch } from "react-icons/md";
 import { useLocation } from "react-router-dom";
-
-const categories = [
-  { name: "all", icon: "🍽" },
-  { name: "breakfast", icon: "🍳" },
-  { name: "lunch", icon: "🥪" },
-  { name: "dinner", icon: "🍝" },
-  { name: "dessert", icon: "🍰" },
-  { name: "snack", icon: "🍪" },
-  { name: "appetizer", icon: "🥟" },
-  { name: "drink", icon: "🍹" },
-  { name: "side", icon: "🥗" },
-];
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const ProductListPage = () => {
   const { products, loading, page, setPage, totalPages, searchProducts,
     searchTerm, setSearchTerm, selectedCategory, setSelectedCategory } =
     useProductContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ProductSection");
   useEffect(() => {
     console.log(products);
   }, [products]);
@@ -43,6 +34,19 @@ const ProductListPage = () => {
     setSelectedCategory(category);
   };
 
+  const categories = [
+      { name: "all", displayName: lang("categoryAll"), icon: "🍽" },
+      { name: "breakfast", displayName: lang("categoryBreakfast"), icon: "🍳" },
+      { name: "lunch", displayName: lang("categoryLunch"), icon: "🥪" },
+      { name: "dinner", displayName: lang("categoryDinner"), icon: "🍝" },
+      { name: "dessert", displayName: lang("categoryDessert"), icon: "🍰" },
+      { name: "snack", displayName: lang("categorySnack"), icon: "🍪" },
+      { name: "appetizer", displayName: lang("categoryAppetizer"), icon: "🥟" },
+      { name: "drink", displayName: lang("categoryDrink"), icon: "🍹" },
+      { name: "side", displayName: lang("categorySide"), icon: "🥗" }
+
+  ];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <form onSubmit={handleSearchSubmit} className="mb-8">
@@ -50,7 +54,7 @@ const ProductListPage = () => {
           <div className="input-group flex flex-row">
             <input
               type="text"
-              placeholder="Search food"
+              placeholder={lang("searchPlaceholder")}
               className="input input-bordered flex-grow"
               value={searchTerm}
               defaultValue={searchTerm}
@@ -64,7 +68,7 @@ const ProductListPage = () => {
       </form>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Explore Categories</h2>
+        <h2 className="text-2xl font-bold mb-4">{lang("exploreCategories")}</h2>
         <div className="flex flex-wrap gap-2 mt-4">
           {categories.map((category) => (
             <button
@@ -75,7 +79,7 @@ const ProductListPage = () => {
               }`}
             >
               <span className="">{category.icon}</span>
-              {category.name}
+              {category.displayName}
             </button>
           ))}
         </div>
@@ -88,7 +92,7 @@ const ProductListPage = () => {
           ))}
         </div>
       ) : products.length === 0 ? (
-        <p className="text-center text-lg">No products found in this category.</p>
+        <p className="text-center text-lg">{lang("noProductsFound")}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
@@ -107,7 +111,7 @@ const ProductListPage = () => {
           className="join-item btn"
           disabled={page === 1}
         >
-          Previous
+          {lang("paginationPrevious")}
         </button>
 
         {createPageArray().map((pageNumber) => (
@@ -129,7 +133,7 @@ const ProductListPage = () => {
           className="join-item btn"
           disabled={page === totalPages}
         >
-          Next
+          {lang("paginationNext")}
         </button>
       </div>
     </div>

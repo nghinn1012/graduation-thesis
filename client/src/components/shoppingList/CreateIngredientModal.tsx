@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ingredientOfListSchema } from "../../api/post";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const parseIngredients = (input: string) => {
   const lines = input
@@ -10,7 +11,6 @@ const parseIngredients = (input: string) => {
 
   const ingredients = lines.flatMap(line => {
     const firstDigitIndex = line.search(/\d/);
-
     if (firstDigitIndex === 0) {
       const quantityEndIndex = line.search(/\D/);
       const nameStartIndex = line.indexOf(' ', quantityEndIndex);
@@ -21,14 +21,19 @@ const parseIngredients = (input: string) => {
       return { name, quantity };
     }
 
-    const parts = line.split(':').map(part => part.trim());
-
-    if (parts.length === 2) {
+    if (line.includes(':')) {
+      const parts = line.split(':').map(part => part.trim());
       const name = parts[0].trim();
       const quantity = parts[1].trim();
 
       if (!name && !quantity) return [];
       return { name, quantity };
+    }
+
+    const matches = line.match(/^(.+?)\s(\d+.+)$/);
+    if (matches) {
+      const [_, name, quantity] = matches;
+      return { name: name.trim(), quantity: quantity.trim() };
     }
 
     return { name: line.trim(), quantity: '1' };
@@ -38,12 +43,15 @@ const parseIngredients = (input: string) => {
 };
 
 
+
 const CreateIngredientModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   onSave: (ingredients: ingredientOfListSchema[]) => void;
 }> = ({ isOpen, onClose, onSave }) => {
   const [input, setInput] = useState("");
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ShoppingList");
 
   if (!isOpen) return null;
 
@@ -60,9 +68,9 @@ const CreateIngredientModal: React.FC<{
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-600 bg-opacity-50">
       <div className="bg-white p-4 rounded shadow-lg">
-        <h2 className="text-lg font-bold mb-2">Add Ingredients</h2>
+        <h2 className="text-lg font-bold mb-2">{lang("add-ingredients")}</h2>
         <textarea
-          placeholder="Enter ingredients and quantities, one per line (e.g., 'Oil 1 tbsp')"
+          placeholder={lang("add-placeholder")}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="textarea textarea-bordered w-full mb-2"
@@ -70,10 +78,10 @@ const CreateIngredientModal: React.FC<{
         />
         <div className="flex justify-end">
           <button onClick={handleSave} className="btn btn-success mr-2">
-            Save
+            {lang("save")}
           </button>
           <button onClick={onClose} className="btn btn-error">
-            Cancel
+            {lang("cancel")}
           </button>
         </div>
       </div>

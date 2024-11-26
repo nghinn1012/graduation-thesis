@@ -10,6 +10,7 @@ import CreateIngredientModal from "../../components/shoppingList/CreateIngredien
 import { BsCheckCircle } from "react-icons/bs";
 import { FaCheckCircle } from "react-icons/fa";
 import ShoppingListSkeleton from "../../components/skeleton/ShoppingListSkeleton";
+import { useI18nContext } from "../../hooks/useI18nContext";
 const ShoppingList: React.FC = () => {
   const [list, setList] = useState<ShoppingListData>({} as ShoppingListData);
   const [editingIngredientId, setEditingIngredientId] = useState<string | null>(
@@ -30,6 +31,8 @@ const ShoppingList: React.FC = () => {
   const [allStandaloneSelected, setAllStandaloneSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ShoppingList");
   useEffect(() => {
     const fetchData = async () => {
       const token = auth.auth?.token;
@@ -353,9 +356,10 @@ const ShoppingList: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
   return (
     <div className="p-4">
-      <h1 className="text-center text-2xl font-bold">GROCERY LIST.</h1>
+      <h1 className="text-center text-2xl font-bold uppercase">{lang("shoppinglist")}</h1>
       <button
         className={`btn btn-danger top-4 right-4 ${
           selectedIngredientIds.length === 0
@@ -365,7 +369,7 @@ const ShoppingList: React.FC = () => {
         onClick={handleDeleteIngredients}
         disabled={selectedIngredientIds.length === 0}
       >
-        Delete Selected
+        {lang("delete-selected")}
       </button>
       {/* Render Posts */}
       {loading ? (
@@ -403,7 +407,7 @@ const ShoppingList: React.FC = () => {
 
                       <div className="flex-1">
                         <h2 className="card-title">{post.title}</h2>
-                        <p className="text-sm">Servings: {post.servings}</p>
+                        <p className="text-sm">{lang("servings")}: {post.servings}</p>
                       </div>
 
                       <button
@@ -476,13 +480,13 @@ const ShoppingList: React.FC = () => {
                                       }
                                       className="btn btn-success mr-2"
                                     >
-                                      Save
+                                      {lang("save")}
                                     </button>
                                     <button
                                       onClick={cancelEditing}
                                       className="btn btn-error"
                                     >
-                                      Cancel
+                                      {lang("cancel")}
                                     </button>
                                   </div>
                                 ) : (
@@ -533,7 +537,7 @@ const ShoppingList: React.FC = () => {
                                   }
                                   className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
                                 >
-                                  Edit
+                                  {lang("edit")}
                                 </button>
                                 <button
                                   onClick={() =>
@@ -541,7 +545,7 @@ const ShoppingList: React.FC = () => {
                                   }
                                   className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
                                 >
-                                  Delete
+                                  {lang("delete")}
                                 </button>
                               </div>
                             )}
@@ -558,7 +562,7 @@ const ShoppingList: React.FC = () => {
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <h2 className="card-title">Standalone Ingredients</h2>
+                  <h2 className="card-title">{lang("standardalone-ingredients")}</h2>
                   <button
                     className="p-2"
                     onClick={() => toggleExpand("standalone")}
@@ -633,13 +637,13 @@ const ShoppingList: React.FC = () => {
                               onClick={() => saveChanges(ingredient._id)}
                               className="btn btn-success mr-2"
                             >
-                              Save
+                              {lang("save")}
                             </button>
                             <button
                               onClick={cancelEditing}
                               className="btn btn-error"
                             >
-                              Cancel
+                              {lang("cancel")}
                             </button>
                           </div>
                         ) : (
@@ -682,13 +686,13 @@ const ShoppingList: React.FC = () => {
                           }
                           className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
                         >
-                          Edit
+                          {lang("edit")}
                         </button>
                         <button
                           onClick={() => handleDelete(ingredient._id)}
                           className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left"
                         >
-                          Delete
+                          {lang("delete")}
                         </button>
                       </div>
                     )}
@@ -702,7 +706,7 @@ const ShoppingList: React.FC = () => {
               className="btn btn-primary mt-4"
               onClick={() => setIsModalOpen(true)}
             >
-              Add to List
+              {lang("add-to-list")}
             </button>
 
             <CreateIngredientModal

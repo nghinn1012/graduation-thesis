@@ -17,6 +17,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
+import { useProfileContext } from "./ProfileContext";
 
 interface PostContextType {
   posts: PostInfo[];
@@ -70,6 +71,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     Record<string, number>
   >({});
   const [postUpdatedHome, setPostUpdatedHome] = useState<string>("");
+  const {postLikes, setPostLikes} = useProfileContext();
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading || !hasMore) return;
 

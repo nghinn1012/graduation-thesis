@@ -23,6 +23,9 @@ export type I18nReactComponent =
   | "HomePage"
   | "RightPanel"
   | "MessageSection"
+  | "ProfilePage"
+  | "ShoppingList"
+  | "ProductSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

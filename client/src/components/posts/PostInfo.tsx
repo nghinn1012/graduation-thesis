@@ -137,10 +137,11 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         toggleLikePost(post._id, true);
         toggleLikePostSearch(post._id, true);
         toggleLikePostProfile(post._id, true);
-        setPostLikes([...postLikes, {
+        setPostLikes([{
           ...post,
           liked: true,
-        } as unknown as PostInfo]);
+          likeCount: post.likeCount + 1,
+        } as unknown as PostInfo, ...postLikes]);
       } else {
         setIsLiked(false);
         toggleLikePost(post._id, false);
