@@ -13,6 +13,7 @@ import {
   removeProductsFromCartService,
   searchProductsService,
   updateOrderStatusService,
+  createMomoPaymentService
 } from "../services/product.services";
 import { Response } from "express";
 export const addProductToCartController = async (
@@ -331,6 +332,24 @@ export const updateOrderStatusController = async (
     return res.status(400).json({
       message: "Failed to update order status",
       error: (error as Error).message,
+    });
+  }
+};
+
+export const createMomoPaymentController = async (req: AuthRequest, res: Response) => {
+  const { orderId, amount, redirectUrl } = req.body;
+
+  try {
+    const result = await createMomoPaymentService({
+      orderId,
+      amount,
+      redirectUrl
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      statusCode: 500,
+      message: (error as Error).message
     });
   }
 };

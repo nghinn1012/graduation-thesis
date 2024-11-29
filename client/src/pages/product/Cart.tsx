@@ -4,6 +4,7 @@ import { useProductContext } from "../../context/ProductContext";
 import { ProductCart } from "../../api/post";
 import { useNavigate } from "react-router-dom";
 import { useToastContext } from "../../hooks/useToastContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const CartPage: React.FC = () => {
   const {
@@ -25,6 +26,9 @@ const CartPage: React.FC = () => {
     [authorId: string]: boolean;
   }>({});
   const navigate = useNavigate();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("CartSection", "ProductSection");
+  const langCode = languageContext.language.code;
 
   useEffect(() => {
     setLoadingCart(true);
@@ -40,7 +44,7 @@ const CartPage: React.FC = () => {
     const availableQuantity = item.productInfo?.quantity || 0;
 
     if (item.quantity >= availableQuantity) {
-      error(`Sorry, only ${availableQuantity} items available in stock`);
+      error(lang("cannot-add-more", availableQuantity, item.quantity));
       return;
     } else {
       addProductToCart(item.productId, 1);
@@ -49,9 +53,7 @@ const CartPage: React.FC = () => {
 
   const handleDecrement = (item: ProductCart) => {
     if (item.quantity === 1) {
-      const confirmRemove = window.confirm(
-        "Quantity is 1. Do you want to remove this item from the cart?"
-      );
+      const confirmRemove = window.confirm(lang("remove-alert"));
       if (confirmRemove) {
         removeProductFromCart([item.productId]);
       }
@@ -62,28 +64,23 @@ const CartPage: React.FC = () => {
 
   const handleCheckout = () => {
     const invalidItems = items
-      .filter(item => selectedItems.includes(item._id))
-      .filter(item => item.quantity > (item.productInfo?.quantity || 0));
+      .filter((item) => selectedItems.includes(item._id))
+      .filter((item) => item.quantity > (item.productInfo?.quantity || 0));
 
     if (invalidItems.length > 0) {
       const itemNames = invalidItems
-        .map(item => item.productInfo?.postInfo.title || 'Unknown product')
-        .join(', ');
-      error(`Some items exceed available quantity: ${itemNames}`);
+        .map((item) => item.productInfo?.postInfo.title || "Unknown product")
+        .join(", ");
+      error(lang("exceed-available-quantity", itemNames));
       return;
     }
 
     if (selectedItems.length === 0) {
-      error("Please select at least one item to checkout");
+      error(lang("least-one"));
       return;
     }
 
-    console.log("Proceeding to checkout");
     navigate("/checkout");
-  };
-
-  const handleApplyPromo = () => {
-    console.log(`Applying promo code: ${promoCode}`);
   };
 
   const handleRemove = (productId: string) => {
@@ -135,16 +132,18 @@ const CartPage: React.FC = () => {
     const num = parseFloat(price.toString());
     if (isNaN(num)) return "N/A";
 
+    const currency = langCode === "vi" ? "VND" : "USD";
+
     if (Number.isInteger(num)) {
-      return num.toLocaleString("en-US", {
+      return num.toLocaleString(langCode === "vi" ? "vi-VN" : "en-US", {
         style: "currency",
-        currency: "USD",
+        currency,
         minimumFractionDigits: 0,
       });
     } else {
-      return num.toLocaleString("en-US", {
+      return num.toLocaleString(langCode === "vi" ? "vi-VN" : "en-US", {
         style: "currency",
-        currency: "USD",
+        currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
@@ -203,7 +202,7 @@ const CartPage: React.FC = () => {
       ) : items.length > 0 ? (
         <>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Cart</h2>
+            <h2 className="text-2xl font-bold">{lang("cart")}</h2>
             {selectedItems.length > 0 && (
               <input
                 type="checkbox"
@@ -263,9 +262,13 @@ const CartPage: React.FC = () => {
                             formatPrice={formatPrice}
                             maxQuantity={item.productInfo?.quantity}
                           />
-                          {item.quantity > (item.productInfo?.quantity || 0) && (
+                          {item.quantity >
+                            (item.productInfo?.quantity || 0) && (
                             <div className="text-red-500 text-sm mt-2">
-                              Only {item.productInfo?.quantity} items available
+                              {lang(
+                                "exceed-available-quantity",
+                                item.productInfo?.quantity
+                              )}
                             </div>
                           )}
                         </div>
@@ -273,7 +276,7 @@ const CartPage: React.FC = () => {
                     ) : (
                       <div className="flex flex-col gap-2">
                         <div className="text-red-500 text-sm">
-                          This product no longer exists.
+                          {lang("no-longer-available")}
                         </div>
                         <div className="flex-grow">
                           <CartItem
@@ -297,29 +300,28 @@ const CartPage: React.FC = () => {
 
           <div className="space-y-2 mb-6">
             <div className="flex justify-between">
-              <span>Subtotal</span>
+              <span>{lang("subtotal")}</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
+
             <div className="flex justify-between font-bold">
-              <span>Total</span>
+              <span>{lang("total")}</span>
               <span>{formatPrice(total)}</span>
             </div>
           </div>
 
           <button
-            className="w-full btn btn-success"
+            className="w-full btn btn-success uppercase"
             onClick={handleCheckout}
             disabled={selectedItems.length === 0}
           >
-            CHECKOUT
+            {lang("checkout")}
           </button>
         </>
       ) : (
         <div className="text-center mt-6">
-          <h3 className="text-lg font-semibold">Your cart is empty</h3>
-          <p className="text-gray-500">
-            Looks like you haven't added anything to your cart yet.
-          </p>
+          <h3 className="text-lg font-semibold">{lang("empty-cart")}</h3>
+          <p className="text-gray-500">{lang("look-like-havent")} </p>
         </div>
       )}
     </div>

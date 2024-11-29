@@ -75,7 +75,7 @@ const ProductListPage = () => {
               key={category.name}
               onClick={() => handleCategoryChange(category.name)}
               className={`btn btn-md py-2 ${
-                selectedCategory === category.name ? "btn-accent" : ""
+                selectedCategory == category.name ? "btn-accent" : ""
               }`}
             >
               <span className="">{category.icon}</span>
@@ -111,7 +111,7 @@ const ProductListPage = () => {
           className="join-item btn"
           disabled={page === 1}
         >
-          {lang("paginationPrevious")}
+          {lang("previous")}
         </button>
 
         {createPageArray().map((pageNumber) => (
@@ -133,7 +133,7 @@ const ProductListPage = () => {
           className="join-item btn"
           disabled={page === totalPages}
         >
-          {lang("paginationNext")}
+          {lang("next")}
         </button>
       </div>
     </div>

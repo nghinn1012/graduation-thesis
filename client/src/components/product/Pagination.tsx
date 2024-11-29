@@ -1,4 +1,5 @@
 import React from 'react';
+import { useI18nContext } from '../../hooks/useI18nContext';
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -12,7 +13,8 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   activeTab,
 }) => {
-  // Calculate which page numbers to show
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ProductSection");
   const getVisiblePages = () => {
     if (totalPages <= 2) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -38,7 +40,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={currentPage === 1}
         className={`btn btn-sm ${currentPage === 1 ? 'btn-disabled' : ''}`}
       >
-        Previous
+        {lang('previous')}
       </button>
 
       {visiblePages.map(pageNum => (
@@ -56,7 +58,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={currentPage === totalPages}
         className={`btn btn-sm ${currentPage === totalPages ? 'btn-disabled' : ''}`}
       >
-        Next
+        {lang('next')}
       </button>
     </div>
   );

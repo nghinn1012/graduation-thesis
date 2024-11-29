@@ -26,6 +26,8 @@ export type I18nReactComponent =
   | "ProfilePage"
   | "ShoppingList"
   | "ProductSection"
+  | "CartSection"
+  | "OrderSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

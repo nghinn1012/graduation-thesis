@@ -137,9 +137,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     if (location.pathname !== "/products") {
+      setPage(1);
       setSearchTerm("");
       setSelectedCategory("all");
-      setPageUser(1);
       console.log("reset");
     }
   }, [location.pathname]);
@@ -260,8 +260,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        setSearchTerm(searchTerm);
-        setSelectedCategory(filter);
+        setProducts([]); // Clear old products immediately
         const fetchedProducts = (await postFetcher.searchProduct(
           searchTerm,
           filter === "all" ? "" : filter,
@@ -277,26 +276,13 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         setLoading(false);
       }
     },
-    [auth?.token, page, searchTerm, selectedCategory, limit]
+    [auth?.token, page, limit]
   );
 
   useEffect(() => {
     if (!auth?.token) return;
-
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        console.log("chay qua sau reset");
-        await searchProducts(searchTerm, selectedCategory);
-      } catch (err) {
-        setError("Failed to fetch products");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [auth?.token, page, location.pathname]);
+    searchProducts(searchTerm, selectedCategory);
+  }, [auth?.token, page, searchTerm, selectedCategory, searchProducts]);
 
   const fetchOrdersByUser = useCallback(async () => {
     if (!auth?.token) return;

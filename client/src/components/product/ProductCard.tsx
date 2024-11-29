@@ -6,6 +6,7 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { useProductContext } from "../../context/ProductContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useToastContext } from "../../hooks/useToastContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface ProductCardProps {
   product: ProductInfo;
@@ -17,26 +18,43 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   const { addProductToCart, setCurrentProduct, cart, alreadyAddToCart } = useProductContext();
   const { account } = useAuthContext();
   const { success, error } = useToastContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ProductSection");
+  const langCode = languageContext.language.code;
 
   const formatPrice = (price: string | number) => {
     const num = parseFloat(price.toString());
     if (isNaN(num)) return "N/A";
 
+    const locales = {
+      en: "en-US",
+      vi: "vi-VN",
+    };
+
+    const currencies = {
+      en: "USD",
+      vi: "VND",
+    };
+
+    const locale = locales[langCode] || "en-US";
+    const currency = currencies[langCode] || "USD";
+
     if (Number.isInteger(num)) {
-      return num.toLocaleString("en-US", {
+      return num.toLocaleString(locale, {
         style: "currency",
-        currency: "USD",
+        currency,
         minimumFractionDigits: 0,
       });
     } else {
-      return num.toLocaleString("en-US", {
+      return num.toLocaleString(locale, {
         style: "currency",
-        currency: "USD",
+        currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
     }
   };
+
 
   const handleClickImage = () => {
     setCurrentProduct(null);
@@ -69,9 +87,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
   };
 
   const getAddToCartButtonText = () => {
-    if (product.quantity <= 0) return 'Out of Stock';
-    if (isMaximumQuantityInCart()) return 'Maximum in Cart';
-    return 'Add to Cart';
+    if (product.quantity <= 0) return lang("out-of-stock");
+    if (isMaximumQuantityInCart()) return lang("maximum-in-cart");
+    return lang("add-to-cart");
   };
 
   const handleAddToCart = (productId: string) => {
@@ -81,18 +99,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
     if (existingCartItem) {
       const newQuantity = existingCartItem.quantity + 1;
       if (newQuantity > availableQuantity) {
-        error("Maximum quantity already in cart");
+        error(lang("maximum-in-cart"));
         return;
       }
     } else {
       if (availableQuantity < 1) {
-        error("Sorry, this item is out of stock");
+        error(lang("sorry-out-of-stock"));
         return;
       }
     }
 
     addProductToCart(productId, 1);
-    success("Item added to cart successfully!");
+    success(lang("added-to-cart"));
   };
 
   return (
@@ -123,7 +141,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rating }) => {
             {formatPrice(product.price)}
           </span>
           <span className="text-sm text-gray-600">
-            Available: {product.quantity}
+            {lang("available")}: {product.quantity}
           </span>
         </div>
 

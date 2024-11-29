@@ -12,6 +12,7 @@ import { useProductContext } from "../../context/ProductContext";
 import { Review } from "../../api/post";
 import PurchaseSkeleton from "../../components/skeleton/PurchaseSkeleton";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface Ingredient {
   name: string;
@@ -29,11 +30,19 @@ const ProductPage: React.FC = () => {
   const [error, setError] = useState<string>("");
   const location = useLocation();
   const navigate = useNavigate();
-  const { addProductToCart, currentProduct, fetchProductByPostId, loading, cart } =
-    useProductContext();
+  const {
+    addProductToCart,
+    currentProduct,
+    fetchProductByPostId,
+    loading,
+    cart,
+  } = useProductContext();
 
   const recipeData = (location.state as ProductPageProps) || {};
-  const {account} = useAuthContext();
+  const { account } = useAuthContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ProductSection");
+  const langCode = languageContext.language.code;
 
   const getCurrentCartQuantity = () => {
     const cartItem = cart?.find((item) => item.productId === recipeData._id);
@@ -42,7 +51,9 @@ const ProductPage: React.FC = () => {
 
   const getRemainingQuantity = () => {
     const cartQuantity = getCurrentCartQuantity();
-    return currentProduct?.quantity ? currentProduct.quantity - cartQuantity : 0;
+    return currentProduct?.quantity
+      ? currentProduct.quantity - cartQuantity
+      : 0;
   };
 
   useEffect(() => {
@@ -58,7 +69,7 @@ const ProductPage: React.FC = () => {
     const remainingQuantity = getRemainingQuantity();
 
     if (quantity >= remainingQuantity) {
-      setError(`Cannot exceed available quantity (${remainingQuantity} remaining)`);
+      setError(lang("exceed-max-quantity", remainingQuantity));
       return;
     }
     setQuantity((prev) => prev + 1);
@@ -87,26 +98,40 @@ const ProductPage: React.FC = () => {
     const cartQuantity = getCurrentCartQuantity();
 
     if (!currentProduct?.quantity) {
-      setError("Product is out of stock");
+      setError(lang("sorry-out-of-stock"));
       return;
     }
 
     if (remainingQuantity === 0) {
-      setError("Maximum quantity already in cart");
+      setError(lang("maximum-in-cart"));
       return;
     }
 
     if (quantity > remainingQuantity) {
-      setError(`Cannot add more than ${remainingQuantity} items (${cartQuantity} already in cart)`);
+      setError(lang("cannot-add-more", remainingQuantity, cartQuantity));
       return;
     }
 
-    console.log(`Adding product to cart: ${productId}`);
     addProductToCart(productId, quantity);
+    setQuantity(1);
   };
 
   const remainingQuantity = getRemainingQuantity();
   const cartQuantity = getCurrentCartQuantity();
+
+  const formatPrice = (price: number, langCode: string): string => {
+    const num = parseFloat(price.toString());
+    if (isNaN(num)) return "N/A";
+
+    const options: Intl.NumberFormatOptions = {
+      style: "currency",
+      currency: langCode === "vi" ? "VND" : "USD",
+      minimumFractionDigits: langCode === "vi" ? 0 : 2,
+      maximumFractionDigits: langCode === "vi" ? 0 : 2,
+    };
+
+    return num.toLocaleString(langCode === "vi" ? "vi-VN" : "en-US", options);
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -127,9 +152,9 @@ const ProductPage: React.FC = () => {
               >
                 <IoChevronBackOutline className="w-6 h-6 text-gray-600" />
               </button>
-              <button className="absolute top-2 right-2 bg-white rounded-full p-2">
+              {/* <button className="absolute top-2 right-2 bg-white rounded-full p-2">
                 <AiOutlineHeart className="w-6 h-6 text-red-500" />
-              </button>
+              </button> */}
             </div>
 
             <div className="p-4">
@@ -145,7 +170,9 @@ const ProductPage: React.FC = () => {
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <span className="text-yellow-400 mr-1">★</span>
-                  <span className="font-bold">{currentProduct?.averageRating}</span>
+                  <span className="font-bold">
+                    {currentProduct?.averageRating.toFixed(1)}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -160,7 +187,9 @@ const ProductPage: React.FC = () => {
                   <button
                     className="btn btn-circle btn-sm bg-yellow-400 border-none hover:bg-yellow-500"
                     onClick={increaseQuantity}
-                    disabled={remainingQuantity === 0 || quantity >= remainingQuantity}
+                    disabled={
+                      remainingQuantity === 0 || quantity >= remainingQuantity
+                    }
                   >
                     <FiPlus className="w-4 h-4 text-white" />
                   </button>
@@ -170,15 +199,16 @@ const ProductPage: React.FC = () => {
               {/* Available Items Display */}
               <div className="mb-4 space-y-1">
                 <div className="text-sm text-gray-600">
-                  Total Available: {currentProduct?.quantity || 0} items
+                  {lang("total-available")}: {currentProduct?.quantity || 0}{" "}
+                  {lang("items")}
                 </div>
                 {cartQuantity > 0 && (
                   <div className="text-sm text-blue-600">
-                    In Your Cart: {cartQuantity} items
+                    {lang("in-your-cart")}: {cartQuantity} {lang("items")}
                   </div>
                 )}
                 <div className="text-sm text-green-600">
-                  Remaining: {remainingQuantity} items
+                  {lang("remaining")}: {remainingQuantity} {lang("items")}
                 </div>
               </div>
 
@@ -194,7 +224,9 @@ const ProductPage: React.FC = () => {
               </h2>
               <div className="flex items-center text-gray-500 mb-4">
                 <AiOutlineClockCircle className="w-4 h-4 mr-1" />
-                <span>{currentProduct?.timeToPrepare} mins</span>
+                <span>
+                  {currentProduct?.timeToPrepare} {lang("mins")}
+                </span>
               </div>
               <p className="text-gray-600 my-4">
                 {currentProduct?.postInfo.about}
@@ -202,7 +234,7 @@ const ProductPage: React.FC = () => {
 
               <div className="my-4">
                 <h3 className="font-bold mb-2">
-                  Ingredients:
+                  {lang("ingredients")}:
                   <span className="text-gray-600 font-normal">
                     {" " +
                       currentProduct?.postInfo.ingredients
@@ -215,10 +247,7 @@ const ProductPage: React.FC = () => {
               <div className="my-4">
                 <div className="flex flex-wrap gap-2">
                   {currentProduct?.postInfo.hashtags?.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="badge badge-lg"
-                    >
+                    <span key={index} className="badge badge-lg">
                       {tag}
                     </span>
                   ))}
@@ -227,9 +256,14 @@ const ProductPage: React.FC = () => {
 
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="font-bold">Total Price</span>
+                  <span className="font-bold">{lang("total-price")}</span>
                   <span className="font-bold text-xl">
-                    ${currentProduct?.price ? currentProduct?.price * quantity || 0 : 0}
+                    {formatPrice(
+                      currentProduct?.price
+                        ? currentProduct.price * quantity
+                        : 0,
+                      langCode
+                    )}
                   </span>
                 </div>
 
@@ -237,21 +271,21 @@ const ProductPage: React.FC = () => {
                   {account?._id !== currentProduct?.postInfo.author && (
                     <button
                       className={`btn ${
-                        remainingQuantity === 0
-                          ? "btn-disabled"
-                          : "btn-primary"
+                        remainingQuantity === 0 ? "btn-disabled" : "btn-primary"
                       } w-48`}
                       onClick={() => handleAddToCart(recipeData._id)}
                       disabled={remainingQuantity === 0}
                     >
-                      {remainingQuantity > 0 ? "Add To Cart" : "Maximum In Cart"}
+                      {remainingQuantity > 0
+                        ? lang("add-to-cart")
+                        : lang("maximum-in-cart")}
                     </button>
                   )}
                 </div>
               </div>
 
               <div className="my-6">
-                <h3 className="font-bold text-xl mb-4">Reviews</h3>
+                <h3 className="font-bold text-xl mb-4">{lang("reviews")}</h3>
                 {currentProduct?.reviews.map((review) => (
                   <div className="mb-4 border-b pb-4">
                     <div className="flex items-center mb-2">
@@ -271,6 +305,15 @@ const ProductPage: React.FC = () => {
                             {review.rating.toFixed(1)}
                           </span>
                         </div>
+                        <span className="text-sm text-gray-400">
+                          {new Date(review.createdAt).toLocaleString(langCode, {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
                       </div>
                     </div>
                     <p className="text-gray-700">{review.review}</p>

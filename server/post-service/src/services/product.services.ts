@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   OrderCreate,
   Product,
@@ -8,7 +9,10 @@ import cartModel from "../models/cartModel";
 import orderModel from "../models/orderModel";
 import postModel from "../models/postModel";
 import productModel from "../models/productModel";
+import { buildRequestBody, buildSignature, createSignature } from "../utlis/payment";
 import { IAuthor, rpcGetUser, rpcGetUsers } from "./rpc.services";
+import { MomoPaymentResponse, PaymentParams } from "../data/interface/payment_interface";
+import crypto from 'crypto';
 
 export const getAllProductsService = async (page: number, limit: number, userId: string) => {
   try {
@@ -654,4 +658,44 @@ export const updateOrderStatusService = async (
   } catch (error) {
     throw new Error(`Failed to update order status: ${error}`);
   }
+};
+
+export const createMomoPaymentService = async ({
+  orderId,
+  amount,
+  redirectUrl
+}: PaymentParams): Promise<MomoPaymentResponse> => {
+  const config = {
+    accessKey: 'F8BBA842ECF85',
+    secretKey: 'K951B6PE1waDMi640xX08PD3vg6EkVlz',
+    partnerCode: 'MOMO',
+    ipnUrl: 'https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b',
+    requestType: "payWithMethod",
+    orderInfo: 'Đơn hàng mua hàng trên website',
+  };
+
+  const requestData = {
+    partnerCode: config.partnerCode,
+    requestId: orderId,
+    amount: amount,
+    orderId: orderId,
+    orderInfo: config.orderInfo,
+    redirectUrl: redirectUrl,
+    ipnUrl: config.ipnUrl,
+    requestType: config.requestType,
+    extraData: '',
+    lang: 'vi'
+  };
+
+  const rawSignature = `accessKey=${config.accessKey}&amount=${amount}&extraData=${requestData.extraData}&ipnUrl=${config.ipnUrl}&orderId=${orderId}&orderInfo=${config.orderInfo}&partnerCode=${config.partnerCode}&redirectUrl=${redirectUrl}&requestId=${orderId}&requestType=${config.requestType}`;
+  const signature = crypto.createHmac('sha256', config.secretKey).update(rawSignature).digest('hex');
+
+  const { data } = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', {
+    ...requestData,
+    partnerName: "Test",
+    storeId: "MomoTestStore",
+    signature: signature
+  });
+
+  return data;
 };

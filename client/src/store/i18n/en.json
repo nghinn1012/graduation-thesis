@@ -346,9 +346,24 @@
     "categoryAppetizer": "appetizer",
     "categoryDrink": "drink",
     "categorySide": "side",
-    "paginationPrevious": "Previous",
-    "paginationNext": "Next",
-    "noProductsFound": "No products found in this category."
-
+    "previous": "Previous",
+    "next": "Next",
+    "noProductsFound": "No products found in this category.",
+    "out-of-stock": "Out Of stock",
+    "add-to-cart": "Add To Cart",
+    "max-in-cart": "Maximum In Cart",
+    "maximum-in-cart": "Maximum quantity in cart",
+    "sorry-out-of-stock": "Sorry, this item is out of stock",
+    "added-to-cart": "Item added to cart successfully!",
+    "exceed-available-quantity": "Cannot exceed available quantity ({0} remaining)",
+    "cannot-add-more": "Cannot add more than {0} items ({1} already in cart)",
+    "in-your-cart": "In your cart",
+    "items": "items",
+    "remaining": "Remaining",
+    "total-available": "Total available",
+    "ingredients": "Ingredients",
+    "total-price": "Total Price",
+    "mins": "minutes",
+    "reviews": "Reviews"
   }
 }

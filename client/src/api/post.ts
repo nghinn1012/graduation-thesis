@@ -20,6 +20,7 @@ export const postEndpoints = {
   cancelOrder: "/posts/order/cancelOrder",
   updateOrderStatus: "/posts/order/updateOrderStatus",
   createReviewProduct: "/posts/product/createReview",
+  payment: "/posts/payment",
 
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
@@ -509,6 +510,19 @@ export interface ReviewCreateData {
   reviewsData: ReviewCreate[];
 }
 
+export interface MomoPaymentResponse {
+  partnerCode: string; // Mã đối tác
+  orderId: string; // ID đơn hàng
+  requestId: string; // ID yêu cầu
+  amount: number; // Số tiền thanh toán
+  responseTime: number; // Thời gian phản hồi (timestamp)
+  message: string; // Thông báo kết quả
+  resultCode: number; // Mã kết quả (0: thành công, các giá trị khác: lỗi)
+  payUrl: string; // URL thanh toán
+  shortLink: string; // Link rút gọn cho URL thanh toán
+};
+
+
 export interface PostFetcher {
   // product
   getAllProducts: (
@@ -566,6 +580,12 @@ export interface PostFetcher {
     orderId: string,
     token: string
   ) => Promise<PostResponse<OrderDetailsInfo>>;
+  paymentWithMoMo: (
+    orderId: string,
+    amount: number,
+    redirectUrl: string,
+    token: string
+  ) => Promise<PostResponse<MomoPaymentResponse>>;
 
   // review
   createReviewProduct: (
@@ -1459,6 +1479,26 @@ export const postFetcher: PostFetcher = {
       {
         orderId,
         reviewsData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  paymentWithMoMo: async (
+    orderId: string,
+    amount: number,
+    redirectUrl: string,
+    token: string
+  ): Promise<PostResponse<MomoPaymentResponse>> => {
+    return postInstance.post(
+      postEndpoints.payment,
+      {
+        orderId,
+        amount,
+        redirectUrl,
       },
       {
         headers: {

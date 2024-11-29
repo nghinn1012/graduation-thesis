@@ -6,6 +6,8 @@ import { POST_PORT } from "./src/config/post.config";
 import postRouter from "./src/routes/postRoutes";
 import http from 'http';
 import { setupSocketIO } from "./src/socket";
+import axios from "axios";
+import crypto from "crypto";
 
 const app = express();
 const server = http.createServer(app);
@@ -26,6 +28,7 @@ connectCloudinary();
 setupSocketIO(io);
 
 app.use("/posts", postRouter);
+
 
 server.listen(POST_PORT, () => {
   console.log(`Post-Service running on port ${POST_PORT}`);
