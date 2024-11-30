@@ -10,6 +10,7 @@ import { OrderWithUserInfo, ReviewCreate } from "../../api/post";
 import { IAccountInfo } from "../../data/interface_data/account_info";
 import CancelOrderModal from "./CancelOrderModal";
 import ReviewModal from "./ReviewModal";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface OrderActionsProps {
   order: OrderWithUserInfo;
@@ -29,6 +30,8 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   isMyOrders,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const language = useI18nContext();
+  const lang = language.of("OrderSection");
 
   const isBuyer = isMyOrders;
   const canCancel = order.status === "Pending";
@@ -55,7 +58,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
     <>
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-lg mb-4">Order Actions</h2>
+          <h2 className="card-title text-lg mb-4">{lang("order-actions")}</h2>
           <div className="space-y-4">
             {canCancel && (
               <button
@@ -63,7 +66,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
                 onClick={onOpenCancelModal}
               >
                 <BsX className="w-4 h-4 mr-2" />
-                Cancel Order
+                {lang("cancel-order")}
               </button>
             )}
 
@@ -79,7 +82,8 @@ const OrderActions: React.FC<OrderActionsProps> = ({
                 ) : (
                   <>
                     <BsClock className="w-4 h-4 mr-2" />
-                    Mark as {nextStatus[order.status]}
+                    {nextStatus[order.status] === "Delivering" ?
+                    lang("mark-as-delivering") : lang("mark-as-completed")}
                   </>
                 )}
               </button>
@@ -91,12 +95,12 @@ const OrderActions: React.FC<OrderActionsProps> = ({
                 className="btn btn-accent btn-block"
                 onClick={onOpenReviewModal}
               >
-                Review Order
+                {lang("review-order")}
               </button>
             )}
 
             {/* Print and Export buttons */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <button className="btn btn-outline btn-block">
                 <BsPrinter className="w-4 h-4 mr-2" />
                 Print Order
@@ -105,7 +109,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
                 <BsFileEarmarkPdf className="w-4 h-4 mr-2" />
                 Export PDF
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

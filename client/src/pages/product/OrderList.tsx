@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import OrderListSkeleton from "../../components/skeleton/OrderListSkeleton";
 import OrderActionButtons from "../../components/order/OrderActionButtons";
 import Pagination from "../../components/product/Pagination";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const OrdersPage = () => {
   const [activeTab, setActiveTab] = useState("My Orders");
@@ -35,6 +36,17 @@ const OrdersPage = () => {
     loadingOrder,
     setLoadingOrder,
   } = useProductContext();
+  const language = useI18nContext();
+  const lang = language.of("OrderSection");
+
+  const tabs = [
+    { key: "All", label: lang("all") },
+    { key: "Pending", label: lang("pending") },
+    { key: "Delivering", label: lang("delivering") },
+    { key: "Completed", label: lang("completed") },
+    { key: "Cancelled By User", label: lang("cancelled by user") },
+    { key: "Cancelled By Seller", label: lang("cancelled by seller") },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,12 +135,10 @@ const OrdersPage = () => {
       return (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="text-xl font-semibold text-gray-500 mb-2">
-            No orders found
+            {lang("no-orders-found")}
           </div>
           <div className="text-sm text-gray-400">
-            {isMyOrders
-              ? "You haven't placed any orders yet"
-              : "Your shop doesn't have any orders yet"}
+            {isMyOrders ? lang("no-orders-my") : lang("no-orders-shop")}
           </div>
         </div>
       );
@@ -141,13 +151,15 @@ const OrdersPage = () => {
             <table className="table w-full">
               <thead>
                 <tr>
-                  <th className="text-sm">Order Id</th>
-                  <th className="text-sm">{"Customer Name"}</th>
-                  {isMyOrders && <th className="text-sm">Address</th>}
-                  <th className="text-sm">Amount</th>
-                  <th className="hidden sm:table-cell text-sm">Date</th>
-                  <th className="text-sm">Status</th>
-                  <th className="text-sm">Action</th>
+                  <th className="text-sm">{lang("order-id")}</th>
+                  <th className="text-sm">{lang("customer-name")}</th>
+                  {isMyOrders && <th className="text-sm">{lang("address")}</th>}
+                  <th className="text-sm">{lang("amount")}</th>
+                  <th className="hidden sm:table-cell text-sm">
+                    {lang("date")}
+                  </th>
+                  <th className="text-sm">{lang("status")}</th>
+                  <th className="text-sm">{lang("action")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,10 +179,10 @@ const OrdersPage = () => {
                       .map((order) => (
                         <tr key={order._id} className="hover:bg-base-200">
                           <td
-                            className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+                            className="text-xs sm:text-sm whitespace-nowrap cursor-pointer truncate max-w-12"
                             onClick={() => handleViewOrder(order._id)}
                           >
-                            ORD-${order._id.slice(-6).toUpperCase()}
+                            {order._id}
                           </td>
                           <td
                             className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
@@ -207,7 +219,7 @@ const OrdersPage = () => {
                                 order.status
                               )}`}
                             >
-                              {order.status}
+                              {lang(order.status.toLowerCase())}
                             </span>
                           </td>
                           <td className="text-sm sm:text-sm">
@@ -232,7 +244,7 @@ const OrdersPage = () => {
     <div className="p-2 sm:p-4 bg-base-200 min-h-screen">
       <div className="bg-base-100 rounded-lg shadow p-3 sm:p-6">
         <div className="flex justify-between items-center mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold">Orders</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{lang("orders")}</h1>
         </div>
 
         {/* Main Tabs */}
@@ -243,7 +255,7 @@ const OrdersPage = () => {
             }`}
             onClick={() => setActiveTab("My Orders")}
           >
-            My Orders
+            {lang("my-orders")}
           </button>
           <button
             className={`tab tab-sm sm:tab-md flex-shrink-0 ${
@@ -251,31 +263,24 @@ const OrdersPage = () => {
             }`}
             onClick={() => setActiveTab("Orders of My Shop")}
           >
-            Orders of My Shop
+            {lang("shop-orders")}
           </button>
         </div>
 
         {/* Status Tabs */}
         <div className="tabs tabs-boxed mb-4 flex-nowrap overflow-x-auto">
-          {[
-            "All",
-            "Pending",
-            "Delivering",
-            "Completed",
-            "Cancelled By User",
-            "Cancelled By Seller",
-          ].map((tab) => (
+          {tabs.map((tab) => (
             <button
-              key={tab}
+              key={tab.key}
               className={`tab tab-sm sm:tab-md flex-shrink-0 ${
                 (activeTab === "My Orders" ? myOrdersTab : shopOrdersTab) ===
-                tab
+                tab.key
                   ? "tab-active"
                   : ""
               }`}
-              onClick={() => handleStatusChange(tab)}
+              onClick={() => handleStatusChange(tab.key)}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -284,41 +289,6 @@ const OrdersPage = () => {
 
         {/* Pagination Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4">
-          {/* <div className="flex items-center">
-            <span className="mr-2 text-sm">Show</span>
-            <select
-              className="select select-bordered select-sm w-20"
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-            >
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-          </div> */}
-          {/* <div className="btn-group overflow-x-auto max-w-full">
-            {Array.from({
-              length: Math.ceil(
-                activeTab === "My Orders" ? totalUserPages : totalSellerPages
-              ),
-            }).map((_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`btn btn-sm ${
-                  activeTab === "My Orders"
-                    ? pageUser === index + 1
-                      ? "btn-active"
-                      : ""
-                    : pageSeller === index + 1
-                    ? "btn-active"
-                    : ""
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
-          </div> */}
           {activeTab === "My Orders"
             ? totalUserPages > 0 && (
                 <Pagination

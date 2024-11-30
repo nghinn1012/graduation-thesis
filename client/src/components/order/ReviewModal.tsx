@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useProductContext } from "../../context/ProductContext";
 import { ReviewCreate } from "../../api/post";
 import { IoMdClose } from "react-icons/io";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   const { currentOrderReview, setCurrentOrderReview, fetchOrderById, loading } = useProductContext();
   const [reviews, setReviews] = useState<ReviewCreate[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const language = useI18nContext();
+  const lang = language.of("ReviewSection");
 
   useEffect(() => {
     if (isOpen && orderId) {
@@ -79,7 +82,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           <IoMdClose className="w-4 h-4" />
         </button>
 
-        <h3 className="font-bold text-lg mb-4">Review Products</h3>
+        <h3 className="font-bold text-lg mb-4">{lang("review-products")}</h3>
 
         <div className="space-y-6">
           {loading ? (
@@ -128,7 +131,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                         onChange={(e) =>
                           handleCommentChange(product.productInfo._id, e.target.value)
                         }
-                        placeholder="Write your review here..."
+                        placeholder={lang("review-placeholder")}
                         className="textarea textarea-bordered w-full"
                         rows={3}
                       />
@@ -146,7 +149,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
             className="btn btn-ghost"
             disabled={isSubmitting}
           >
-            Cancel
+            {lang("cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -156,10 +159,10 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
             {isSubmitting ? (
               <>
                 <span className="loading loading-spinner loading-xs"></span>
-                Submitting...
+                {lang("submitting")}
               </>
             ) : (
-              'Submit Reviews'
+              lang("submit-review")
             )}
           </button>
         </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useI18nContext } from '../../hooks/useI18nContext';
 
 interface CancelOrderModalProps {
   isOpen: boolean;
@@ -17,20 +18,22 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   onReasonChange,
   isSeller
 }) => {
+  const language = useI18nContext();
+  const lang = language.of("OrderSection");
   const buyerReasons = [
-    "Changed my mind",
-    "Found a better price elsewhere",
-    "Ordered by mistake",
-    "Shipping time too long",
-    "Other"
+    { key: "changed-my-mind", label: lang("changed-my-mind") },
+    { key: "better-price", label: lang("better-price") },
+    { key: "ordered-by-mistake", label: lang("ordered-by-mistake") },
+    { key: "shipping-too-long", label: lang("shipping-too-long") },
+    { key: "other", label: lang("other") },
   ];
 
   const sellerReasons = [
-    "Out of stock",
-    "Cannot fulfill order at this time",
-    "Pricing error",
-    "Shipping issues",
-    "Other"
+    { key: "out-of-stock", label: lang("out-of-stock") },
+    { key: "cannot-fulfill", label: lang("cannot-fulfill") },
+    { key: "pricing-error", label: lang("pricing-error") },
+    { key: "shipping-issues", label: lang("shipping-issues") },
+    { key: "other", label: lang("other") },
   ];
 
   const reasons = isSeller ? sellerReasons : buyerReasons;
@@ -39,23 +42,23 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
     <dialog className={`modal ${isOpen ? 'modal-open' : ''}`}>
       <div className="modal-box">
         <h3 className="font-bold text-lg mb-4">
-          {isSeller ? "Cancel Customer Order" : "Cancel Your Order"}
+          {isSeller ? lang("cancel-customer-order") : lang("cancel-your-order")}
         </h3>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Select Reason for Cancellation:
+              {lang("select-reason")}
             </label>
             <select
               value={selectedReason}
               onChange={(e) => onReasonChange(e.target.value)}
               className="select select-bordered w-full"
             >
-              <option value="">Select a reason</option>
+              <option value="">{lang("select-reason-placeholder")}</option>
               {reasons.map((reason) => (
-                <option key={reason} value={reason}>
-                  {reason}
+                <option key={reason.key} value={reason.key}>
+                  {reason.label}
                 </option>
               ))}
             </select>
@@ -66,20 +69,20 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
               onClick={onClose}
               className="btn btn-ghost btn-sm"
             >
-              Cancel
+              {lang("cancel")}
             </button>
             <button
               onClick={() => onCancel(selectedReason)}
               disabled={!selectedReason}
               className="btn btn-error btn-sm"
             >
-              Confirm Cancellation
+              {lang("confirm-cancellation")}
             </button>
           </div>
         </div>
       </div>
       <form method="dialog" className="modal-backdrop" onClick={onClose}>
-        <button>close</button>
+        <button>{lang("close")}</button>
       </form>
     </dialog>
   );

@@ -49,6 +49,13 @@ const orderSchema = new Schema({
     type: String,
     default: "",
   },
+  transactionId: {
+    type: String,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["SUCCESS","FAILED"],
+  },
   status: {
     type: String,
     enum: ["Pending", "Delivering", "Completed", "Cancelled By Seller", "Cancelled By User"],

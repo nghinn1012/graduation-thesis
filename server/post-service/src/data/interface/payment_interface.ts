@@ -47,3 +47,10 @@ export interface MomoPaymentResponse {
   message: string;
   resultCode: number;
 }
+
+export interface OrderUpdateData {
+  paymentStatus: string;
+  transactionId?: string;
+  paymentMethod: string;
+  amount?: number;
+}

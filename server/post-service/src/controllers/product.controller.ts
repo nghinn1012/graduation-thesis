@@ -13,9 +13,11 @@ import {
   removeProductsFromCartService,
   searchProductsService,
   updateOrderStatusService,
-  createMomoPaymentService
+  createMomoPaymentService,
+  handleMomoCallbackService
 } from "../services/product.services";
 import { Response } from "express";
+import { parseMomoResponse } from "../utlis/payment";
 export const addProductToCartController = async (
   req: AuthRequest,
   res: Response
@@ -346,6 +348,47 @@ export const createMomoPaymentController = async (req: AuthRequest, res: Respons
       redirectUrl
     });
     return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      statusCode: 500,
+      message: (error as Error)
+    });
+  }
+};
+
+export const handleMomoCallbackController = async (req: AuthRequest, res: Response) => {
+  const {
+    partnerCode,
+    orderId,
+    requestId,
+    amount,
+    orderInfo,
+    orderType,
+    transId,
+    resultCode,
+    message,
+    payType,
+    responseTime,
+    extraData,
+    signature
+  } = req.body;
+  try {
+    const response = await handleMomoCallbackService({
+      partnerCode,
+      orderId,
+      requestId,
+      amount,
+      orderInfo,
+      orderType,
+      transId,
+      resultCode,
+      message,
+      payType,
+      responseTime,
+      extraData,
+      signature
+    });
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({
       statusCode: 500,

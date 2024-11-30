@@ -5,6 +5,7 @@ import CancelOrderModal from "./CancelOrderModal";
 import ReviewModal from "./ReviewModal";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface OrderActionButtonsProps {
   order: OrderWithUserInfo;
@@ -25,8 +26,9 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const { cancelOrder, updateOrderStatus, createOrderReview } = useProductContext();
   const navigate = useNavigate();
+  const language = useI18nContext();
+  const lang = language.of("OrderSection");
 
-  // Status options for shop orders
   const nextStatus: { [key: string]: string } = {
     Pending: "Delivering",
     Delivering: "Completed",
@@ -75,7 +77,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
           onClick={() => setIsCancelModalOpen(true)}
           className="btn btn-error btn-sm text-xs"
         >
-          Cancel Order
+          {lang("cancel-order")}
         </button>
         <CancelOrderModal
           isOpen={isCancelModalOpen}
@@ -96,7 +98,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
           onClick={() => setIsReviewModalOpen(true)}
           className="btn btn-accent btn-sm text-xs"
         >
-          Review Order
+        {lang("review-order")}
         </button>
         <ReviewModal
           isOpen={isReviewModalOpen}
@@ -118,7 +120,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
         {isUpdating ? (
           <span className="loading loading-spinner loading-xs"></span>
         ) : (
-          `Mark as ${nextStatus[order.status]}`
+          nextStatus[order.status] == "Delivering" ? lang("mark-as-delivering") : lang("mark-as-completed")
         )}
       </button>
     ) : null;

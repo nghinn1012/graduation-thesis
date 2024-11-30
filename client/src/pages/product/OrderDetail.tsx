@@ -21,6 +21,7 @@ import OrderActions from "../../components/order/OrderAction";
 import { Review, ReviewCreate } from "../../api/post";
 import CancelOrderModal from "../../components/order/CancelOrderModal";
 import ReviewModal from "../../components/order/ReviewModal";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
@@ -156,6 +157,22 @@ const OrderDetails: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const language = useI18nContext();
+  const lang = language.of("ReviewSection", "OrderSection");
+  const langCode = language.language.code;
+
+  function formatPrice(price: number): string {
+    let currencyCode: string = "VND";
+
+    if (langCode === "en") {
+      currencyCode = "USD";
+    }
+
+    return new Intl.NumberFormat(langCode, {
+      style: "currency",
+      currency: currencyCode,
+    }).format(price);
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -258,16 +275,16 @@ const OrderDetails: React.FC = () => {
                 onClick={() => navigate(-1)}
               >
                 <BsFileText className="w-4 h-4 mr-2" />
-                Go Back
+                {lang("go-back")}
               </button>
               <div className="mb-4 lg:mb-0">
                 <h1 className="text-xl lg:text-2xl font-bold">
-                  Order #{currentOrderDetail._id}
+                  {lang("order-id")} {currentOrderDetail._id}
                 </h1>
                 <p className="text-sm lg:text-base text-base-content/70">
-                  Placed on{" "}
+                  {lang("placed-on")}{" "}
                   {new Date(currentOrderDetail.createdAt).toLocaleDateString(
-                    "en-US",
+                    langCode === "en" ? "en-US" : "vi-VN",
                     {
                       day: "numeric",
                       month: "long",
@@ -279,14 +296,14 @@ const OrderDetails: React.FC = () => {
               <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 items-center">
                 <button className="btn btn-primary btn-sm w-full lg:w-auto">
                   <BsChat className="w-4 h-4 mr-2" />
-                  Message Customer
+                  {lang("message-customer")}
                 </button>
                 <span
                   className={`badge ${getStatusBadge(
                     currentOrderDetail.status
                   )} badge-lg mt-1 lg:mt-0`}
                 >
-                  {currentOrderDetail.status}
+                  {lang(currentOrderDetail.status.toLowerCase())}
                 </span>
               </div>
             </div>
@@ -301,7 +318,7 @@ const OrderDetails: React.FC = () => {
                 <div className="p-6 pb-0">
                   <h2 className="card-title text-lg">
                     <BsBox className="w-5 h-5 mr-2" />
-                    Order Items
+                    {lang("order-items")}
                   </h2>
                 </div>
                 <div className="flex-1 overflow-auto px-6 py-4">
@@ -326,13 +343,12 @@ const OrderDetails: React.FC = () => {
                             </h4>
                             <div className="mt-1 flex items-center justify-between">
                               <span className="text-sm text-base-content/70">
-                                ${item.productInfo.price}
+                                {formatPrice(item.productInfo.price)}
                               </span>
                               <span className="font-medium">
-                                $
-                                {(
+                                {formatPrice(
                                   item.productInfo.price * item.quantity
-                                ).toFixed(2)}
+                                )}
                               </span>
                             </div>
                           </div>
@@ -347,7 +363,7 @@ const OrderDetails: React.FC = () => {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                       <BsStarFill className="w-4 h-4 text-yellow-400" />
-                                      Your Review
+                                      {lang("your-review")}
                                     </div>
                                     {item.productInfo.reviews?.some(
                                       (review: Review) =>
@@ -355,11 +371,11 @@ const OrderDetails: React.FC = () => {
                                         currentOrderDetail.userId
                                     ) ? (
                                       <span className="badge badge-success badge-sm">
-                                        Reviewed
+                                        {lang("reviewed")}
                                       </span>
                                     ) : (
                                       <span className="badge badge-ghost badge-sm">
-                                        No Review Yet
+                                        {lang("no-reviews")}
                                       </span>
                                     )}
                                   </div>
@@ -401,7 +417,7 @@ const OrderDetails: React.FC = () => {
                                       currentOrderDetail.userId
                                   ) && (
                                     <div className="text-center text-base-content/70 py-4">
-                                      You haven't reviewed this product yet
+                                      {lang("have-not-review")}
                                     </div>
                                   )}
                                 </div>
@@ -423,7 +439,7 @@ const OrderDetails: React.FC = () => {
               <div className="card-body">
                 <h2 className="card-title text-lg">
                   <BsFileText className="w-5 h-5 mr-2" />
-                  Customer Details
+                  {lang("customer-details")}
                 </h2>
                 <div className="space-y-4">
                   <div className="flex items-center">
@@ -454,11 +470,11 @@ const OrderDetails: React.FC = () => {
               <div className="card-body">
                 <h2 className="card-title text-lg">
                   <BsClock className="w-5 h-5 mr-2" />
-                  Order Status
+                  {lang("order-status")}
                 </h2>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">Status</span>
+                    <span className="font-medium">{lang("status")}</span>
                     <span
                       className={`badge
                         ${
@@ -477,7 +493,7 @@ const OrderDetails: React.FC = () => {
                         }
                       `}
                     >
-                      {currentOrderDetail.status}
+                      {lang(currentOrderDetail.status.toLowerCase())}
                     </span>
                   </div>
 
@@ -487,7 +503,7 @@ const OrderDetails: React.FC = () => {
                     currentOrderDetail.reason && (
                       <div className="flex flex-col">
                         <span className="text-base-content/70">
-                          Reason:{" "}
+                          {lang("reason")}:{" "}
                           <span className="font-semibold">
                             {currentOrderDetail.reason}
                           </span>
@@ -503,26 +519,26 @@ const OrderDetails: React.FC = () => {
               <div className="card-body">
                 <h2 className="card-title text-lg">
                   <BsClock className="w-5 h-5 mr-2" />
-                  Payment Summary
+                  {lang("payment-summary")}
                 </h2>
                 <div className="space-y-3">
                   <div className="flex justify-between text-base-content/70">
-                    <span>Subtotal</span>
-                    <span>${currentOrderDetail.amount.toFixed(2)}</span>
+                    <span>{lang("subtotal")}</span>
+                    <span>{formatPrice(currentOrderDetail.amount)}</span>
                   </div>
                   <div className="flex justify-between text-base-content/70">
-                    <span>Delivery Fee</span>
-                    <span>${currentOrderDetail.shippingFee.toFixed(2)}</span>
+                    <span>{lang("shipping-fee")}</span>
+                    <span>{formatPrice(currentOrderDetail.shippingFee)}</span>
                   </div>
                   <div className="divider"></div>
                   <div className="flex justify-between font-semibold text-lg">
-                    <span>Total</span>
+                    <span>{lang("total")}</span>
                     <span className="text-primary">
-                      $
-                      {(
+
+                      {formatPrice(
                         currentOrderDetail.amount +
                         currentOrderDetail.shippingFee
-                      ).toFixed(2)}
+                      )}
                     </span>
                   </div>
                 </div>

@@ -17,6 +17,8 @@ import {
 } from "react-icons/fa6";
 import ShippingAddressSection from "../../components/product/ShippingAddress";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useToastContext } from "../../hooks/useToastContext";
+import { Toaster } from "react-hot-toast";
 
 type GroupedProducts = {
   [key: string]: ProductCart[];
@@ -54,6 +56,7 @@ const OrderInfoPage: React.FC = () => {
   const [orderResults, setOrderResults] = useState<
     { orderNumber: string; totalAmount: number; deliveryAddress: string }[]
   >([]);
+  const {error} = useToastContext();
 
   const validateFormData = (data: FormData): Partial<FormData> => {
     const errors: Partial<FormData> = {};
@@ -124,11 +127,11 @@ const OrderInfoPage: React.FC = () => {
 
   useEffect(() => {
     if (formData.shippingMethod === "express") {
-      setDeliveryFee(10);
-      setTotalTransaction(total + 10);
+      setDeliveryFee(50000);
+      setTotalTransaction(total + 50000);
     } else {
-      setDeliveryFee(5);
-      setTotalTransaction(total + 5);
+      setDeliveryFee(20000);
+      setTotalTransaction(total + 20000);
     }
   }, [formData.shippingMethod, total]);
 
@@ -211,16 +214,29 @@ const OrderInfoPage: React.FC = () => {
           const response = await createOrder(data as OrderInfo);
 
           if (response && formData.paymentMethod === "qr_code") {
-            const res = await postFetcher.paymentWithMoMo(
-              response._id,
-              calculateOrderTotal(groupedProducts[order.sellerId]),
-              "https://localhost:3000/payment-success",
-              auth.token
-            ) as unknown as MomoPaymentResponse;
-            if (res && res.resultCode === 0) {
-              window.location.href = res.payUrl;
+            try {
+              const res = await postFetcher.paymentWithMoMo(
+                response._id,
+                calculateOrderTotal(groupedProducts[order.sellerId]) + deliveryFee,
+                "http://localhost:3000/payment-success",
+                auth.token
+              ) as unknown as MomoPaymentResponse;
+
+              if (!res) {
+                error("Failed to create payment request");
+                return null;
+              }
+              if (res && res.resultCode === 0) {
+                removeProductFromCart(
+                  selectedProducts.map((product) => product.productId)
+                );
+                window.location.href = res.payUrl;
+              }
+            } catch (error) {
+              console.error("Error creating payment request:", error);
+              return null;
             }
-          }
+          };
           if (response && response._id && formData.paymentMethod === "cod") {
             return {
               orderNumber: response._id,
@@ -244,7 +260,7 @@ const OrderInfoPage: React.FC = () => {
             }[]
           );
 
-          navigate("/payment-success", {
+          navigate(`/payment-success?orderType=cod`, {
             state: {
               orderResults: results,
             },
@@ -260,6 +276,11 @@ const OrderInfoPage: React.FC = () => {
       }
     }
   };
+
+  const handleClickBack = (event: any) => {
+    event.preventDefault();
+    navigate(-1);
+  }
 
   // useEffect(() => {
   //   if (
@@ -280,6 +301,7 @@ const OrderInfoPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Form Section */}
+        <Toaster/>
         <div className="md:col-span-2">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Order Information Header */}
@@ -287,7 +309,7 @@ const OrderInfoPage: React.FC = () => {
               <div className="card-body flex flex-row items-center justify-center">
                 <button
                   className="btn btn-square btn-sm mr-3"
-                  onClick={() => navigate(-1)}
+                  onClick={handleClickBack}
                 >
                   <FaArrowLeft className="w-4 h-4" />
                 </button>

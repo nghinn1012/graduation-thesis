@@ -21,6 +21,7 @@ export const postEndpoints = {
   updateOrderStatus: "/posts/order/updateOrderStatus",
   createReviewProduct: "/posts/product/createReview",
   payment: "/posts/payment",
+  callback: "/posts/callback",
 
   //mealPlanner
   addMeal: "/posts/mealPlanner/create",
@@ -522,6 +523,21 @@ export interface MomoPaymentResponse {
   shortLink: string; // Link rút gọn cho URL thanh toán
 };
 
+export interface MomoPaymentCallback {
+  partnerCode: string; // Mã đối tác (ví dụ: "MOMO")
+  orderId: string; // ID đơn hàng trên hệ thống của bạn
+  requestId: string; // ID yêu cầu giao dịch, thường giống orderId
+  amount: string; // Số tiền giao dịch, kiểu chuỗi
+  orderInfo: string; // Thông tin đơn hàng
+  orderType: string; // Loại đơn hàng (ví dụ: "momo_wallet")
+  transId: string; // ID giao dịch của MoMo
+  resultCode: string; // Mã kết quả giao dịch (0 là thành công)
+  message: string; // Thông báo kết quả giao dịch
+  payType: string; // Phương thức thanh toán (ví dụ: "credit")
+  responseTime: string; // Thời gian phản hồi, dạng timestamp (milliseconds)
+  extraData: string; // Dữ liệu bổ sung (nếu có, mặc định là "")
+  signature: string; // Chữ ký dùng để xác thực tính toàn vẹn của callback
+}
 
 export interface PostFetcher {
   // product
@@ -586,6 +602,10 @@ export interface PostFetcher {
     redirectUrl: string,
     token: string
   ) => Promise<PostResponse<MomoPaymentResponse>>;
+  handleMoMoCallback: (
+    data: MomoPaymentCallback,
+    token: string
+  ) => Promise<PostResponse<OrderDetailsInfo>>;
 
   // review
   createReviewProduct: (
@@ -1506,5 +1526,19 @@ export const postFetcher: PostFetcher = {
         },
       }
     );
-  }
+  },
+  handleMoMoCallback: async (
+    data: MomoPaymentCallback,
+    token: string
+  ): Promise<PostResponse<OrderDetailsInfo>> => {
+    return postInstance.post(
+      postEndpoints.callback,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
 };

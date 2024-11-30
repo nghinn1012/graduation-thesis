@@ -6,7 +6,7 @@ import { createMadeRecipeController, deleteMadeRecipeController, getMadeRecipeBy
 import { createCommentController, deleteCommentController, getCommentByIdController, getCommentByPostIdController, likeOrUnlikeCommentController, updateCommentController } from "../controllers/comment.controllers";
 import { addIngredientToShoppingListController, checkPostInShoppingListController, getShoppingListController, removeIngredientFromShoppingListController, removeIngredientsFromShoppingListController, removePostFromShoppingListController, updateIngredientInShoppingListController } from "../controllers/shoppingList.controllers";
 import { addMealController, checkPostInUnscheduledMealController, getMealPlannerController, removeMealController, scheduleMealController } from "../controllers/mealPlanner.controllers";
-import { addProductToCartController, searchProductsController, createReviewProductController, getAllProductsController, getCartController, getProductByPostIdController, removeProductFromCartController, createOrderController, getOrdersByUserController, getOrderOfSellerController, getOrderByIdController, cancelOrderController, updateOrderStatusController, createMomoPaymentController } from "../controllers/product.controller";
+import { addProductToCartController, searchProductsController, createReviewProductController, getAllProductsController, getCartController, getProductByPostIdController, removeProductFromCartController, createOrderController, getOrdersByUserController, getOrderOfSellerController, getOrderByIdController, cancelOrderController, updateOrderStatusController, createMomoPaymentController, handleMomoCallbackController } from "../controllers/product.controller";
 
 const postRouter = express.Router();
 // product
@@ -70,5 +70,6 @@ postRouter.patch("/:id", tokenValidate, updatePostController);
 postRouter.get("/", tokenValidate, getAllPostsController);
 postRouter.delete("/:id", tokenValidate, deletePostController);
 postRouter.post("/payment", tokenValidate, createMomoPaymentController);
+postRouter.post("/callback", tokenValidate, handleMomoCallbackController);
 postRouter.use(errorHandler);
 export default postRouter;

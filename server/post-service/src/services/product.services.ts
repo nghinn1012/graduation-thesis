@@ -2,19 +2,30 @@ import axios from "axios";
 import {
   OrderCreate,
   Product,
-  Review,
   ReviewCreate,
 } from "../data/interface/product_interface";
 import cartModel from "../models/cartModel";
 import orderModel from "../models/orderModel";
 import postModel from "../models/postModel";
 import productModel from "../models/productModel";
-import { buildRequestBody, buildSignature, createSignature } from "../utlis/payment";
+import {
+  buildRequestBody,
+  buildSignature,
+  createSignature,
+} from "../utlis/payment";
 import { IAuthor, rpcGetUser, rpcGetUsers } from "./rpc.services";
-import { MomoPaymentResponse, PaymentParams } from "../data/interface/payment_interface";
-import crypto from 'crypto';
+import {
+  MomoPaymentResponse,
+  OrderUpdateData,
+  PaymentParams,
+} from "../data/interface/payment_interface";
+import crypto from "crypto";
 
-export const getAllProductsService = async (page: number, limit: number, userId: string) => {
+export const getAllProductsService = async (
+  page: number,
+  limit: number,
+  userId: string
+) => {
   try {
     const skip = (page - 1) * limit;
 
@@ -34,7 +45,7 @@ export const getAllProductsService = async (page: number, limit: number, userId:
     console.log("productsWithPostInfo", productsWithPostInfo);
 
     const sortedProducts = productsWithPostInfo.sort((a, b) =>
-      (a.postInfo?.author == userId) ? 1 : (b.postInfo?.author == userId) ? -1 : 0
+      a.postInfo?.author == userId ? 1 : b.postInfo?.author == userId ? -1 : 0
     );
 
     return {
@@ -233,9 +244,11 @@ export const createReviewProductService = async (
 ) => {
   console.log("createReviewProductService", orderId, userId, reviewsData);
   try {
-    reviewsData.forEach(reviewData => {
+    reviewsData.forEach((reviewData) => {
       if (reviewData.rating < 1 || reviewData.rating > 5) {
-        throw new Error(`Rating for product ${reviewData.productId} must be between 1 and 5`);
+        throw new Error(
+          `Rating for product ${reviewData.productId} must be between 1 and 5`
+        );
       }
     });
 
@@ -252,13 +265,15 @@ export const createReviewProductService = async (
       throw new Error("User not authorized to review this product");
     }
 
-    const orderProductIds = order.products.map(p => p.productId.toString());
+    const orderProductIds = order.products.map((p) => p.productId.toString());
     const invalidProducts = reviewsData.filter(
-      review => !orderProductIds.includes(review.productId)
+      (review) => !orderProductIds.includes(review.productId)
     );
     if (invalidProducts.length > 0) {
       throw new Error(
-        `Products with IDs ${invalidProducts.map(p => p.productId).join(", ")} are not in this order`
+        `Products with IDs ${invalidProducts
+          .map((p) => p.productId)
+          .join(", ")} are not in this order`
       );
     }
 
@@ -287,7 +302,7 @@ export const createReviewProductService = async (
           productInfo.reviews.length;
 
         await productInfo.save();
-      }),
+      })
     );
     order.isReviewed = true;
     await order.save();
@@ -322,7 +337,6 @@ export const searchProductsService = async (
 
     const allProducts = await productModel
       .find({
-        quantity: { $gt: 0 },
         postId: { $in: postIds },
       })
       .lean();
@@ -340,9 +354,8 @@ export const searchProductsService = async (
     );
 
     productsWithPostInfo = productsWithPostInfo.sort((a, b) =>
-      (a.postInfo?.author == userId) ? 1 : (b.postInfo?.author == userId) ? -1 : 0
+      a.postInfo?.author == userId ? 1 : b.postInfo?.author == userId ? -1 : 0
     );
-
 
     let filteredProducts = productsWithPostInfo.filter((product) => {
       if (filter === "") {
@@ -380,6 +393,7 @@ export const createOrderService = async (orderCreate: OrderCreate) => {
       if (!productInfo) {
         throw new Error("Product not found");
       }
+      console.log(product.quantity, productInfo.quantity);
       if (product.quantity > productInfo.quantity) {
         throw new Error("Product quantity is not enough");
       }
@@ -663,7 +677,7 @@ export const updateOrderStatusService = async (
 export const createMomoPaymentService = async ({
   orderId,
   amount,
-  redirectUrl
+  redirectUrl,
 }: PaymentParams): Promise<MomoPaymentResponse> => {
   const config = {
     accessKey: 'F8BBA842ECF85',
@@ -687,15 +701,64 @@ export const createMomoPaymentService = async ({
     lang: 'vi'
   };
 
+  console.log("requestData", requestData);
+
   const rawSignature = `accessKey=${config.accessKey}&amount=${amount}&extraData=${requestData.extraData}&ipnUrl=${config.ipnUrl}&orderId=${orderId}&orderInfo=${config.orderInfo}&partnerCode=${config.partnerCode}&redirectUrl=${redirectUrl}&requestId=${orderId}&requestType=${config.requestType}`;
   const signature = crypto.createHmac('sha256', config.secretKey).update(rawSignature).digest('hex');
+  try {
+    const { data } = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', {
+      ...requestData,
+      partnerName: "Test",
+      storeId: "MomoTestStore",
+      signature: signature
+    });
 
-  const { data } = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', {
-    ...requestData,
-    partnerName: "Test",
-    storeId: "MomoTestStore",
-    signature: signature
-  });
+    return data;
+  } catch (error) {
+    console.error("Failed to create Momo payment:", error);
+    throw error;
+  }
+};
 
-  return data;
+export const handleMomoCallbackService = async (momoResponse: any) => {
+  const { orderId, resultCode, transId, amount, message } = momoResponse;
+
+  const paymentStatus = resultCode == 0 ? "SUCCESS" : "FAILED";
+
+  const orderUpdateData: OrderUpdateData = {
+    paymentStatus,
+    transactionId: transId,
+    paymentMethod: "MOMO",
+    amount: amount,
+  };
+
+  await updateOrderPaymentData(orderId, orderUpdateData);
+
+  return {
+    status: "ok",
+    message: "success",
+    orderId: orderId,
+    requestId: momoResponse.requestId,
+  };
+};
+
+export const updateOrderPaymentData = async (
+  orderId: string,
+  updateData: OrderUpdateData
+) => {
+  console.log("updateOrderPaymentData", orderId, updateData);
+  try {
+    await orderModel.findByIdAndUpdate(orderId, {
+      paymentStatus: updateData.paymentStatus,
+      paymentMethod: updateData.paymentMethod,
+      transactionId: updateData.transactionId,
+      amount: updateData.amount,
+      status: updateData.paymentStatus === "SUCCESS" ? "Pending" : "Cancelled By User",
+      reason: updateData.paymentStatus === "SUCCESS" ? "" : "Payment failed",
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error("Failed to update order payment data:", error);
+    throw error;
+  }
 };
