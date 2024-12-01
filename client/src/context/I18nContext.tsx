@@ -13,6 +13,7 @@ export type I18nReactComponent =
   | "Footer"
   | "CreatePostBox"
   | "HashtagTab"
+  | "RecipeDetailsTab"
   | "QuickPasteTab"
   | "CreatePostModal"
   | "PostInfo"
@@ -29,6 +30,7 @@ export type I18nReactComponent =
   | "CartSection"
   | "OrderSection"
   | "ReviewSection"
+  | "ScheduleSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

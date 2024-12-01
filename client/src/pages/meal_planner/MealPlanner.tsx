@@ -6,6 +6,7 @@ import { Meal, postFetcher } from "../../api/post";
 import type { MealPlanner } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import MealPlannerSkeleton from "../../components/skeleton/MealPlannerSkeleton";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 type Tab = "today" | "thisWeek" | "unscheduled";
 
@@ -18,6 +19,8 @@ const MealPlanner: React.FC = () => {
   const [scheduledMeals, setScheduledMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const { auth } = useAuthContext();
+  const language = useI18nContext();
+  const lang = language.of("ScheduleSection");
 
   const fetchMealPlanner = async () => {
     if (!auth?.token) return;
@@ -83,7 +86,7 @@ const MealPlanner: React.FC = () => {
       ) : (
         <>
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-center">Meal Planner</h1>
+            <h1 className="text-2xl font-bold text-center">{lang("meal-planner")}</h1>
           </div>
           <div role="tablist" className="tabs tabs-boxed my-4 flex-nowrap flex">
             <a
@@ -93,7 +96,7 @@ const MealPlanner: React.FC = () => {
               role="tab"
               onClick={() => setActiveTab("today")}
             >
-              Today
+              {lang("today")}
             </a>
             <a
               className={`tab ${
@@ -102,7 +105,7 @@ const MealPlanner: React.FC = () => {
               role="tab"
               onClick={() => setActiveTab("thisWeek")}
             >
-              This Week
+              {lang("this-week")}
             </a>
             <a
               className={`tab ${
@@ -111,7 +114,7 @@ const MealPlanner: React.FC = () => {
               role="tab"
               onClick={() => setActiveTab("unscheduled")}
             >
-              Unscheduled
+              {lang("unscheduled")}
             </a>
           </div>
           {renderActiveTab()}

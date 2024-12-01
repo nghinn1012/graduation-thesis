@@ -6,6 +6,7 @@ import ServingsModal from "./ServingModal";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useToastContext } from "../../hooks/useToastContext";
 import { FaRegClock } from "react-icons/fa";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface UnscheduledTabProps {
   unscheduledMeals: Meal[];
@@ -25,6 +26,8 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const { auth } = useAuthContext();
   const { success, error } = useToastContext();
+  const language = useI18nContext();
+  const lang = language.of("ScheduleSection", "PostDetails");
 
   const handleMoreClick = (index: number) => {
     setShowDropdown((prev) => {
@@ -48,9 +51,9 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
       );
       if (response) {
         setUnscheduledMeals((prev) => prev.filter((m) => m._id !== meal._id));
-        success("Removed meal");
+        success(lang("removed-meal-success"));
       } else {
-        error("Failed to remove meal");
+        error(lang("removed-meal-fail"));
       }
     }
     if (action === "Add to Shopping List") {
@@ -68,22 +71,21 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
       servings
     );
     if (response) {
-      success("Added to shopping list");
+      success(lang("added-to-shopping-list"));
     } else {
-      error("Failed to add to shopping list");
+      error(lang("add-to-shopping-list-fail"));
     }
     setIsServingsModalOpen(false);
   };
 
   const handleShowTimeToTake = (timeToTake: string) => {
-    if (!timeToTake) return "No time to take";
-    if (Number(timeToTake) > 60) {
-      const hours = Math.floor(Number(timeToTake) / 60);
-      const minutes = Number(timeToTake) % 60;
-      if (minutes === 0) return `${hours} hours`;
-      return `${hours} hours ${minutes} minutes`;
-    }
-    return `${timeToTake} minutes`;
+    if (!timeToTake) return lang("unknown");
+    if (Number(timeToTake) < 60) return lang("minutes", timeToTake);
+    const hours = Math.floor(Number(timeToTake) / 60);
+    const minutes = Number(timeToTake) % 60;
+    const modifiedHours = hours > 0 ? lang("hours", hours) : "";
+    const modifiedMinutes = minutes > 0 ? lang("minutes", minutes) : "";
+    return `${modifiedHours} ${modifiedMinutes}`;
   };
 
 
@@ -107,7 +109,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-semibold">Unscheduled Meals</h2>
+      <h2 className="text-lg font-semibold">{lang("unscheduled-meals")}</h2>
       {unscheduledMeals?.length > 0 ? (
         <div className="space-y-4 mt-2">
           {unscheduledMeals.map((meal, mealIndex) => (
@@ -144,13 +146,13 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                               onClick={() => handleAction("Schedule", meal)}
                               className="cursor-pointer hover:bg-gray-200 p-1 rounded"
                             >
-                              Schedule
+                              {lang("schedule-meal")}
                             </li>
                             <li
                               onClick={() => handleAction("Remove", meal)}
                               className="cursor-pointer hover:bg-gray-200 p-1 rounded"
                             >
-                              Remove
+                              {lang("remove-meal")}
                             </li>
                             <li
                               onClick={() =>
@@ -158,7 +160,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                               }
                               className="cursor-pointer hover:bg-gray-200 p-1 rounded"
                             >
-                              Add to Shopping List
+                              {lang("add-to-shopping-list")}
                             </li>
                           </ul>
                         </div>
@@ -188,7 +190,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
           ))}
         </div>
       ) : (
-        <div>No unscheduled meals!</div>
+        <div>{lang("no-unscheduled-meals")}</div>
       )}
     </div>
   );

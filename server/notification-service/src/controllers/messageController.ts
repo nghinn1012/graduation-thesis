@@ -3,6 +3,8 @@ import {
   createChatGroupService,
   getChatGroupsService,
   getMessagesService,
+  markMessageAsReadService,
+  markAllMessagesAsReadInGroupService,
   renameChatGroupService,
   sendMessageService,
   updateChatGroupAvatarService,
@@ -157,3 +159,40 @@ export const renameChatGroupController = async (
     res.status(400).json({ message: (error as Error).message });
   }
 };
+
+export const markMessageReadController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const userId = req?.authContent?.data.userId;
+  const { messageId } = req.body;
+  if (!messageId || !userId) {
+    res.status(400).json({ message: "MessageId is required" });
+    return;
+  }
+  try {
+    const result = await markMessageAsReadService(messageId, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: (error as Error).message });
+  }
+}
+
+export const markAllMessagesReadInGroupController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const userId = req?.authContent?.data.userId;
+  const { chatGroupId } = req.body;
+  if (!chatGroupId || !userId) {
+    res.status(400).json({ message: "GroupId is required" });
+    return;
+  }
+  console.log(chatGroupId, userId);
+  try {
+    const result = await markAllMessagesAsReadInGroupService(chatGroupId, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: (error as Error).message });
+  }
+}

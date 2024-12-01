@@ -17,7 +17,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket | null>(null);
   const {account, auth} = useAuthContext();
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const {setChatMessages, chatMessages, setChatGroups, chatGroups} = useMessageContext();
+  const {setChatMessages, chatMessages, setChatGroups, chatGroups, chatGroupUnreadCount, setChatGroupUnreadCount} = useMessageContext();
 
   useEffect(() => {
     const socketInstance: Socket = io(VITE_SOCKET_POST_URL, {
@@ -45,24 +45,34 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log(chatMessages);
       console.log(`Message from ${data.chatGroupId}: ${data.message.text}`);
       setChatMessages([...chatMessages, data.message]);
-      setChatGroups(chatGroups.map((group) => {
-        if (group._id === data.chatGroupId) {
-          return {
-            ...group,
-            lastMessage: data.message,
-            lastMessageInfo: {
-              text: data.message.text || "",
-              imageUrl: data.message.imageUrl || "",
-              emoji: data.message.emoji || "",
-              productLink: data.message.productLink || "",
-              createdAt: data.message.createdAt,
-              senderId: data.message.senderId,
-              _id: data.message._id
-            },
-          };
+      console.log(chatGroups);
+      setChatGroups((prevChatGroups: any[]) => (
+        prevChatGroups.map((group: { _id: any; unreadCount: any; }) => {
+          if (group._id === data.chatGroupId) {
+            return {
+              ...group,
+              lastMessage: data.message,
+              lastMessageInfo: {
+                text: data.message.text || "",
+                imageUrl: data.message.imageUrl || "",
+                emoji: data.message.emoji || "",
+                productLink: data.message.productLink || "",
+                createdAt: data.message.createdAt,
+                senderId: data.message.senderId,
+                _id: data.message._id,
+              },
+              unreadCount: account?._id === data.message.senderId ? 0 : (group.unreadCount || 0) + 1,
+            };
+          }
+          return group as EnhancedChatGroupInfo;
+        })
+      ));
+      setChatGroupUnreadCount((prevCount: any) => {
+        if (data.message.senderId === account?._id) {
+          return prevCount;
         }
-        return group as unknown as EnhancedChatGroupInfo;
-      }));
+        return prevCount + 1;
+      });
     });
 
     socketInstance.on("getOnlineUsers", (onlineUsers) => {

@@ -43,6 +43,7 @@ const MessageSidebar: React.FC = () => {
     chatGroupSelect,
     setChatGroupSelect,
     updateChatGroupName,
+    markMessagesOfGroupAsRead
   } = useMessageContext();
 
   const { onlineUsers } = useSocket();
@@ -160,6 +161,7 @@ const MessageSidebar: React.FC = () => {
 
   const handleChatClick = (chatGroup: EnhancedChatGroupInfo) => {
     setChatGroupSelect(chatGroup);
+    markMessagesOfGroupAsRead(chatGroup._id);
     setIsMobileSidebarOpen(false);
   };
 
@@ -296,6 +298,22 @@ const MessageSidebar: React.FC = () => {
       });
   };
 
+  // useEffect(() => {
+  //   socket.on('newMessage', (message) => {
+  //     if (message.senderId !== account?._id) {
+  //       setChatGroups(prevGroups => prevGroups.map(group =>
+  //         group._id === message.chatGroupId
+  //           ? { ...group, unreadCount: (group.unreadCount || 0) + 1 }
+  //           : group
+  //       ));
+  //     }
+  //   });
+
+  //   return () => {
+  //     socket.off('newMessage');
+  //   };
+  // }, [account?._id]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -426,6 +444,11 @@ const MessageSidebar: React.FC = () => {
                     <h3 className="font-semibold truncate max-w-[150px]">
                       {displayInfo.name}
                     </h3>
+                    {chatGroup.unreadCount > 0 && (
+                      <span className="ml-2 px-2 py-1 text-xs font-semibold bg-blue-500 text-white rounded-full">
+                        {chatGroup.unreadCount}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-baseline">
                     <p className="text-sm text-gray-500 truncate max-w-[100px]">

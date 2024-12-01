@@ -1,5 +1,5 @@
 import express from "express";
-import { createChatGroupController, getChatGroupsController, getMessagesController, renameChatGroupController, sendMessageController, updateChatGroupAvatarController } from "../controllers/messageController";
+import { createChatGroupController, getChatGroupsController, getMessagesController, markAllMessagesReadInGroupController, markMessageReadController, renameChatGroupController, sendMessageController, updateChatGroupAvatarController } from "../controllers/messageController";
 import { getAllNotificationsController, hello, markAllNotificationsAsReadController, markNotificationAsReadController } from "../controllers/notiController";
 import { tokenValidate } from "../middlewares";
 
@@ -14,4 +14,6 @@ notiRouter.patch("/updateChatGroupName", tokenValidate, renameChatGroupControlle
 notiRouter.patch("/updateChatGroupAvatar", tokenValidate, updateChatGroupAvatarController);
 notiRouter.patch("/markNotificationAsRead/:notificationId", tokenValidate, markNotificationAsReadController);
 notiRouter.patch("/markAllNotificationsAsRead", tokenValidate, markAllNotificationsAsReadController);
+notiRouter.post("/markMessageAsRead", tokenValidate, markMessageReadController);
+notiRouter.post("/markAllMessagesAsRead", tokenValidate, markAllMessagesReadInGroupController);
 export default notiRouter;

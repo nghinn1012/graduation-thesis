@@ -7,7 +7,7 @@ import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudin
 
 export const sendMessageService = async (
   senderId: string,
-  receiverId: string | string[], // Có thể là một string hoặc một mảng string
+  receiverId: string | string[],
   messageContent: { text?: string, imageUrl?: string, emoji?: string, productLink?: string },
   chatGroupId?: string,
 ) => {
@@ -57,6 +57,10 @@ export const sendMessageService = async (
       imageUrl: uploadedImageUrl || messageContent.imageUrl || null,
       emoji: messageContent.emoji || null,
       productLink: messageContent.productLink || null,
+      readBy: [
+        senderId,
+      ],
+      unreadCount: receiverIds.length - 1,
     });
 
     chatGroup.lastMessage = newMessage._id;
@@ -82,23 +86,6 @@ export const sendMessageService = async (
     throw error;
   }
 };
-
-// export const getMessagesService = async (chatGroupId: string, userId: string) => {
-//   try {
-//     const chatGroup = await chatGroupModel.findById(chatGroupId).exec();
-//     if (!chatGroup) {
-//       throw new Error("Chat group not found");
-//     }
-
-//     const messages = await messageModel.find({ chatGroup: chatGroupId })
-//       .sort({ createdAt: 1 })
-//       .exec();
-
-//     return messages;
-//   } catch (error) {
-//     throw new Error(`Error fetching messages: ${(error as Error).message}`);
-//   }
-// };
 
 export const getMessagesService = async (
   chatGroupId: string,
@@ -140,25 +127,65 @@ export const getMessagesService = async (
 
 export const getChatGroupsService = async (userId: string) => {
   try {
-    console.log(userId);
+    const chatGroups = await chatGroupModel.aggregate([
+      {
+        $match: {
+          members: userId
+        }
+      },
+      {
+        $lookup: {
+          from: 'messages',
+          localField: 'lastMessage',
+          foreignField: '_id',
+          as: 'lastMessageInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'messages',
+          let: { groupId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$chatGroup', '$$groupId'] },
+                readBy: { $nin: [userId] }
+              }
+            },
+            {
+              $count: 'unreadCount'
+            }
+          ],
+          as: 'unreadMessages'
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          groupName: 1,
+          members: 1,
+          avatar: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          lastMessage: 1,
+          lastMessageInfo: { $arrayElemAt: ['$lastMessageInfo', 0] },
+          unreadCount: {
+            $cond: {
+              if: { $size: '$unreadMessages' },
+              then: { $arrayElemAt: ['$unreadMessages.unreadCount', 0] },
+              else: 0
+            }
+          }
+        }
+      },
+      {
+        $sort: {
+          'lastMessageInfo.createdAt': -1
+        }
+      }
+    ]);
 
-    const chatGroups = await chatGroupModel.find({ members: userId });
-
-    const lastMessages = await Promise.all(
-      chatGroups.map(async (group) => {
-        const lastMessageInfo = await messageModel.findById(group.lastMessage);
-        return lastMessageInfo;
-      })
-    );
-
-    const resultData = chatGroups.map((group, index) => {
-      return {
-        ...group.toObject(),
-        lastMessageInfo: lastMessages[index],
-      };
-    });
-
-    return resultData;
+    return chatGroups;
   } catch (error) {
     throw new Error(`Error fetching chat groups: ${(error as Error).message}`);
   }
@@ -240,5 +267,48 @@ export const renameChatGroupService = async (chatGroupId: string, newName: strin
   } catch (error) {
     throw new Error(`Error renaming chat group: ${(error as Error).message}`);
   }
-}
+};
 
+export const markMessageAsReadService = async (messageId: string, userId: string) => {
+  try {
+    const message = await messageModel.findByIdAndUpdate(
+      messageId,
+      {
+        $addToSet: { readBy: userId }
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    ).exec();
+
+    if (!message) {
+      throw new Error('Message not found');
+    }
+
+    return message;
+  } catch (error) {
+    throw new Error(`Error marking message as read: ${(error as Error).message}`);
+  }
+};
+
+export const markAllMessagesAsReadInGroupService = async (groupId: string, userId: string) => {
+  try {
+    const result = await messageModel.updateMany(
+      {
+        chatGroup: groupId,
+        readBy: { $ne: userId }
+      },
+      {
+        $addToSet: { readBy: userId }
+      },
+      {
+        runValidators: true
+      }
+    ).exec();
+
+    return result;
+  } catch (error) {
+    throw new Error(`Error marking all messages as read in group: ${(error as Error).message}`);
+  }
+};

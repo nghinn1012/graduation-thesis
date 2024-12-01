@@ -13,6 +13,7 @@ export const notificationEndpoints = {
   createChatGroup: "/notifications/createChatGroup",
   updateChatGroupAvatar: "/notifications/updateChatGroupAvatar",
   updateChatGroupName: "/notifications/updateChatGroupName",
+  markMesssageOfGroupAsRead: "/notifications/markAllMessagesAsRead",
 
   // notifications
   getNotifications: "/notifications/getAllNotifications",
@@ -74,6 +75,7 @@ export interface EnhancedChatGroupInfo extends ChatGroupInfo {
     createdAt: string;
     senderId: string;
   };
+  unreadCount: number;
 }
 
 export interface MessageInfo {
@@ -167,6 +169,7 @@ export interface NotificationFetcher {
   updateChatGroupName: (token: string, updateData: NameUpdateInfo) => Promise<NotificationResponse<ChatGroupInfo>>;
   markNotificationAsRead: (token: string, markAsReadInfo: MarkAsReadInfo) => Promise<NotificationResponse<NotificationInfo>>;
   markAllNotificationsAsRead: (token: string) => Promise<NotificationResponse<NotificationInfo>>;
+  markAllMessagesAsRead: (token: string, chatGroupId: string) => Promise<NotificationResponse<ChatGroupInfo>>;
 }
 
 export const notificationFetcher: NotificationFetcher = {
@@ -248,5 +251,15 @@ export const notificationFetcher: NotificationFetcher = {
       },
     },
     );
-  }
+  },
+  markAllMessagesAsRead: async (token, chatGroupId) => {
+    return notificationInstance.post(notificationEndpoints.markMesssageOfGroupAsRead, {
+      chatGroupId,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    );
+  },
 };

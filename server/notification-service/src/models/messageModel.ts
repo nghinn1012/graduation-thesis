@@ -31,6 +31,17 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  readBy: [{
+    type: String,
+  }],
+  isReadByAll: {
+    type: Boolean,
+    default: false
+  },
+  unreadCount: {
+    type: Number,
+    default: 0
+  },
 });
 
 const MessageModel = model("Message", messageSchema);

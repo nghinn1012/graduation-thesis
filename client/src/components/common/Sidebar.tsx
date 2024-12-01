@@ -12,10 +12,12 @@ import { MdOutlineExplore } from "react-icons/md";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { useNotificationContext } from "../../context/NotificationContext";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useMessageContext } from "../../context/MessageContext";
 const Sidebar = () => {
   const auth = useAuthContext();
   const { account } = useAuthContext();
   const { unreadCount } = useNotificationContext();
+  const { chatGroupUnreadCount } = useMessageContext();
   const language = useI18nContext();
   const lang = language.of("Sidebar");
 
@@ -108,7 +110,14 @@ const Sidebar = () => {
                 }`
               }
             >
-              <LuMail className="w-6 h-6" />
+              <div className="relative">
+                <LuMail className="w-6 h-6" />
+                {chatGroupUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                    {chatGroupUnreadCount > 99 ? "99+" : chatGroupUnreadCount}
+                  </span>
+                )}
+              </div>
               <span className="text-lg hidden md:block mt-1 ml-1">
                 {lang("messages")}
               </span>

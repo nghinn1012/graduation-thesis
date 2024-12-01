@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { FiChevronLeft, FiChevronRight, FiMinus, FiPlus } from "react-icons/fi";
-import { addWeeks, subWeeks, startOfWeek, endOfWeek, addDays } from "date-fns";
+import {
+  addWeeks,
+  subWeeks,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  format,
+} from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { MealPlannedDate, postFetcher } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useI18nContext } from "../../hooks/useI18nContext";
+import { enUS, vi } from "date-fns/locale";
 
 interface ScheduleRecipeModalProps {
   recipe: {
@@ -31,14 +40,23 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
 
   const currentWeekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
   const { auth } = useAuthContext();
+  const language = useI18nContext();
+  const lang = language.of("ScheduleSection");
+  const langCode = language.language.code;
+
+  const locale = langCode == "vi" ? vi : enUS;
+  const formatDateWithLocale = (date: Date, formatStr: string) => {
+    return format(date, formatStr, { locale });
+  };
 
   useEffect(() => {
     if (plannedDates && plannedDates.length > 0) {
-      setPickedDates(plannedDates.map((dateStr) => ({
-        date: new Date(dateStr.date).toString(),
-        mealTime: dateStr.mealTime,
-      })
-      ));
+      setPickedDates(
+        plannedDates.map((dateStr) => ({
+          date: new Date(dateStr.date).toString(),
+          mealTime: dateStr.mealTime,
+        }))
+      );
     }
   }, [plannedDates]);
 
@@ -62,10 +80,13 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
     setPickedDates((prevDates) =>
       prevDates.some((d) => areSameDate(new Date(d.date), date))
         ? prevDates.filter((d) => !areSameDate(new Date(d.date), date))
-        : [...prevDates, {
-          date: date.toString(),
-          mealTime: false,
-        }]
+        : [
+            ...prevDates,
+            {
+              date: date.toString(),
+              mealTime: false,
+            },
+          ]
     );
   };
 
@@ -102,9 +123,9 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
               &times;
             </button>
 
-            <h2 className="text-2xl font-semibold mb-2">Schedule Recipe</h2>
+            <h2 className="text-2xl font-semibold mb-2">{lang("schedule-recipe")}</h2>
             <p className="mb-4">
-              Choose which day(s) to schedule this recipe for.
+              {lang("schedule-recipe-desc")}
             </p>
 
             <div className="flex items-center bg-gray-100 rounded-lg p-4 mb-4">
@@ -127,13 +148,8 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
               </button>
 
               <span className="text-lg font-bold text-gray-800">
-                {formatInTimeZone(
-                  currentWeekStart,
-                  "Asia/Ho_Chi_Minh",
-                  "dd MMM"
-                )}{" "}
-                –{" "}
-                {formatInTimeZone(currentWeekEnd, "Asia/Ho_Chi_Minh", "dd MMM")}
+                {formatDateWithLocale(currentWeekStart, "dd MMM")} –{" "}
+                {formatDateWithLocale(currentWeekEnd, "dd MMM")}
               </span>
 
               <button
@@ -150,14 +166,14 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
                   key={date.getTime()}
                   className="flex items-center justify-between mb-2"
                 >
-                  <span>
-                    {formatInTimeZone(date, "Asia/Ho_Chi_Minh", "EEEE, dd MMM")}
-                  </span>
+                  <span>{formatDateWithLocale(date, "EEEE, dd MMM")}</span>
                   <button
                     className="btn btn-circle"
                     onClick={() => toggleDate(date)}
                   >
-                    {pickedDates.some((d) => areSameDate(new Date(d.date), date)) ? (
+                    {pickedDates.some((d) =>
+                      areSameDate(new Date(d.date), date)
+                    ) ? (
                       <FiMinus className="text-red-500 h-5 w-5" />
                     ) : (
                       <FiPlus className="text-green-500 h-5 w-5" />
@@ -172,7 +188,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
                 onClick={handleSubmitSchedule}
                 className="btn btn-primary w-full"
               >
-                Done
+                {lang("done")}
               </button>
             </div>
           </div>

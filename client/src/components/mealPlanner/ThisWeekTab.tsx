@@ -18,6 +18,8 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import ScheduleRecipeModal from "./SchedulePost";
 import SetTime from "./SetTime";
 import { toZonedTime } from "date-fns-tz";
+import { useI18nContext } from "../../hooks/useI18nContext";
+import { enUS, vi } from "date-fns/locale";
 
 interface ThisWeekTabProps {
   scheduledMeals: Meal[];
@@ -53,6 +55,15 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   const [date, setDate] = useState(new Date());
   const { auth } = useAuthContext();
   const { success, error } = useToastContext();
+  const language = useI18nContext();
+  const lang = language.of("ScheduleSection", "PostDetails");
+  const langCode = language.language.code;
+
+  const locale = langCode == "vi" ? vi : enUS;
+  const formatDateWithLocale = (date: Date, formatStr: string) => {
+    return format(date, formatStr, { locale });
+  };
+
   const getMealsForDate = (date: Date) => {
     if (!scheduledMeals) return [];
 
@@ -85,7 +96,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   };
 
   const toggleDropdown = (index: number, date: Date) => {
-    const formattedDate = format(date, "yyyy-MM-dd");
+    const formattedDate = formatDateWithLocale(date, "yyyy-MM-dd");
     setActiveDropdowns((prev) => ({
       ...prev,
       [formattedDate]: prev[formattedDate] === index ? null : index,
@@ -123,7 +134,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
     );
 
     if (mealIndex === -1) {
-      console.error("Meal not found in scheduledMeals");
+      error(lang("error-meal-not-found"));
       return;
     }
 
@@ -139,7 +150,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         break;
       case "repeat":
         if (!formattedDate) {
-          console.error("Failed to repeat meal, no date available");
+          error(lang("error-failed-set-meal-time-no-date"));
           return;
         }
 
@@ -167,7 +178,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
 
       case "time":
         if (!formattedDate) {
-          console.error("Failed to set meal time, no date available");
+          error(lang("error-failed-set-meal-time-no-date"));
           return;
         }
         setSelectedMeal(scheduledMeals[mealIndex]);
@@ -176,24 +187,22 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         break;
       case "remove":
         if (!formattedDate) {
-          console.error("Failed to remove meal from date");
+          error(lang("error-failed-remove-meal-date"));
           return;
         }
-        const today = format(formattedDate, "yyyy-MM-dd");
+        const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
         const updatedPlannedDates = scheduledMeals[
           mealIndex
         ]?.plannedDate?.filter(
           (plannedDate) =>
-            format(new Date(plannedDate.date), "yyyy-MM-dd") !==
+            formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !==
             today?.toString()
         );
         if (updatedPlannedDates?.length === 0) {
-          console.log(
-            `Meal index ${mealIndex} has no more planned dates, consider removing it from schedule`
-          );
+          error(lang("error-failed-remove-today-meal-date"));
         }
         if (!updatedPlannedDates) {
-          console.error("Failed to remove today's date from meal");
+          error(lang("error-failed-remove-today-meal-date"));
           return;
         }
         await postFetcher.scheduleMeal(
@@ -219,9 +228,9 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       servings
     );
     if (response) {
-      success("Added to shopping list");
+      success(lang("added-to-shopping-list"));
     } else {
-      error("Failed to add to shopping list");
+      error(lang("add-to-shopping-list-fail"));
     }
     setIsServingsModalOpen(false);
   };
@@ -239,7 +248,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
     const timeZone = "Asia/Ho_Chi_Minh";
 
     const plannedDate = toZonedTime(new Date(time), timeZone);
-    const plannedDateString = format(plannedDate, "yyyy-MM-dd");
+    const plannedDateString = formatDateWithLocale(plannedDate, "yyyy-MM-dd");
 
     const existingMeal = scheduledMeals.find(
       (meal) => meal.postId === selectedMeal.postId
@@ -250,13 +259,18 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
         const plannedMealDate = toZonedTime(new Date(planned.date), timeZone);
-        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
-          ? { ...planned, date: plannedDate as unknown as string, mealTime: true }
+        return formatDateWithLocale(plannedMealDate, "yyyy-MM-dd") ===
+          plannedDateString
+          ? {
+              ...planned,
+              date: plannedDate as unknown as string,
+              mealTime: true,
+            }
           : planned;
       });
 
       if (!updatedPlannedDates) {
-        console.error("Failed to update meal time");
+        error(lang("fail-update-meal-time"));
         return;
       }
 
@@ -269,7 +283,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       );
 
       if (response) {
-        success("Meal time updated successfully");
+        success(lang("meal-time-set-success"));
       }
     } else {
       console.log("false", plannedDateString);
@@ -283,7 +297,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       );
 
       if (response) {
-        success("Meal time set successfully");
+        success(lang("meal-time-set-success"));
       }
     }
 
@@ -302,25 +316,25 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
 
     const singleMealIndex = mealIndex?.plannedDate?.find(
       (plannedDate) =>
-        format(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
+        formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") ===
+        formattedDate
     );
 
     if (singleMealIndex && singleMealIndex.mealTime) {
       const plannedDateTime = new Date(singleMealIndex.date);
-      return format(plannedDateTime, "HH:mm");
+      return formatDateWithLocale(plannedDateTime, "HH:mm");
     }
     return "";
   };
 
   const handleShowTimeToTake = (timeToTake: string) => {
-    if (!timeToTake) return "No time to take";
-    if (Number(timeToTake) > 60) {
-      const hours = Math.floor(Number(timeToTake) / 60);
-      const minutes = Number(timeToTake) % 60;
-      if (minutes === 0) return `${hours} hours`;
-      return `${hours} hours ${minutes} minutes`;
-    }
-    return `${timeToTake} minutes`;
+    if (!timeToTake) return lang("unknown");
+    if (Number(timeToTake) < 60) return lang("minutes", timeToTake);
+    const hours = Math.floor(Number(timeToTake) / 60);
+    const minutes = Number(timeToTake) % 60;
+    const modifiedHours = hours > 0 ? lang("hours", hours) : "";
+    const modifiedMinutes = minutes > 0 ? lang("minutes", minutes) : "";
+    return `${modifiedHours} ${modifiedMinutes}`;
   };
 
   return (
@@ -334,8 +348,8 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         </button>
 
         <span className="text-lg font-bold text-gray-800">
-          {format(currentWeekStart, "dd MMM")} –{" "}
-          {format(currentWeekEnd, "dd MMM")}
+          {formatDateWithLocale(currentWeekStart, "dd MMM")} –{" "}
+          {formatDateWithLocale(currentWeekEnd, "dd MMM")}
         </span>
 
         <button
@@ -349,8 +363,8 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       {daysOfWeek.map((day) => {
         const mealsForDay = getMealsForDate(day);
         console.log(mealsForDay);
-        const dayName = format(day, "EEEE");
-        const formattedDate = format(day, "yyyy-MM-dd");
+        const dayName = formatDateWithLocale(day, "EEEE");
+        const formattedDate = formatDateWithLocale(day, "yyyy-MM-dd");
 
         return (
           <div key={formattedDate} className="my-10">
@@ -433,7 +447,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                                     handleDropdownAction("add", meal)
                                   }
                                 >
-                                  Add to Shopping List
+                                  {lang("add-to-shopping-list")}
                                 </li>
                                 <li
                                   className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -441,7 +455,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                                     handleDropdownAction("edit", meal);
                                   }}
                                 >
-                                  Edit Schedule
+                                  {lang("edit-schedule")}
                                 </li>
                                 <li
                                   className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -449,7 +463,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                                     handleDropdownAction("repeat", meal, day)
                                   }
                                 >
-                                  Repeat Next Week
+                                  {lang("repeat-next-week")}
                                 </li>
                                 <li
                                   className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -457,7 +471,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                                     handleDropdownAction("time", meal, day)
                                   }
                                 >
-                                  Set Meal Time
+                                  {lang("set-meal-time")}
                                 </li>
                                 <li
                                   className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -465,7 +479,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                                     handleDropdownAction("remove", meal, day)
                                   }
                                 >
-                                  Remove
+                                  {lang("remove-meal")}
                                 </li>
                               </ul>
                             </div>
@@ -507,7 +521,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
               </div>
             )}
             {expandedDays[formattedDate] && mealsForDay.length === 0 && (
-              <div className="text-gray-500 italic mt-2">No meal planned</div>
+              <div className="text-gray-500 italic mt-2">{lang("no-meal-planned")}</div>
             )}
           </div>
         );

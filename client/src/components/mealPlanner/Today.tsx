@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { format, addDays, subDays } from "date-fns";
+import { enUS, vi } from "date-fns/locale";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { FaRegClock } from "react-icons/fa";
 import { IoIosMore } from "react-icons/io";
@@ -9,6 +10,8 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import ScheduleRecipeModal from "./SchedulePost";
 import SetTime from "./SetTime";
 import { toZonedTime } from "date-fns-tz";
+import { useI18nContext } from "../../hooks/useI18nContext";
+import { Toaster } from "react-hot-toast";
 
 interface TodayTabProps {
   scheduledMeals: Meal[];
@@ -24,13 +27,23 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
   const [isModalTimeOpen, setIsModalTimeOpen] = useState(false);
   const { auth } = useAuthContext();
   const { success } = useToastContext();
+  const language = useI18nContext();
+  const lang = language.of("ScheduleSection", "PostDetails");
+  const langCode = language.language.code;
+  const locale = langCode === 'vi' ? vi : enUS;
+  const { error } = useToastContext();
+
+  const formatDateWithLocale = (date: Date, formatStr: string) => {
+    return format(date, formatStr, { locale });
+  };
+
 
   const getMealsForDate = (date: Date) => {
     return scheduledMeals?.filter((meal) =>
       meal?.plannedDate?.some((plannedDate: MealPlannedDate) => {
         const plannedDateObj = new Date(plannedDate.date);
-        const plannedDateFormatted = format(plannedDateObj, "yyyy-MM-dd");
-        const selectedDateFormatted = format(date, "yyyy-MM-dd");
+        const plannedDateFormatted = formatDateWithLocale(plannedDateObj, "yyyy-MM-dd");
+        const selectedDateFormatted = formatDateWithLocale(date, "yyyy-MM-dd");
         return plannedDateFormatted === selectedDateFormatted;
       })
     );
@@ -73,7 +86,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     );
 
     if (mealIndex === -1) {
-      console.error("Meal not found in scheduledMeals");
+      error(lang("error-meal-not-found"));
       return;
     }
 
@@ -84,7 +97,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         break;
       case "time":
         if (!formattedDate) {
-          console.error("Failed to set meal time, no date available");
+          error(lang("error-failed-set-meal-time-no-date"));
           return;
         }
         setSelectedMeal(scheduledMeals[mealIndex]);
@@ -93,22 +106,21 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         break;
       case "remove":
         if (!formattedDate) {
-          console.error("Failed to remove meal from date");
+          error(lang("error-failed-remove-meal-date"));
           return;
         }
-        const today = format(formattedDate, "yyyy-MM-dd");
+        const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
         const updatedPlannedDates = scheduledMeals[
           mealIndex
         ]?.plannedDate?.filter(
-          (plannedDate) => format(new Date(plannedDate.date), "yyyy-MM-dd") !== today?.toString()
+          (plannedDate) => formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !== today?.toString()
         );
         if (updatedPlannedDates?.length === 0) {
-          console.log(
-            `Meal index ${mealIndex} has no more planned dates, consider removing it from schedule`
-          );
+          error(lang("log-meal-no-more-planned-dates"));
+          return;
         }
         if (!updatedPlannedDates) {
-          console.error("Failed to remove today's date from meal");
+          error(lang("error-failed-remove-today-meal-date"));
           return;
         }
         await postFetcher.scheduleMeal(
@@ -117,7 +129,6 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
           updatedPlannedDates
         );
         await fetchScheduledMeals();
-        console.log(`Removed meal index ${mealIndex} from today's date`);
         break;
       default:
         console.log("Unknown action");
@@ -132,7 +143,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     const timeZone = "Asia/Ho_Chi_Minh";
 
     const plannedDate = toZonedTime(new Date(time), timeZone);
-    const plannedDateString = format(plannedDate, "yyyy-MM-dd");
+    const plannedDateString = formatDateWithLocale(plannedDate, "yyyy-MM-dd");
 
     const existingMeal = scheduledMeals.find(
       (meal) => meal.postId === selectedMeal.postId
@@ -143,18 +154,15 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
         const plannedMealDate = toZonedTime(new Date(planned.date), timeZone);
-        return format(plannedMealDate, "yyyy-MM-dd") === plannedDateString
+        return formatDateWithLocale(plannedMealDate, "yyyy-MM-dd") === plannedDateString
           ? { ...planned, date: plannedDate as unknown as string, mealTime: true }
           : planned;
       });
 
       if (!updatedPlannedDates) {
-        console.error("Failed to update meal time");
+        error(lang("fail-update-meal-time"));
         return;
       }
-
-      console.log("true", updatedPlannedDates);
-
       const response = await postFetcher.scheduleMeal(
         auth.token,
         existingMeal._id,
@@ -162,7 +170,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
       );
 
       if (response) {
-        success("Meal time updated successfully");
+        success(lang("meal-updated-success"));
       }
     } else {
       console.log("false", plannedDateString);
@@ -176,7 +184,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
       );
 
       if (response) {
-        success("Meal time set successfully");
+        success(lang("meal-time-set-success"));
       }
     }
 
@@ -190,27 +198,25 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
       return "";
     }
     const mealSingleIndex = meal.plannedDate.find(
-      (plannedDate) => format(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
+      (plannedDate) => formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
     );
 
     if (mealSingleIndex && mealSingleIndex.mealTime) {
       const plannedDateTime = new Date(mealSingleIndex.date);
-      return format(plannedDateTime, "HH:mm");
+      return formatDateWithLocale(plannedDateTime, "HH:mm");
     }
     return "";
   };
 
   const handleShowTimeToTake = (timeToTake: string) => {
-    if (!timeToTake) return "No time to take";
-    if (Number(timeToTake) > 60) {
-      const hours = Math.floor(Number(timeToTake) / 60);
-      const minutes = Number(timeToTake) % 60;
-      if (minutes === 0) return `${hours} hours`;
-      return `${hours} hours ${minutes} minutes`;
-    }
-    return `${timeToTake} minutes`;
+    if (!timeToTake) return lang("unknown");
+    if (Number(timeToTake) < 60) return lang("minutes", timeToTake);
+    const hours = Math.floor(Number(timeToTake) / 60);
+    const minutes = Number(timeToTake) % 60;
+    const modifiedHours = hours > 0 ? lang("hours", hours) : "";
+    const modifiedMinutes = minutes > 0 ? lang("minutes", minutes) : "";
+    return `${modifiedHours} ${modifiedMinutes}`;
   };
-
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -222,6 +228,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
   return (
     <div>
       {/* Date Navigation */}
+      <Toaster />
       <div className="flex p-4 rounded-lg shadow-md justify-between items-center mb-4">
         <button
           onClick={handlePrevDay}
@@ -230,7 +237,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
           <FiChevronLeft />
         </button>
         <h2 className="text-lg font-semibold">
-          {format(selectedDate, "EEEE, MMMM d")}
+          {formatDateWithLocale(selectedDate, "EEEE, MMMM d")}
         </h2>
         <button
           onClick={handleNextDay}
@@ -258,8 +265,8 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
                         <div className="badge badge-success text-white gap-2 p-3">
                           <FaRegClock className="w-4 h-4" />
                           <span>
-                            {getMealTimeInfo(meal, format(selectedDate, "yyyy-MM-dd"))
-                              ? `${getMealTimeInfo(meal, format(selectedDate, "yyyy-MM-dd"))}
+                            {getMealTimeInfo(meal, formatDateWithLocale(selectedDate, "yyyy-MM-dd"))
+                              ? `${getMealTimeInfo(meal, formatDateWithLocale(selectedDate, "yyyy-MM-dd"))}
                               - ${handleShowTimeToTake(meal.timeToTake || "")}`
                               : `${handleShowTimeToTake(meal.timeToTake || "")}`}
                           </span>
@@ -286,7 +293,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
                               handleDropdownAction("edit", meal);
                             }}
                           >
-                            Edit Schedule
+                            {lang("edit-schedule")}
                           </li>
                           <li
                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -294,7 +301,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
                               handleDropdownAction("time", meal, selectedDate)
                             }
                           >
-                            Set Meal Time
+                            {lang("set-meal-time")}
                           </li>
                           <li
                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -302,7 +309,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
                               handleDropdownAction("remove", meal, selectedDate)
                             }
                           >
-                            Remove
+                            {lang("remove-meal")}
                           </li>
                         </ul>
                       </div>
@@ -317,7 +324,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
       {!mealsForSelectedDate ||
         (mealsForSelectedDate.length === 0 && (
           <div className="text-gray-500 italic mt-2">
-            No meals planned for this date
+            {lang("no-meal-planned")}
           </div>
         ))}
 
@@ -325,7 +332,7 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         <SetTime
           meal={selectedMeal}
           date={selectedDate}
-          time={getMealTimeInfo(selectedMeal, format(selectedDate, "yyyy-MM-dd"))}
+          time={getMealTimeInfo(selectedMeal, formatDateWithLocale(selectedDate, "yyyy-MM-dd"))}
           onClose={() => setIsModalTimeOpen(false)}
           onSubmit={handleSubmitSetTime}
         />
