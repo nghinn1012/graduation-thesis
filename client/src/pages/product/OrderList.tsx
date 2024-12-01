@@ -38,6 +38,20 @@ const OrdersPage = () => {
   } = useProductContext();
   const language = useI18nContext();
   const lang = language.of("OrderSection");
+  const langCode = language.language.code;
+
+  const formatPrice = (price: number): string => {
+    let currencyCode: string = "VND";
+
+    if (langCode === "en") {
+      currencyCode = "USD";
+    }
+
+    return new Intl.NumberFormat(langCode, {
+      style: "currency",
+      currency: currencyCode,
+    }).format(price);
+  }
 
   const tabs = [
     { key: "All", label: lang("all") },
@@ -202,7 +216,7 @@ const OrdersPage = () => {
                             className="text-xs sm:text-sm whitespace-nowrap cursor-pointer"
                             onClick={() => handleViewOrder(order._id)}
                           >
-                            ${order.amount}
+                            {formatPrice(order.amount)}
                           </td>
                           <td
                             className="hidden sm:table-cell text-xs sm:text-sm whitespace-nowrap"

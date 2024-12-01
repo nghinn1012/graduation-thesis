@@ -524,7 +524,7 @@ export const getOrderOfSellerService = async (
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const total = await orderModel.countDocuments(query); // Count based on the query
+    const total = await orderModel.countDocuments(query);
 
     const result = await Promise.all(
       orders.map(async (order) => {
@@ -633,6 +633,19 @@ export const cancelOrderService = async (
     order.status =
       userId === order.userId ? "Cancelled By User" : "Cancelled By Seller";
     order.reason = reason;
+    const products = order.products;
+    await Promise.all(
+      products.map(async (product) => {
+        const productInfo = await productModel.findOne({
+          _id: product.productId,
+        });
+        if (!productInfo) {
+          throw new Error(`Product with ID ${product.productId} not found`);
+        }
+        productInfo.quantity += product.quantity;
+        await productInfo.save();
+      })
+    );
     await order.save();
     return order;
   } catch (error) {
@@ -748,15 +761,33 @@ export const updateOrderPaymentData = async (
 ) => {
   console.log("updateOrderPaymentData", orderId, updateData);
   try {
-    await orderModel.findByIdAndUpdate(orderId, {
+    const order = await orderModel.findByIdAndUpdate(orderId, {
       paymentStatus: updateData.paymentStatus,
       paymentMethod: updateData.paymentMethod,
       transactionId: updateData.transactionId,
       amount: updateData.amount,
       status: updateData.paymentStatus === "SUCCESS" ? "Pending" : "Cancelled By User",
-      reason: updateData.paymentStatus === "SUCCESS" ? "" : "Payment failed",
+      reason: updateData.paymentStatus === "SUCCESS" ? "" : "payment-failed",
       updatedAt: new Date(),
     });
+    if (!order) {
+      throw new Error("Order not found");
+    }
+    if (updateData.paymentStatus !== "SUCCESS") {
+      const products = order.products;
+      await Promise.all(
+        products.map(async (product) => {
+          const productInfo = await productModel.findOne({
+            _id: product.productId,
+          });
+          if (!productInfo) {
+            throw new Error(`Product with ID ${product.productId} not found`);
+          }
+          productInfo.quantity += product.quantity;
+          await productInfo.save();
+        })
+      );
+    }
   } catch (error) {
     console.error("Failed to update order payment data:", error);
     throw error;

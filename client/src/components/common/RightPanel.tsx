@@ -468,15 +468,15 @@ const RightPanel: React.FC = () => {
             <p className="font-bold my-4">{lang("who-to-follow")}</p>
             <div className="flex flex-col gap-6">
               {/* Loading State */}
-              {isLoading ||
-                (!suggestUsers && (
+              {isLoading || !suggestUsers &&
+                (
                   <>
                     <RightPanelSkeleton />
                     <RightPanelSkeleton />
                     <RightPanelSkeleton />
                     <RightPanelSkeleton />
                   </>
-                ))}
+                )}
 
               {/* User List */}
               {!isLoading &&

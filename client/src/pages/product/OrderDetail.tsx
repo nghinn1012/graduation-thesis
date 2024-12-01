@@ -22,6 +22,7 @@ import { Review, ReviewCreate } from "../../api/post";
 import CancelOrderModal from "../../components/order/CancelOrderModal";
 import ReviewModal from "../../components/order/ReviewModal";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useMessageContext } from "../../context/MessageContext";
 
 type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
@@ -159,6 +160,7 @@ const OrderDetails: React.FC = () => {
   const [cancelReason, setCancelReason] = useState("");
   const language = useI18nContext();
   const lang = language.of("ReviewSection", "OrderSection");
+  const {chatGroupSelect, setChatGroupSelect, chatGroups} = useMessageContext();
   const langCode = language.language.code;
 
   function formatPrice(price: number): string {
@@ -255,6 +257,19 @@ const OrderDetails: React.FC = () => {
       console.error("Error submitting reviews:", error);
     }
   };
+
+  const handleChatCustomer = () => {
+    console.log("Chatting with customer...");
+    console.log(chatGroups);
+    if (!currentOrderDetail) return;
+    chatGroups.some((group) => {
+      if (group.members.includes(currentOrderDetail?.userId) && group.members.includes(currentOrderDetail?.sellerId) && group.members.length === 2) {
+        setChatGroupSelect(group);
+        navigate(`/message`);
+        return true;
+      }
+    });
+  }
   if (!currentOrderDetail) {
     return <LoadingSkeleton />;
   }
@@ -294,8 +309,8 @@ const OrderDetails: React.FC = () => {
                 </p>
               </div>
               <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 items-center">
-                <button className="btn btn-primary btn-sm w-full lg:w-auto">
-                  <BsChat className="w-4 h-4 mr-2" />
+                <button className="btn btn-primary btn-sm w-full lg:w-auto" onClick={handleChatCustomer}>
+                  <BsChat className="w-4 h-4 mr-2"/>
                   {lang("message-customer")}
                 </button>
                 <span
@@ -505,7 +520,7 @@ const OrderDetails: React.FC = () => {
                         <span className="text-base-content/70">
                           {lang("reason")}:{" "}
                           <span className="font-semibold">
-                            {currentOrderDetail.reason}
+                            {lang(currentOrderDetail.reason)}
                           </span>
                         </span>
                       </div>

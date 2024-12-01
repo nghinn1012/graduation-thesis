@@ -47,6 +47,20 @@ const PaymentSuccess: React.FC = () => {
   const message = !isCOD ? searchParams.get("message") : null;
 
   const isSuccess = isCOD || resultCode === "0";
+  const langCode = language.language.code;
+
+  function formatPrice(price: number): string {
+    let currencyCode: string = "VND";
+
+    if (langCode === "en") {
+      currencyCode = "USD";
+    }
+
+    return new Intl.NumberFormat(langCode, {
+      style: "currency",
+      currency: currencyCode,
+    }).format(price);
+  }
 
   useEffect(() => {
     const updatePaymentStatus = async () => {
@@ -128,10 +142,7 @@ const PaymentSuccess: React.FC = () => {
           <p className="text-gray-600 mt-2">
             <strong>{lang("amount")}:</strong>{" "}
             <span className="text-green-500 font-medium">
-              {Number(amount).toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-              })}
+              {formatPrice(amount)}
             </span>
           </p>
         )}
