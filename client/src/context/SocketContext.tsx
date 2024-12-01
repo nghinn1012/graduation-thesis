@@ -11,13 +11,24 @@ interface SocketContextType {
   onlineUsers: string[];
 }
 
-export const SocketContext = createContext<SocketContextType | undefined>(undefined);
+export const SocketContext = createContext<SocketContextType | undefined>(
+  undefined
+);
 
-export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const {account, auth} = useAuthContext();
+  const { account, auth } = useAuthContext();
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const {setChatMessages, chatMessages, setChatGroups, chatGroups, chatGroupUnreadCount, setChatGroupUnreadCount} = useMessageContext();
+  const {
+    setChatMessages,
+    chatMessages,
+    setChatGroups,
+    chatGroups,
+    chatGroupUnreadCount,
+    setChatGroupUnreadCount,
+  } = useMessageContext();
 
   useEffect(() => {
     const socketInstance: Socket = io(VITE_SOCKET_POST_URL, {
@@ -46,8 +57,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log(`Message from ${data.chatGroupId}: ${data.message.text}`);
       setChatMessages([...chatMessages, data.message]);
       console.log(chatGroups);
-      setChatGroups((prevChatGroups: any[]) => (
-        prevChatGroups.map((group: { _id: any; unreadCount: any; }) => {
+      setChatGroups((prevChatGroups: any[]) =>
+        prevChatGroups.map((group: { _id: any; unreadCount: any }) => {
           if (group._id === data.chatGroupId) {
             return {
               ...group,
@@ -61,14 +72,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 senderId: data.message.senderId,
                 _id: data.message._id,
               },
-              unreadCount: account?._id === data.message.senderId ? 0 : (group.unreadCount || 0) + 1,
+              unreadCount:
+                account?._id === data.message.senderId
+                  ? 0
+                  : (group.unreadCount || 0) + 1,
             };
           }
           return group as EnhancedChatGroupInfo;
         })
-      ));
+      );
       setChatGroupUnreadCount((prevCount: any) => {
-        if (data.message.senderId === account?._id) {
+        if (data.message.senderId === account?._id || (chatGroups?.find((group) => group._id === data.chatGroupId)?.unreadCount ?? 0) > 0) {
           return prevCount;
         }
         return prevCount + 1;

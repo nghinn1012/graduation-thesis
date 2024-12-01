@@ -288,7 +288,10 @@
     "search": "Tìm kiếm",
     "posts": "Bài viết",
     "users": "Người dùng",
-    "no-users-found": "Không tìm thấy người dùng"
+    "no-users-found": "Không tìm thấy người dùng",
+    "time": "Thời gian",
+    "quality": "Chất lượng",
+    "reset": "Đặt lại"
   },
   "MessageSection": {
     "now": "bây giờ",

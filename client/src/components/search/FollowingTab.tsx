@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Post from "../posts/PostInfo";
 import PostSkeleton from "../skeleton/PostSkeleton";
 import SearchFilterModal from "./SearchFilterModal";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface Filters {
   cookingTimeRange: [number, number];
@@ -16,9 +17,12 @@ interface Filters {
 interface FollowingTabProps {
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-};
+}
 
-const FollowingTab: React.FC<FollowingTabProps> = ({isModalOpen, setIsModalOpen}) => {
+const FollowingTab: React.FC<FollowingTabProps> = ({
+  isModalOpen,
+  setIsModalOpen,
+}) => {
   const navigate = useNavigate();
   const observerRef = useRef<HTMLDivElement | null>(null);
   const {
@@ -35,6 +39,10 @@ const FollowingTab: React.FC<FollowingTabProps> = ({isModalOpen, setIsModalOpen}
     setDifficulty,
     hashtagsSearch,
     setHashtagsSearch,
+    timeOrder,
+    qualityOrder,
+    setTimeOrder,
+    setQualityOrder,
     posts,
     isLoading,
     loadMorePosts,
@@ -42,12 +50,22 @@ const FollowingTab: React.FC<FollowingTabProps> = ({isModalOpen, setIsModalOpen}
   } = useSearchContext();
 
   const [filters, setFilters] = useState<Filters>({
-    cookingTimeRange: cookingTimeRange as [number, number] || [0, 1440],
+    cookingTimeRange: (cookingTimeRange as [number, number]) || [0, 1440],
     minQuality: minQuality || 0,
     difficulty: difficulty || ["easy", "medium", "hard"],
     haveMade: haveMade || false,
     hashtags: hashtagsSearch || [],
   });
+  const language = useI18nContext();
+  const lang = language.of("RightPanel");
+
+  const toggleSort = (type: "time" | "quality") => {
+    if (type === "time") {
+      setTimeOrder((prev) => (prev === 1 ? -1 : 1));
+    } else {
+      setQualityOrder((prev) => (prev === 1 ? -1 : 1));
+    }
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -95,10 +113,18 @@ const FollowingTab: React.FC<FollowingTabProps> = ({isModalOpen, setIsModalOpen}
 
     const params = new URLSearchParams();
     params.append("searchQuery", searchQuery);
-    params.append("cookingTimeRangeMin", newFilters.cookingTimeRange[0].toString());
-    params.append("cookingTimeRangeMax", newFilters.cookingTimeRange[1].toString());
+    params.append(
+      "cookingTimeRangeMin",
+      newFilters.cookingTimeRange[0].toString()
+    );
+    params.append(
+      "cookingTimeRangeMax",
+      newFilters.cookingTimeRange[1].toString()
+    );
     params.append("minQuality", newFilters.minQuality.toString());
     params.append("haveMade", newFilters.haveMade.toString());
+    params.append("timeOrder", timeOrder.toString());
+    params.append("qualityOrder", qualityOrder.toString());
 
     if (newFilters.difficulty.length > 0) {
       params.append("difficulty", newFilters.difficulty.join(","));
@@ -114,8 +140,50 @@ const FollowingTab: React.FC<FollowingTabProps> = ({isModalOpen, setIsModalOpen}
     setIsModalOpen(false);
   };
 
+  const getSortButtonClass = (sortValue: number) => {
+    const baseClass = "btn gap-2";
+    if (sortValue === 0) return `${baseClass} btn-ghost`;
+    return `${baseClass} btn-gray-200`;
+  };
+
+  const getSortIcon = (sortValue: number) => {
+    if (sortValue === 1) return "↑";
+    if (sortValue === -1) return "↓";
+    return "↕";
+  };
+
   return (
     <div className="w-full">
+      {/* Sort Controls */}
+      <div className="grid grid-cols-3 gap-2 border-b">
+        <button
+          onClick={() => toggleSort("time")}
+          className={`${getSortButtonClass(timeOrder)} w-full`}
+          aria-label="Sort by time"
+        >
+          <i className="fas fa-clock" /> {lang("time")} {getSortIcon(timeOrder)}
+        </button>
+
+        <button
+          onClick={() => toggleSort("quality")}
+          className={`${getSortButtonClass(qualityOrder)} w-full`}
+          aria-label="Sort by quality"
+        >
+          <i className="fas fa-star" /> {lang("quality")} {getSortIcon(qualityOrder)}
+        </button>
+
+        <button
+          onClick={() => {
+            setTimeOrder(0);
+            setQualityOrder(0);
+          }}
+          className="btn btn-ghost w-full"
+          aria-label="Reset sort"
+        >
+          <i className="fas fa-undo" /> {lang("reset")}
+        </button>
+      </div>
+
       <SearchFilterModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -124,9 +192,7 @@ const FollowingTab: React.FC<FollowingTabProps> = ({isModalOpen, setIsModalOpen}
       />
 
       <div className="space-y-4">
-        {!isLoading && posts.map((post) => (
-          <Post key={post._id} post={post} />
-        ))}
+        {!isLoading && posts.map((post) => <Post key={post._id} post={post} />)}
 
         {isLoading && (
           <div className="space-y-4">

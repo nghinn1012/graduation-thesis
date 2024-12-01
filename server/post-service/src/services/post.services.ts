@@ -522,7 +522,9 @@ export const deletePostService = async (postId: string, userId: string) => {
 export const searchPostService = async (query: string, minTime: string,
   maxTime: string, minQuality: number,
   haveMade: boolean, difficulty: string[], hashtags: string[],
+  timeOrder: number, quantityOrder: number,
   pageSize: number, page: number) => {
+  console.log("searchPostService", query, minTime, maxTime, minQuality, haveMade, difficulty, hashtags, timeOrder, quantityOrder, pageSize, page);
   const postSearchBuilder = new PostSearchBuilder()
     .search(query)
     .filterCookingTime(minTime, maxTime)
@@ -530,6 +532,8 @@ export const searchPostService = async (query: string, minTime: string,
     .filterQuality(minQuality)
     .filterByHashtags(hashtags)
     .filterByDifficulty(difficulty)
+    .sortByTime(Number(timeOrder))
+    .sortByQuality(Number(quantityOrder))
     .paginate(pageSize, page);
   const pipeline = postSearchBuilder.build();
   const posts = await postModel.aggregate(pipeline);

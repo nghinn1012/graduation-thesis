@@ -8,6 +8,8 @@ interface Filters {
   difficulty: string[];
   haveMade: boolean;
   hashtags: string[];
+  timeOrder?: number;
+  qualityOrder?: number;
 }
 
 interface SearchFilterModalProps {

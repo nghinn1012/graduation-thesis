@@ -109,6 +109,7 @@ postInstance.interceptors.response.use(
 );
 
 export interface PostInfo {
+  averageRating: any;
   _id: string;
   title: string;
   about: string;
@@ -680,6 +681,8 @@ export interface PostFetcher {
     haveMade: string,
     difficulty: string[],
     hashtags: string[],
+    timeOrder: number,
+    qualityOrder: number,
     page: number,
     pageSize: number,
     token: string
@@ -985,6 +988,8 @@ export const postFetcher: PostFetcher = {
     haveMade: string,
     difficulty: string[],
     hashtags: string[],
+    timeOrder: number,
+    qualityOrder: number,
     page: number,
     pageSize: number,
     token: string
@@ -1001,6 +1006,8 @@ export const postFetcher: PostFetcher = {
         difficulty,
         haveMade,
         hashtags,
+        timeOrder,
+        qualityOrder,
         page,
         pageSize,
       },

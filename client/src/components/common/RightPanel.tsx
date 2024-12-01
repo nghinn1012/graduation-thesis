@@ -36,7 +36,7 @@ const RightPanel: React.FC = () => {
     setDifficulty,
     hashtagsSearch,
     setHashtagsSearch,
-    setSearchQuery
+    setSearchQuery,
   } = useSearchContext();
   const { suggestUsers, fetchSuggestions, setSuggestUsers } = useUserContext();
   const { followUser } = useFollowContext();
@@ -56,6 +56,8 @@ const RightPanel: React.FC = () => {
   const navigate = useNavigate();
   const language = useI18nContext();
   const lang = language.of("RightPanel");
+  const [isResetting, setIsResetting] = useState(false);
+
 
   useEffect(() => {
     fetchSuggestions();
@@ -124,6 +126,69 @@ const RightPanel: React.FC = () => {
     return difficulties;
   };
 
+
+  const handleResetFilters = (event: any) => {
+    event.preventDefault();
+    setIsResetting(true);
+
+    setLocalCookingTimeRange([0, 1440]);
+    setRating(0);
+    setSelectedDifficulties({
+      easy: false,
+      medium: false,
+      hard: false,
+    });
+    setHaveMadeOn(false);
+    setHashtags([]);
+    setHashtagInput("");
+
+    setCookingTimeRange([0, 1440]);
+    setMinQuality(0);
+    setHaveMade(false);
+    setDifficulty([]);
+    setHashtagsSearch([]);
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    if (isResetting) {
+      const allStatesReset =
+        localCookingTimeRange[0] === 0 &&
+        localCookingTimeRange[1] === 1440 &&
+        rating === 0 &&
+        !selectedDifficulties.easy &&
+        !selectedDifficulties.medium &&
+        !selectedDifficulties.hard &&
+        !haveMadeOn &&
+        hashtags.length === 0 &&
+        hashtagInput === "" &&
+        cookingTimeRange[0] === 0 &&
+        cookingTimeRange[1] === 1440 &&
+        minQuality === 0 &&
+        !haveMade &&
+        difficulty.length === 0 &&
+        hashtagsSearch.length === 0;
+
+      if (allStatesReset) {
+        handleFilterSubmit();
+        setIsResetting(false);
+      }
+    }
+  }, [
+    localCookingTimeRange,
+    rating,
+    selectedDifficulties,
+    haveMadeOn,
+    hashtags,
+    hashtagInput,
+    cookingTimeRange,
+    minQuality,
+    haveMade,
+    difficulty,
+    hashtagsSearch,
+    isResetting
+  ]);
+
   const handleFilterSubmit = () => {
     console.log(hashtags, hashtagsSearch);
 
@@ -162,7 +227,6 @@ const RightPanel: React.FC = () => {
     navigate(newUrl);
   };
 
-
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -174,7 +238,7 @@ const RightPanel: React.FC = () => {
   };
 
   const handleFollowUser = (userId: string, event: any) => {
-    console.log('Follow User Context:', followUser);
+    console.log("Follow User Context:", followUser);
     followUser(userId);
   };
 
@@ -209,9 +273,18 @@ const RightPanel: React.FC = () => {
 
       {location.pathname === "/users/search" && (
         <div className="rounded-md border border-gray-300 p-6 mt-12 bg-white shadow-md">
-          <h2 className="text-lg font-bold mb-4">{lang("search-filter")}</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">{lang("search-filter")}</h2>
+            <button
+              onClick={handleResetFilters}
+              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              {lang("reset-filters")}
+            </button>
+          </div>
 
           <div className="mb-4">
+            {/* Rest of the existing filter content remains the same */}
             <label className="block text-gray-600 font-medium mb-2">
               {lang("cooking-time")}
             </label>
@@ -459,7 +532,6 @@ const RightPanel: React.FC = () => {
           </div>
         </div>
       )}
-
       {location.pathname !== "/message" &&
         location.pathname !== "/products" &&
         location.pathname.split("/")[1] !== "orders" &&
@@ -468,15 +540,15 @@ const RightPanel: React.FC = () => {
             <p className="font-bold my-4">{lang("who-to-follow")}</p>
             <div className="flex flex-col gap-6">
               {/* Loading State */}
-              {isLoading || !suggestUsers &&
-                (
+              {isLoading ||
+                (!suggestUsers && (
                   <>
                     <RightPanelSkeleton />
                     <RightPanelSkeleton />
                     <RightPanelSkeleton />
                     <RightPanelSkeleton />
                   </>
-                )}
+                ))}
 
               {/* User List */}
               {!isLoading &&

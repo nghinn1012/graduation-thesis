@@ -39,7 +39,6 @@ export class PostSearchBuilder {
   }
 
   public filterCookingTime(minTime?: string, maxTime?: string) {
-    console.log(minTime, maxTime);
     if (minTime && maxTime) {
       this.matchCriteria.timeToTake = {
         $gte: Number(minTime),
@@ -96,6 +95,28 @@ export class PostSearchBuilder {
     }
     return this;
   }
+
+  public sortByTime(sortOrder: number) {
+    if (sortOrder === 0) {
+      return this;
+    }
+    if (sortOrder !== 1 && sortOrder !== -1) {
+        throw new Error("Invalid sort order for time. Must be 1 (ascending) or -1 (descending).");
+    }
+    this.sortOrder.timeToTake = sortOrder;
+    return this;
+}
+
+public sortByQuality(sortOrder: number) {
+  if (sortOrder === 0) {
+    return this;
+  }
+    if (sortOrder !== 1 && sortOrder !== -1) {
+        throw new Error("Invalid sort order for quality. Must be 1 (ascending) or -1 (descending).");
+    }
+    this.sortOrder.averageRating = sortOrder;
+    return this;
+}
 
 
   public paginate(pageSize: number = this.pageSize, page?: number) {

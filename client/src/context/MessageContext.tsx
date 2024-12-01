@@ -76,7 +76,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
       if (response) {
         setChatGroups(response);
         setChatGroupUnreadCount(
-          response.reduce((acc, group) => acc + group.unreadCount, 0)
+          response.filter((group) => group.unreadCount > 0).length
         );
       }
     };

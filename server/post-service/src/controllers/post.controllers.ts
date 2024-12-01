@@ -155,7 +155,8 @@ export const searchPostController = async (request: AuthRequest, response: Respo
       page, pageSize,
       minTime, maxTime,
       minQuality, haveMade,
-      difficulty, hashtags
+      difficulty, hashtags,
+      timeOrder, qualityOrder
       } = request.query;
 
     console.log("query:", query);
@@ -180,6 +181,7 @@ export const searchPostController = async (request: AuthRequest, response: Respo
         message: "Invalid minQuality. It must be a string."
       });
     }
+
     console.log(difficulty, hashtags);
     const parsedPageSize = pageSize ? parseInt(pageSize as string, 10) : 10;
     const parsedPage = page ? parseInt(page as string, 10) : 1;
@@ -187,6 +189,7 @@ export const searchPostController = async (request: AuthRequest, response: Respo
     const { posts, total, page: currentPage, pageSize: currentPageSize } =
       await searchPostService(query as string, minTime, maxTime,
         Number(minQuality), Boolean(haveMade), difficulty as string[], hashtags as string[],
+        timeOrder as unknown as number, qualityOrder as unknown as number,
         parsedPageSize, parsedPage);
 
     if (!posts || posts.length === 0) {

@@ -274,12 +274,12 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
               <input
                 type="text"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                value={Number(price)}
+                value={Number(price) | 0}
                 onChange={(e) => {
                   const value = e.target.value.replace(/^0+/, "");
                   setPrice(Number(value));
                 }}
-                defaultValue={lang("price-placeholder")}
+                placeholder={lang("price-placeholder")}
               />
               {errors.price && <p className="text-red-500">{errors.price}</p>}
             </div>
@@ -294,7 +294,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                defaultValue={lang("quantity-placeholder")}
+                placeholder={lang("quantity-placeholder")}
               />
               {errors.quantity && (
                 <p className="text-red-500">{errors.quantity}</p>
@@ -311,7 +311,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                 value={timeToPrepare}
                 onChange={(e) => setTimeToPrepare(Number(e.target.value))}
-                defaultValue={lang("time-placeholder")}
+                placeholder={lang("time-placeholder")}
               />
               {errors.timeToPrepare && (
                 <p className="text-red-500">{errors.timeToPrepare}</p>

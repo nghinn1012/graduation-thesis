@@ -40,6 +40,10 @@ interface SearchContextType {
   setDifficulty: React.Dispatch<React.SetStateAction<string[]>>;
   hashtagsSearch: string[];
   setHashtagsSearch: React.Dispatch<React.SetStateAction<string[]>>;
+  timeOrder: number;
+  qualityOrder: number;
+  setTimeOrder: React.Dispatch<React.SetStateAction<number>>;
+  setQualityOrder: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -63,6 +67,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
   const [haveMade, setHaveMade] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<string[]>([]);
   const [hashtagsSearch, setHashtagsSearch] = useState<string[]>([]);
+  const [timeOrder, setTimeOrder] = useState<number>(0);
+  const [qualityOrder, setQualityOrder] = useState<number>(0);
   const location = useLocation();
 
   useEffect(() => {
@@ -75,6 +81,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
       setHaveMade(false);
       setDifficulty([]);
       setHashtagsSearch([]);
+      setTimeOrder(0);
+      setQualityOrder(0);
       setHasMore(true);
     }
   }, [location.pathname]);
@@ -91,6 +99,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         haveMade ? "true" : "",
         difficulty,
         hashtagsSearch as string[],
+        timeOrder,
+        qualityOrder,
         currentPage,
         10,
         auth.token
@@ -126,6 +136,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
     haveMade,
     difficulty,
     hashtagsSearch,
+    timeOrder,
+    qualityOrder,
   ]);
 
   useEffect(() => {
@@ -139,6 +151,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
     haveMade,
     difficulty,
     hashtagsSearch,
+    timeOrder,
+    qualityOrder,
   ]);
 
   useEffect(() => {
@@ -148,6 +162,8 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
     setHaveMade(false);
     setDifficulty([]);
     setHashtagsSearch([]);
+    setTimeOrder(0);
+    setQualityOrder(0);
     setHasMore(true);
   }, [searchQuery, auth?.token]);
 
@@ -281,6 +297,10 @@ export const SearchProvider: React.FC<{ children: ReactNode }> = ({
         setDifficulty,
         hashtagsSearch,
         setHashtagsSearch,
+        timeOrder,
+        qualityOrder,
+        setTimeOrder,
+        setQualityOrder,
       }}
     >
       {children}

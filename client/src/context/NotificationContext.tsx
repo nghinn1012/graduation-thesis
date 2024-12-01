@@ -80,7 +80,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     socket.on("new-notification", (data: NotificationInfo) => {
       console.log("New notification:", data);
       setNotifications((prevNotifications) => [data, ...prevNotifications]);
-      setUnreadCount(prevCount => prevCount + 1);  // Increase unread count when a new notification arrives
+      setUnreadCount(prevCount => prevCount + 1);  
     });
 
     return () => {
