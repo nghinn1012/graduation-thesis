@@ -8,8 +8,8 @@ import {
 
 export type I18nReactComponent =
   | "SignUpForm"
-  | "LoginForm"
-  | "VerifyForm"
+  | "LoginPage"
+  | "VerifySection"
   | "Footer"
   | "CreatePostBox"
   | "HashtagTab"

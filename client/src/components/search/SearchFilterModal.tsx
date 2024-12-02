@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Range } from 'react-range';
 import { useSearchContext } from '../../context/SearchContext';
+import { useI18nContext } from '../../hooks/useI18nContext';
 
 interface Filters {
   cookingTimeRange: [number, number];
@@ -47,7 +48,8 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
   const [hashtags, setHashtags] = useState<string[]>(initialFilters.hashtags ?? []);
   const [hashtagInput, setHashtagInput] = useState<string>("");
   const [haveMadeOn, setHaveMadeOn] = useState<boolean>(initialFilters.haveMade ?? false);
-
+  const language = useI18nContext();
+  const lang = language.of("RightPanel");
   useEffect(() => {
     if (isOpen) {
       setLocalCookingTimeRange(initialFilters.cookingTimeRange ?? [0, 1440]);
@@ -115,7 +117,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
     <div className="modal modal-open">
       <div className="modal-box max-w-2xl">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">Search Filters</h2>
+          <h2 className="text-lg font-bold">{lang("search-filter")}</h2>
           <button className="btn btn-sm btn-circle btn-ghost" onClick={onClose}>✕</button>
         </div>
 
@@ -123,7 +125,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
           {/* Cooking Time Range */}
           <div>
             <label className="block text-gray-600 font-medium mb-2">
-              Cooking Time
+              {lang("cooking-time")}
             </label>
             <Range
               step={1}
@@ -184,7 +186,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
           {/* Rating */}
           <div>
             <label className="block text-gray-600 font-medium mb-2">
-              Minimum Rating
+              {lang("min-rating")}
             </label>
             <div className="flex items-center gap-2">
               {Array.from({ length: 5 }, (_, index) => (
@@ -204,7 +206,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
                 }`}
                 onClick={() => setRating(0)}
               >
-                All
+                {lang("all")}
               </button>
             </div>
           </div>
@@ -214,7 +216,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
           {/* Difficulty */}
           <div>
             <label className="block text-gray-600 font-medium mb-2">
-              Difficulty Level
+              {lang("difficulty")}
             </label>
             <div className="flex gap-2">
               {(['easy', 'medium', 'hard'] as const).map(level => (
@@ -225,7 +227,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
                   }`}
                   onClick={() => handleCheckboxChange(level, !selectedDifficulties[level])}
                 >
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                  {lang(level)}
                 </button>
               ))}
             </div>
@@ -236,7 +238,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
           {/* Have Made Toggle */}
           <div className="form-control">
             <label className="label cursor-pointer">
-              <span className="text-gray-600 font-medium">Have Made</span>
+              <span className="text-gray-600 font-medium">{lang("haved-made")}</span>
               <input
                 type="checkbox"
                 className="toggle toggle-primary"
@@ -251,11 +253,11 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
           {/* Hashtags */}
           <div>
             <label className="block text-gray-600 font-medium mb-2">
-              Filter by Hashtags
+              {lang("filter-by-hashtags")}
             </label>
             <input
               type="text"
-              placeholder="Add hashtag and press Enter"
+              placeholder={lang("hashtag-placeholder")}
               value={hashtagInput}
               onChange={(e) => setHashtagInput(e.target.value)}
               onKeyDown={handleHashtagKeyDown}
@@ -277,9 +279,9 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
         </div>
 
         <div className="modal-action">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-ghost" onClick={onClose}>{lang("cancel")}</button>
           <button className="btn btn-primary" onClick={handleApplyFilters}>
-            Apply Filters
+            {lang("apply-filter")}
           </button>
         </div>
       </div>

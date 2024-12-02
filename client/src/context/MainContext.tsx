@@ -9,6 +9,8 @@ import OrderInfoPage from "../pages/product/OrderInfoPage";
 import PaymentSuccess from "../pages/product/PaymentSuccess";
 import OrdersPage from "../pages/product/OrderList";
 import OrderDetails from "../pages/product/OrderDetail";
+import ForgotPasswordPage from "../pages/auth/verify/ForgotPassword";
+import ResetPasswordPage from "../pages/auth/verify/ResetPasswordPage";
 
 export default function AppMainCenter() {
   return (

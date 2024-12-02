@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import { Error } from "mongoose";
 import { verifyEmailService, googleLoginService, loginService, refreshTokenService, registerService, ManualAccountRegisterInfo } from "../services/index.services";
+import { forgotPassword, resendEmailVerify, updatePassword } from "../services/register.services";
+
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 export const registerController = async (req: Request, res: Response) => {
   const { email, password, name, confirmPassword } = req.body;
@@ -76,3 +81,46 @@ export const verifyUser = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const resendEmailVerifyController = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    const result = await resendEmailVerify(email);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+};
+
+export const resetPasswordController = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    const result = await forgotPassword(email);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const updatePasswordController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {password, confirmPassword} = req.body;
+    const userId = req.userId;
+    console.log(userId);
+    if (!userId) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+    const result = await updatePassword(userId, password, confirmPassword);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}

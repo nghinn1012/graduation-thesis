@@ -8,6 +8,9 @@ export const userEndpoints = {
   // users
   signup: "/users/register",
   verify: "/users/verifyUser",
+  resendVerify: "/users/resend-verify",
+  resetPassword: "/users/reset-password",
+  updatePassword: "/users/update-password",
   login: "/users/login",
   refeshToken: "/users/refresh-token",
   loginWithGoogle: "/users/google-login",
@@ -123,6 +126,9 @@ export interface UserFetcher {
   verifyEmail(token: string): Promise<UserResponse<AccountInfo>>;
   login(data: LoginInfo): Promise<UserResponse<AccountInfo>>;
   refreshToken(token: string): Promise<UserResponse<AccountInfo>>;
+  resendVerifyEmail(email: string): Promise<UserResponse<AccountInfo>>;
+  resetPassword(email: string): Promise<UserResponse<AccountInfo>>;
+  updatePassword(password: string, confirmPassword: string, token: string): Promise<UserResponse<AccountInfo>>;
   loginWithGoogle(token: string): Promise<UserResponse<AccountInfo>>;
   getUserById(id: string, token: string): Promise<UserResponse<AccountInfo>>;
   getAllUsers(token: string): Promise<UserResponse<AccountInfo[]>>;
@@ -134,8 +140,14 @@ export interface UserFetcher {
   ): Promise<UserResponse<searchInfoData>>;
   suggest(token: string): Promise<UserResponse<AccountInfo[]>>;
   followUser(userId: string, token: string): Promise<UserResponse<FollowData>>;
-  getFollowers(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
-  getFollowing(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
+  getFollowers(
+    userId: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>>;
+  getFollowing(
+    userId: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>>;
   updateUser(
     userId: string,
     data: UpdateDataInfo,
@@ -260,6 +272,37 @@ export const userFetcher: UserFetcher = {
     return userInstance.patch(
       userEndpoints.updateUser.replace(":userId", userId),
       data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  resendVerifyEmail: async (
+    email: string,
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(
+      userEndpoints.resendVerify,
+      { email }
+    );
+  },
+  resetPassword: async (
+    email: string,
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(
+      userEndpoints.resetPassword,
+      { email }
+    );
+  },
+  updatePassword: async (
+    password: string,
+    confirmPassword: string,
+    token: string,
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(
+      userEndpoints.updatePassword,
+      { password, confirmPassword },
       {
         headers: {
           Authorization: `Bearer ${token}`,

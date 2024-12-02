@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { userFetcher } from '../../../api/user';
 import toast, { Toaster } from 'react-hot-toast';
+import { useToastContext } from '../../../hooks/useToastContext';
+import { useI18nContext } from '../../../hooks/useI18nContext';
+import { useAuthContext } from '../../../hooks/useAuthContext';
 
 interface IAccountInfo {
   email: string;
@@ -16,31 +19,29 @@ interface IWaitingEmailVerify {
 
 function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
   const [loading, setLoading] = useState(false);
+  const { success, error } = useToastContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("VerifySection");
+  const { auth } = useAuthContext();
 
-  const handleClick = async () => {
+  const handleResendClick = async () => {
     setLoading(true);
     try {
-      await userFetcher.manualRegister({
-        name: `${account.firstName} ${account.lastName}`,
-        email: account.email,
-        password: account.password,
-        confirmPassword: account.password,
-      });
-      success("Email sent successfully!");
-    } catch (error) {
-      console.log(error);
-      error("A email was sent before. Please check your email");
+      await userFetcher.resendVerifyEmail(account.email);
+      success(lang("resend-success"));
+    } catch (err) {
+      console.error(err);
+      error(lang("resend-failed", lang(err as string)));
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
     <div className="container mx-auto p-6 max-w-lg bg-white shadow-md rounded-lg">
       <Toaster />
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Verify your account</h1>
-      <p className="text-gray-600 mb-4">All done. Email was sent to your email.</p>
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">{lang("verify-account")}</h1>
+      <p className="text-gray-600 mb-4">{lang("email-sent")}</p>
       <a
         href={`mailto:${account.email}`}
         className="text-blue-500 hover:underline mb-4 block"
@@ -48,24 +49,27 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
         {account.email}
       </a>
       <div className="flex items-center space-x-2">
-        <p className="text-gray-600">Not received mail?</p>
+        <p className="text-gray-600">{lang("not-received")}</p>
         <button
-          onClick={handleClick}
+          onClick={handleResendClick}
           disabled={loading}
           className={`btn ${loading ? 'btn-disabled' : 'btn-primary'}`}
         >
-          {loading ? 'Trying again...' : "Resend"}
+          {loading ? lang("trying-again") : lang("resend")}
         </button>
       </div>
     </div>
   );
 }
 
+
 function AccountTokenVerify() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { success, error } = useToastContext();
   const token = new URLSearchParams(location.search).get("token") as string | undefined;
-
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("VerifySection");
 
   useEffect(() => {
     let isMounted = true;
@@ -78,13 +82,13 @@ function AccountTokenVerify() {
       .then((response: any) => {
         if (isMounted) {
           const account = response.data;
-          success("Email verified successfully! Please login to continue");
+          success(lang("email-verified-success"));
           setTimeout(() => navigate("/login"), 1000);
         }
       })
       .catch((error: any) => {
         if (isMounted) {
-          error("Error verifying email: " + error.message);
+          error(lang("email-verified-fail", error.message));
           navigate("/error/page-wrong", { replace: true });
         }
       });

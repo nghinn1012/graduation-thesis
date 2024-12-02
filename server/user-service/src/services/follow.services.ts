@@ -22,7 +22,6 @@ export const followAndUnFollowUserService = async (currentUserId: string, userId
     followers: { $in : [currentUserId] }
   });
   if (isFollowing.length > 0) {
-    // unfollow
     await UserModel.findByIdAndUpdate
     (userId, {
       $pull: { followers: currentUserId }

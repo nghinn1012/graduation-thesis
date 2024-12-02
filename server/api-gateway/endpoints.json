@@ -9,7 +9,9 @@
               "/users/register",
               "/users/login",
               "/users/verifyUser",
-              "/users/google-login"
+              "/users/google-login",
+              "/users/resend-verify",
+              "/users/reset-password"
           ]
       }
   },

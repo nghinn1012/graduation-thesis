@@ -167,6 +167,7 @@ export const getChatGroupsService = async (userId: string) => {
           avatar: 1,
           createdAt: 1,
           updatedAt: 1,
+          isPrivate: 1,
           lastMessage: 1,
           lastMessageInfo: { $arrayElemAt: ['$lastMessageInfo', 0] },
           unreadCount: {

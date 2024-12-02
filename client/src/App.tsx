@@ -10,6 +10,8 @@ import { GOOGLE_CLIENT_ID } from "./config/config";
 import Sidebar from "./components/common/Sidebar";
 import RightPanel from "./components/common/RightPanel";
 import AppMainCenter from "./context/MainContext";
+import ForgotPasswordPage from "./pages/auth/verify/ForgotPassword";
+import ResetPasswordPage from "./pages/auth/verify/ResetPasswordPage";
 export function App() {
   const location = useLocation();
   return (
@@ -46,6 +48,8 @@ export function App() {
             }
           />
           <Route path="/verify/*" element={<VerifyPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </GoogleOAuthProvider>
     </AppContextProviders>

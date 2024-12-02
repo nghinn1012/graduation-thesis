@@ -1,7 +1,7 @@
 {
   "LoginPage": {
-    "l-email": "Email",
-    "l-password": "Password",
+    "email": "Email",
+    "password": "Password",
     "login-now": "Log In",
     "signup": "Sign Up",
     "or": "Or",
@@ -22,8 +22,8 @@
     "l-firstname": "First Name",
     "l-lastname": "Last Name",
     "l-exposedname": "Display Name",
-    "l-email": "Email",
-    "l-password": "Password",
+    "email": "Email",
+    "password": "Password",
     "login-now": "Log In",
     "signin": "Sign In",
     "or": "Or",

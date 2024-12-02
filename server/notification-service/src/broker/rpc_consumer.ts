@@ -1,4 +1,4 @@
-import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo } from "../services/mailService";
+import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo, sendForgotPassword } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { io } from "../../index";
 import { createCommentedFoodNotifications, createFollowNotifications, createLikedFoodNotifications, createMadeFoodNotifications, createNewFoodNotifications, createSavedFoodNotifications } from "../services/notificationService";
@@ -18,6 +18,7 @@ export const brokerOperations = {
   mail: {
     ACTIVE_MANUAL_ACCOUNT: "ACTIVE_MANUAL_ACCOUNT",
     NEW_ACCOUNT_CREATED: "NEW_ACCOUNT_CREATED",
+    FORGOT_PASSWORD: "FORGOT_PASSWORD",
   },
   food: {
     NOTIFY_NEW_FOOD: "NOTIFY_NEW_FOOD",
@@ -105,6 +106,13 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
     brokerOperations.mail.ACTIVE_MANUAL_ACCOUNT,
     (msg: IBrokerMessage<MannualAccountInfo>) => {
       sendActiveMannualAccount(msg.data);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.mail.FORGOT_PASSWORD,
+    (msg: IBrokerMessage<MannualAccountInfo>) => {
+      sendForgotPassword(msg.data.email, msg.data.token);
     }
   );
 

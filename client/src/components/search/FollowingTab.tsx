@@ -203,7 +203,7 @@ const FollowingTab: React.FC<FollowingTabProps> = ({
 
         {posts.length === 0 && !isLoading && !hasMore && (
           <p className="text-center text-gray-500">
-            No posts found for "{searchQuery}".
+            {lang("no-posts-found")} "{searchQuery}".
           </p>
         )}
       </div>

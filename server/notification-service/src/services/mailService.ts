@@ -37,3 +37,23 @@ export const sendActiveMannualAccount = async (info: MannualAccountInfo): Promis
     return result;
   }
 }
+
+export const sendForgotPassword = async (email: string, token: string): Promise<SMTPTransport.SentMessageInfo | null> => {
+  let result: SMTPTransport.SentMessageInfo | null = null;
+  try {
+    const html = await renderHtmlFromTemplate(mailTemplates.ACTIVE_ACCOUNT_MANNUAL, {
+      email: email,
+      activeUrl: "http://localhost:3000/reset-password?token=" + token
+    });
+    result = await sendMail({
+      from: NODE_MAILER_SENDER,
+      to: email,
+      subject: `Reset your password`,
+      html: html
+    });
+  } catch (error) {
+    console.log("Send forgot password failed", error);
+  } finally {
+    return result;
+  }
+}

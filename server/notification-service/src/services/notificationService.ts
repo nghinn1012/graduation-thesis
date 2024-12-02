@@ -245,10 +245,6 @@ export const markAllNotificationsAsRead = async (userId: string) => {
       reads: { $nin: [userId] },
     });
 
-    if (!notifications || notifications.length === 0) {
-      throw new Error("Notifications not found");
-    }
-
     await Promise.all(
       notifications.map(async (notification: typeof NotificationModel) => {
         if (!notification.reads.includes(userId)) {

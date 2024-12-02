@@ -82,7 +82,7 @@ const SearchPage: React.FC = () => {
           >
             <li>
               <button className="w-full text-left" onClick={handleOpenFilters}>
-                Filter options
+                {lang("filter-options")}
               </button>
             </li>
           </ul>

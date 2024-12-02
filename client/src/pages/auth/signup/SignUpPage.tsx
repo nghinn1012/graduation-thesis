@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { userFetcher } from "../../../api/user";
 import toast, { Toaster } from "react-hot-toast";
-import { useGoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import ContentFooter from "../../../components/footer/ContentFooter";
 import * as yup from "yup";
 import { useI18nContext } from "../../../hooks/useI18nContext";
 import { useFormik } from "formik";
 import { useToastContext } from "../../../hooks/useToastContext";
+import axios from "axios";
 
 const SignUpPage = () => {
   const auth = useAuthContext();
@@ -20,12 +21,35 @@ const SignUpPage = () => {
   });
   const navigate = useNavigate();
   const languageContext = useI18nContext();
-  const lang = languageContext.of(SignUpPage);
+  const lang = languageContext.of("SignUpForm", "LoginPage");
   const { success, error } = useToastContext();
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:7070/users/google-login",
+        {
+          idToken: credentialResponse.credential,
+        }
+      );
+
+      if (response.data) {
+        success("Google login successful");
+        auth.setAccount(response.data.user);
+        auth.setToken(response.data.token || "");
+      }
+    } catch (err) {
+      error((err as Error).message || "Google login failed");
+    }
+  };
+
+  const handleGoogleError = () => {
+    error("Google login failed. Please try again.");
+  };
 
   const createSignUpSchema = (lang: any) => {
     return yup.object({
-      name: yup.string().required("require-name"),
+      name: yup.string().required(lang("require-name")),
       email: yup
         .string()
         .required(lang("require-email"))
@@ -71,23 +95,22 @@ const SignUpPage = () => {
     console.log(tokenResponse);
     try {
       userFetcher
-      .loginWithGoogle(tokenResponse.credential)
-      .then((response) => {
-        console.log(response);
-        success("Account created successfully");
-        setTimeout(() => {
-          navigate("/"),
-          auth.setAccount(response.user);
-          auth.setToken(response.token.toString() || "")
-        }, 2000);
-      })
-      .catch((error) => {
-        error(error);
-      });
+        .loginWithGoogle(tokenResponse.credential)
+        .then((response) => {
+          console.log(response);
+          success("Account created successfully");
+          setTimeout(() => {
+            navigate("/"), auth.setAccount(response.user);
+            auth.setToken(response.token.toString() || "");
+          }, 2000);
+        })
+        .catch((error) => {
+          error(error);
+        });
     } catch (err) {
       error(err as string);
     }
-  }
+  };
   const handleOAuth = useGoogleLogin({
     onSuccess: handleSuccess,
     onError: () => console.log("Login Failed"),
@@ -101,153 +124,174 @@ const SignUpPage = () => {
     formik.validateForm();
   }, [languageContext.language]);
 
-
   return (
     <div className="min-h-screen">
-    <div className="flex items-center justify-center min-h-[91vh] bg-gray-100">
-      <div className="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
-        {/* Left Side */}
-        <Toaster />
-        <div className="flex flex-col justify-center p-8 md:p-14">
-          <span className="mb-3 text-4xl font-bold">Create an account</span>
-          <span className="font-light text-gray-400 mb-8">
-            Please fill in the details to create your account
-          </span>
+      <div className="flex items-center justify-center min-h-[91vh] bg-gray-100">
+        <div className="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
+          {/* Left Side */}
+          <Toaster />
+          <div className="flex flex-col justify-center p-8 md:p-14">
+            <span className="mb-3 text-4xl font-bold">
+              {lang("create-an-account")}
+            </span>
+            <span className="font-light text-gray-400 mb-8">
+              {lang("create-account-desc")}
+            </span>
 
-          <form onSubmit={formik.handleSubmit}> {/* Thêm thẻ form */}
-          <div className="flex space-x-4">
-            <div className="w-1/2">
-              <label htmlFor="name" className="mb-2 text-md block">
-                Name
-              </label>
-              <input
-                type="text"
-                className={`w-full p-2 border ${
-                  formik.touched.name && formik.errors.name
-                    ? "border-red-500"
-                    : "border-gray-300"
-                } rounded-md placeholder:font-light placeholder:text-gray-500`}
-                id="name"
-                placeholder="Enter your name"
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-            </div>
-            {formik.touched.name && formik.errors.name ? (
-                <div className="text-red-500 text-sm">
-                  {formik.errors.name}
+            <form onSubmit={formik.handleSubmit}>
+              {" "}
+              {/* Thêm thẻ form */}
+              <div className="flex space-x-4">
+                <div className="w-1/2">
+                  <label htmlFor="name" className="mb-2 text-md block">
+                    {lang("name")}
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full p-2 border ${
+                      formik.touched.name && formik.errors.name
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md placeholder:font-light placeholder:text-gray-500`}
+                    id="name"
+                    placeholder={lang("name-placeholder")}
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  {formik.touched.name && formik.errors.name ? (
+                    <div className="text-red-500 text-sm">
+                      {formik.errors.name}
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            <div className="w-1/2">
-              <label htmlFor="email" className="mb-2 text-md block">
-                Email
-              </label>
-              <input
-                type="email"
-                className={`w-full p-2 border ${
-                  formik.touched.email && formik.errors.email
-                    ? "border-red-500"
-                    : "border-gray-300"
-                } rounded-md placeholder:font-light placeholder:text-gray-500`}
-                name="email"
-                id="email"
-                placeholder="Enter your email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-             {formik.touched.email && formik.errors.email ? (
-                <div className="text-red-500 text-sm">
-                  {formik.errors.email}
-                </div>
-              ) : null}
-            </div>
-          </div>
 
-          <div className="py-4">
-            <label htmlFor="password" className="mb-2 text-md">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              className={`w-full p-2 border ${
-                formik.touched.password && formik.errors.password
-                  ? "border-red-500"
-                  : "border-gray-300"
-              } rounded-md placeholder:font-light placeholder:text-gray-500`}
-              placeholder="Enter your password"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-          </div>
-          {formik.touched.password && formik.errors.password ? (
+                <div className="w-1/2">
+                  <label htmlFor="email" className="mb-2 text-md block">
+                    {lang("email")}
+                  </label>
+                  <input
+                    type="email"
+                    className={`w-full p-2 border ${
+                      formik.touched.email && formik.errors.email
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md placeholder:font-light placeholder:text-gray-500`}
+                    name="email"
+                    id="email"
+                    placeholder={lang("email-placeholder")}
+                    value={formik.values.email}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  {formik.touched.email && formik.errors.email ? (
+                    <div className="text-red-500 text-sm">
+                      {formik.errors.email}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="py-4">
+                <label htmlFor="password" className="mb-2 text-md">
+                  {lang("password")}
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  className={`w-full p-2 border ${
+                    formik.touched.password && formik.errors.password
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-md placeholder:font-light placeholder:text-gray-500`}
+                  placeholder={lang("password-placeholder")}
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+              </div>
+              {formik.touched.password && formik.errors.password ? (
                 <div className="text-red-500 text-sm">
                   {formik.errors.password}
                 </div>
               ) : null}
-          <div className="py-4">
-            <label htmlFor="confirm-password" className="mb-2 text-md">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              id="confirm-password"
-              placeholder="Enter your confirm password"
-              className={`w-full p-2 border ${
-                formik.touched.confirmPassword && formik.errors.confirmPassword
-                  ? "border-red-500"
-                  : "border-gray-300"
-              } rounded-md placeholder:font-light placeholder:text-gray-500`}
-              value={formik.values.confirmPassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-          </div>
-          {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
+              <div className="py-4">
+                <label htmlFor="confirm-password" className="mb-2 text-md">
+                  {lang("confirm-password")}
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  id="confirm-password"
+                  placeholder={lang("confirm-password-placeholder")}
+                  className={`w-full p-2 border ${
+                    formik.touched.confirmPassword &&
+                    formik.errors.confirmPassword
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-md placeholder:font-light placeholder:text-gray-500`}
+                  value={formik.values.confirmPassword}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+              </div>
+              {formik.touched.confirmPassword &&
+              formik.errors.confirmPassword ? (
                 <div className="text-red-500 text-sm">
                   {formik.errors.confirmPassword}
                 </div>
               ) : null}
-          <button className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300" type="submit">
-            Sign up
-          </button>
-          </form>
-          <button
-            onClick={() => handleOAuth()}
-            className="w-full border border-gray-300 text-md p-2 rounded-lg mb-6 hover:bg-black hover:text-white flex items-center justify-center"
-          >
+              <button
+                className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300"
+                type="submit"
+                disabled={!formik.isValid}
+              >
+                {lang("signup")}
+              </button>
+            </form>
+
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative w-full mb-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 text-gray-500 bg-white">
+                    {lang("or-continue-with")}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap
+                  theme="filled_black"
+                  shape="rectangular"
+                  text="signin_with"
+                  size="large"
+                />
+              </div>
+            </div>
+            <div className="text-center text-gray-400">
+              {lang("already-have-account")}{" "}
+              <span className="font-bold text-black cursor-pointer">
+                <Link to="/login">{lang("signin")}</Link>
+              </span>
+            </div>
+          </div>
+
+          {/* Right Side */}
+          <div className="relative">
             <img
-              src="google.svg"
-              alt="Google Sign Up"
-              className="w-6 h-6 inline mr-2"
+              src="background.webp"
+              alt="Background"
+              className="w-[400px] h-full hidden rounded-r-2xl md:block object-cover"
             />
-            Sign up with Google
-          </button>
-          <div className="text-center text-gray-400">
-            Already have an account?
-            <span className="font-bold text-black cursor-pointer">
-              <Link to="/login">Sign in</Link>
-            </span>
           </div>
         </div>
-
-
-        {/* Right Side */}
-        <div className="relative">
-          <img
-            src="background.webp"
-            alt="Background"
-            className="w-[400px] h-full hidden rounded-r-2xl md:block object-cover"
-          />
-        </div>
       </div>
-    </div>
-    <ContentFooter/>
+      <ContentFooter />
     </div>
   );
 };

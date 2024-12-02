@@ -86,7 +86,9 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
 
   const getUserIfPrivate = (chatGroup: EnhancedChatGroupInfo) => {
     const userId = chatGroup.members.find((member) => member !== account?._id);
+    console.log(userId);
     const userInfo = allUsers.find((user) => user._id === userId);
+    console.log(userInfo);
     return userInfo;
   };
 

@@ -35,7 +35,7 @@ const NotificationPage: FC = () => {
   const navigate = useNavigate();
   const locationPath = useLocation().pathname;
   const { fetchPost } = usePostContext();
-  const { auth } = useAuthContext();
+  const { auth, account } = useAuthContext();
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastNotificationRef = useCallback((node: HTMLDivElement) => {
@@ -84,7 +84,7 @@ const NotificationPage: FC = () => {
         setIsLoadingPost(true);
         const post = await fetchPost(postId);
         navigate(`/posts/${author._id}`, {
-          state: { post, postAuthor: author, locationPath },
+          state: { post, postAuthor: account?._id, locationPath },
         });
       }
       await markNotificationAsRead(notificationId);

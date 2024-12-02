@@ -30,11 +30,13 @@ export const likeOrUnlikePostService = async (postId: string, userId: string) =>
     }
     await postLikeModel.create({ userId: userId, postId: postId });
     await postModel.findByIdAndUpdate(postId, { $inc: { likeCount: 1 } });
-    await notifyLikedFood(user, {
+    if (userId !== post.author.toString()) {
+      await notifyLikedFood(user, {
       _id: post._id.toString(),
       title: post.title,
       image: post.images[0],
     }, post.author);
+  }
     return { liked: true };
   } catch (error) {
     throw new Error(`Cannot like or unlike post: ${(error as Error).message}`);

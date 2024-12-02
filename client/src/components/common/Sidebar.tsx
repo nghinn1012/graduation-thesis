@@ -235,7 +235,7 @@ const Sidebar = () => {
               </div>
               <div className="flex justify-between flex-1">
                 <div className="hidden md:block">
-                  <p className="font-bold text-sm w-max-[50%] truncate">
+                  <p className="font-bold text-sm truncate max-w-32">
                     {account?.name}
                   </p>
                   <p className="text-slate-500 text-sm">@{account?.username}</p>

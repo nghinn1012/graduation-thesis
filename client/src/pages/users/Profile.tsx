@@ -427,7 +427,7 @@ const ProfilePage: React.FC = () => {
                     className="btn btn-outline rounded-full btn-sm"
                     onClick={handleFollow}
                   >
-                    {user.followed ? "Unfollow" : "Follow"}
+                    {user.followed ? lang("unfollow") : lang("follow")}
                   </button>
                 )}
                 {isMyProfile && (

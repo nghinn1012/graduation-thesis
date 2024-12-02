@@ -10,6 +10,7 @@ import {
 import { useSocket } from "../../hooks/useSocketContext";
 import AvatarUpdateModal from "./AvatarUpdateModal";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { AccountInfo } from "../../api/user";
 
 const ChatHeader: React.FC = () => {
   const {
@@ -30,10 +31,22 @@ const ChatHeader: React.FC = () => {
   const languageContext = useI18nContext();
   const lang = languageContext.of("MessageSection");
 
-  const userIfPrivate =
-    chatGroupSelect && chatGroupSelect.isPrivate
-      ? getUserIfPrivate(chatGroupSelect)
-      : null;
+  const [userIfPrivate, setUserIfPrivate] = useState<AccountInfo | null>(null);
+
+  useEffect(() => {
+    const checkPrivateUser = () => {
+      if (chatGroupSelect && chatGroupSelect.isPrivate) {
+        const user = getUserIfPrivate(chatGroupSelect);
+        if (user) {
+          setUserIfPrivate(user);
+        }
+      } else {
+        setUserIfPrivate(null);
+      }
+    };
+
+    checkPrivateUser();
+  }, [chatGroupSelect]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -110,17 +123,17 @@ const ChatHeader: React.FC = () => {
     <div className="flex items-center justify-between border-b border-gray-300 p-2 bg-white">
       {chatGroupSelect ? (
         <div className="flex items-center w-full">
-          {chatGroupSelect.isPrivate && userIfPrivate ? (
+          {chatGroupSelect.isPrivate ? (
             <div className="flex items-center flex-1 min-w-0">
               <img
-                src={userIfPrivate.avatar || "default_user_icon.png"}
-                alt={userIfPrivate.name}
+                src={userIfPrivate?.avatar || "default_user_icon.png"}
+                alt={userIfPrivate?.name}
                 className="w-10 h-10 rounded-full flex-shrink-0"
               />
               <div className="ml-2 min-w-0">
-                <p className="font-bold truncate">{userIfPrivate.name}</p>
+                <p className="font-bold truncate">{userIfPrivate?.name}</p>
                 <p className="text-sm text-gray-600 truncate">
-                  @{userIfPrivate.username}
+                  @{userIfPrivate?.username}
                 </p>
               </div>
             </div>
