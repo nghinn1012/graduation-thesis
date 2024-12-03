@@ -16,6 +16,7 @@ import { useSocket } from "../../hooks/useSocketContext";
 import { PostInfo } from "../../api/post";
 import NetworkSkeleton from "../../components/skeleton/NetworkSkeleton";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 const ProfilePage: React.FC = () => {
   const [coverImg, setCoverImg] = useState<string | null>(null);
@@ -68,6 +69,7 @@ const ProfilePage: React.FC = () => {
   const [networkType, setNetworkType] = useState<"followers" | "following">(
     "followers"
   );
+  const {success, error} = useToastContext();
   const languageContext = useI18nContext();
   const lang = languageContext.of("ProfilePage");
   const handleFollow = async () => {
@@ -324,6 +326,10 @@ const ProfilePage: React.FC = () => {
         auth?.token
       );
 
+      if (response.user) {
+        success(lang("update-success"));
+      }
+
       if (!change.avatar && !change.coverImage) {
         console.log("No image change");
         setUser(response.user as unknown as AccountInfo);
@@ -339,8 +345,9 @@ const ProfilePage: React.FC = () => {
         );
         setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error updating user:", error);
+    } catch (err) {
+      error(lang("update-fail"), (err as Error).message);
+      console.error("Error updating user:", err);
     }
   };
 

@@ -28,17 +28,17 @@ const LoginPage = () => {
       );
 
       if (response.data) {
-        success("Google login successful");
+        success(lang("google-login-success"));
         auth.setAccount(response.data.user);
         auth.setToken(response.data.token || "");
       }
     } catch (err) {
-      error((err as Error).message || "Google login failed");
+      error(lang("google-login-fail", (err as Error).message));
     }
   };
 
   const handleGoogleError = () => {
-    error("Google login failed. Please try again.");
+    error(lang("google-login-fail"));
   };
 
   const createLoginSchema = (lang: any) => {
@@ -70,12 +70,12 @@ const LoginPage = () => {
         .login(values)
         .then((response) => {
           const account = response;
-          success("Login successful");
+          success(lang("login-success"));
           auth.setAccount(account.user);
           auth.setToken(account?.token.toString() || "");
         })
         .catch((e) => {
-          error(e);
+          error(lang("login-fail", e.message));
         });
     },
   });

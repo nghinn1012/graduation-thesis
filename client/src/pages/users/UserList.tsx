@@ -37,7 +37,7 @@ const UsersList = () => {
 
   const handleFollowOrUnfollow = async (
     userId: string,
-    event: React.MouseEvent<HTMLButtonElement>
+    event: any
   ) => {
     event.preventDefault();
     followUser(userId);

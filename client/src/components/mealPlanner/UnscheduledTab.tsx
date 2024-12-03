@@ -179,7 +179,7 @@ const UnscheduledTab: React.FC<UnscheduledTabProps> = ({
                 />
               )}
               {selectedMeal &&
-                isServingsModalOpen && ( // Render the servings modal
+                isServingsModalOpen && (
                   <ServingsModal
                     isOpen={isServingsModalOpen}
                     onClose={() => setIsServingsModalOpen(false)}

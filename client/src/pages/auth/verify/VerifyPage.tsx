@@ -17,12 +17,27 @@ interface IWaitingEmailVerify {
   account: IAccountInfo;
 }
 
+function LoadingSpinner() {
+  return (
+    <div className="flex justify-center items-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    </div>
+  );
+}
+
 function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
   const [loading, setLoading] = useState(false);
   const { success, error } = useToastContext();
   const languageContext = useI18nContext();
+  const [isI18nReady, setIsI18nReady] = useState(false);
   const lang = languageContext.of("VerifySection");
   const { auth } = useAuthContext();
+
+  useEffect(() => {
+    if (lang("verify-account") !== "verify-account") {
+      setIsI18nReady(true);
+    }
+  }, [lang]);
 
   const handleResendClick = async () => {
     setLoading(true);
@@ -36,6 +51,10 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
       setLoading(false);
     }
   };
+
+  if (!isI18nReady) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-lg bg-white shadow-md rounded-lg">
@@ -62,14 +81,20 @@ function WaitingEmailVerify({ account }: IWaitingEmailVerify) {
   );
 }
 
-
 function AccountTokenVerify() {
   const navigate = useNavigate();
   const location = useLocation();
   const { success, error } = useToastContext();
   const token = new URLSearchParams(location.search).get("token") as string | undefined;
   const languageContext = useI18nContext();
+  const [isI18nReady, setIsI18nReady] = useState(false);
   const lang = languageContext.of("VerifySection");
+
+  useEffect(() => {
+    if (lang("verifying") !== "verifying") {
+      setIsI18nReady(true);
+    }
+  }, [lang]);
 
   useEffect(() => {
     let isMounted = true;
@@ -83,7 +108,7 @@ function AccountTokenVerify() {
         if (isMounted) {
           const account = response.data;
           success(lang("email-verified-success"));
-          setTimeout(() => navigate("/login"), 1000);
+          setTimeout(() => navigate("/login"), 2000);
         }
       })
       .catch((error: any) => {
@@ -96,12 +121,17 @@ function AccountTokenVerify() {
     return () => {
       isMounted = false;
     };
-  }, [token, navigate]);
+  }, [token, navigate, isI18nReady]); // Add isI18nReady to dependencies
+
+  if (!isI18nReady) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <>
       <Toaster />
       <div className="container mx-auto p-6 max-w-lg bg-white shadow-md rounded-lg text-center">
-        <p className="text-gray-800">{("verifying")}...</p>
+        <p className="text-gray-800">{lang("verifying")}...</p>
       </div>
     </>
   );

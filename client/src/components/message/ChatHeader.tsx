@@ -11,6 +11,8 @@ import { useSocket } from "../../hooks/useSocketContext";
 import AvatarUpdateModal from "./AvatarUpdateModal";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { AccountInfo } from "../../api/user";
+import { useToastContext } from "../../hooks/useToastContext";
+import { Toaster } from "react-hot-toast";
 
 const ChatHeader: React.FC = () => {
   const {
@@ -30,6 +32,7 @@ const ChatHeader: React.FC = () => {
   const { socket } = useSocket();
   const languageContext = useI18nContext();
   const lang = languageContext.of("MessageSection");
+  const {error, success} = useToastContext();
 
   const [userIfPrivate, setUserIfPrivate] = useState<AccountInfo | null>(null);
 
@@ -75,8 +78,10 @@ const ChatHeader: React.FC = () => {
           chatGroupId: chatGroupSelect?._id,
           avatarUrl: avatarPreview || "",
         });
-      } catch (error) {
-        console.error(lang("fail-change-avatar"), error);
+        success(lang("success-change-avatar"));
+      } catch (err) {
+        error(lang("fail-change-avatar"), err);
+        console.error(lang("fail-change-avatar"), err);
       }
     }
 
@@ -121,6 +126,7 @@ const ChatHeader: React.FC = () => {
 
   return (
     <div className="flex items-center justify-between border-b border-gray-300 p-2 bg-white">
+      <Toaster />
       {chatGroupSelect ? (
         <div className="flex items-center w-full">
           {chatGroupSelect.isPrivate ? (

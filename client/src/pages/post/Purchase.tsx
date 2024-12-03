@@ -13,6 +13,7 @@ import { Review } from "../../api/post";
 import PurchaseSkeleton from "../../components/skeleton/PurchaseSkeleton";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface Ingredient {
   name: string;
@@ -43,6 +44,7 @@ const ProductPage: React.FC = () => {
   const languageContext = useI18nContext();
   const lang = languageContext.of("ProductSection");
   const langCode = languageContext.language.code;
+  const { success } = useToastContext();
 
   const getCurrentCartQuantity = () => {
     const cartItem = cart?.find((item) => item.productId === recipeData._id);
@@ -113,6 +115,7 @@ const ProductPage: React.FC = () => {
     }
 
     addProductToCart(productId, quantity);
+    success(lang("added-to-cart"));
     setQuantity(1);
   };
 

@@ -23,7 +23,11 @@
     "at-least-one-special": "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt",
     "no-white-space": "Mật khẩu không được chứa khoảng trắng",
     "no-email-found": "Email không tồn tại",
-    "incorrect-password": "Mật khẩu không chính xác"
+    "incorrect-password": "Mật khẩu không chính xác",
+    "google-login-success": "Đăng nhập với Google thành công",
+    "google-login-fail": "Đăng nhập với Google thất bại: {0}",
+    "login-success": "Đăng nhập thành công",
+    "login-fail": "Đăng nhập thất bại: {0}"
   },
   "SignUpPage": {
     "l-firstname": "Tên",
@@ -57,7 +61,11 @@
     "confirm-password": "Xác nhận mật khẩu",
     "confirm-password-placeholder": "Nhập lại mật khẩu của bạn",
     "signup-with-google": "Đăng ký với Google",
-    "already-have-account": "Đã có tài khoản? "
+    "already-have-account": "Đã có tài khoản? ",
+    "account-created": "Tài khoản đã được tạo thành công. Vui lòng kiểm tra email của bạn để xác minh tài khoản.",
+    "error-create-account": "Tạo tài khoản thất bại: {0}",
+    "created-success": "Tạo tài khoản thành công",
+    "created-fail": "Tạo tài khoản thất bại: {0}"
   },
   "VerifySection": {
     "verify-account": "Xác minh tài khoản của bạn",
@@ -240,7 +248,14 @@
     "fail-create-made-it": "Không thể tạo thành quả: {0}",
     "created-made-it": "Tạo thành quả thành công",
     "fail-add-remove-plan": "Không thể thêm/xóa khỏi kế hoạch: {0}",
-    "select-image": "Không có hình ảnh được chọn"
+    "select-image": "Không có hình ảnh được chọn",
+    "saved-success": "Lưu bài viết thành công",
+    "unsaved-success": "Bỏ lưu bài viết thành công",
+    "saved-fail": "Có lỗi xảy ra khi lưu bài viết: {0}",
+    "remove-plan-success": "Xóa khỏi kế hoạch thành công",
+    "add-plan-success": "Thêm vào kế hoạch thành công",
+    "add-shoppping-list-success": "Lưu vào danh sách mua sắm thành công",
+    "remove-shoppping-list-success": "Xóa khỏi danh sách mua sắm thành công"
   },
   "CommentSection": {
     "replying-to": "Trả lời cho",
@@ -258,7 +273,7 @@
     "fail-update-comment": "Không thể cập nhật bình luận: {0}",
     "fail-delete-comment": "Không thể xóa bình luận: {0}",
     "fail-like-comment": "Không thể thích/bỏ thích bình luận: {0}",
-    "delete-comment": "Bạn có chắc chắn muốn xóa bình luận này không?"
+    "confirm-delete-comment": "Bạn có chắc chắn muốn xóa bình luận này không?"
   },
   "MadeSection": {
     "total-posts": "Tổng số bài viết",
@@ -359,7 +374,7 @@
     "you": "Bạn",
     "someone": "Ai đó",
     "createChatFailed": "Tạo cuộc trò chuyện không thành công",
-    "chatSubtitle": "{isPrivate, select, true {Tin nhắn riêng} false {Nhóm chat} other {Trò chuyện}}",
+    "chatSubtitle": "Thêm tin nhắn",
     "rename": "Đổi tên",
     "changeAvatar": "Đổi ảnh",
     "newChat": "Tin nhắn mới",
@@ -383,6 +398,7 @@
     "selectUser": "Chọn người dùng để trò chuyện",
     "privateChat": "Trò chuyện riêng tư",
     "cameraIcon": "Tải lên ảnh đại diện",
+    "success-change-avatar": "Thay đổi ảnh đại diện thành công",
     "fail-change-avatar": "Thay đổi ảnh đại diện thất bại: {0}",
     "welcome": "Chào mừng đến với Tin nhắn",
     "selectChat": "Chọn một cuộc trò chuyện từ thanh bên để bắt đầu nhắn tin",
@@ -390,13 +406,17 @@
     "searchPlaceholder": "Tìm kiếm hội thoại",
     "previewAvatar": "Xem trước ảnh đại diện",
     "avatarPreview": "Ảnh đại diện xem trước",
-    "submit": "Gửi"
+    "submit": "Gửi",
+    "rename-group-success": "Đổi tên nhóm thành công",
+    "rename-group-fail": "Đổi tên nhóm thất bại: {0}"
   },
   "ProfilePage": {
     "posts": "Bài viết",
     "followers": "Người theo dõi",
     "following": "Đang theo dõi",
     "edit-profile": "Chỉnh sửa hồ sơ",
+    "update-success": "Cập nhật hồ sơ thành công",
+    "update-fail": "Cập nhật hồ sơ thất bại: {0}",
     "likes": "Lượt thích",
     "networks": "Mạng lưới",
     "follow": "Theo dõi",
@@ -416,7 +436,13 @@
     "standardalone-ingredients": "Nguyên liệu đơn lẻ",
     "add-to-list": "Thêm vào danh sách",
     "add-placeholder": "Nhập nguyên liệu và số lượng, mỗi dòng một mục. Ví dụ: Trứng 1 quả",
-    "add-ingredients": "Thêm nguyên liệu"
+    "add-ingredients": "Thêm nguyên liệu",
+    "add-ingredients-success": "Thêm nguyên liệu thành công",
+    "add-ingredients-fail": "Thêm nguyên liệu thất bại: {0}",
+    "edit-ingredients-success": "Chỉnh sửa nguyên liệu thành công",
+    "edit-ingredients-fail": "Chỉnh sửa nguyên liệu thất bại: {0}",
+    "delete-ingredients-success": "Xóa nguyên liệu thành công",
+    "delete-ingredients-fail": "Xóa nguyên liệu thất bại: {0}"
   },
   "ProductSection": {
     "searchPlaceholder": "Tìm kiếm món ăn",
@@ -606,6 +632,25 @@
     "set-meal-time-desc": "Chọn thời gian bạn muốn ăn và nếu bạn muốn có lời nhắc để bắt đầu chuẩn bị.",
     "start": "Bắt đầu",
     "serve": "Phục vụ",
-    "remind-me": "Nhắc tôi"
+    "remind-me": "Nhắc tôi",
+    "success-schedule-recipe": "Lên lịch công thức thành công",
+    "success-repeat-meal": "Lặp lại công thức vào tuần sau",
+    "confirm-delete": "Bạn có chắc chắn muốn xóa bữa ăn này không?",
+    "confirm-delete-message": "Xóa bữa ăn này sẽ xóa tất cả thông tin liên quan đến bữa ăn này"
+  },
+  "ToastrSection": {
+    "follow-success": "Theo dõi thành công",
+    "follow-fail": "Theo dõi thất bại: {0}",
+    "unfollow-success": "Bỏ theo dõi thành công",
+    "create-order-success": "Đặt hàng thành công",
+    "create-order-fail": "Đặt hàng thất bại: {0}",
+    "cancel-order-success": "Hủy đơn hàng thành công",
+    "cancel-order-fail": "Hủy đơn hàng thất bại: Trạng thái đã thay đổi trước đó",
+    "submit-review-success": "Gửi đánh giá thành công",
+    "submit-review-fail": "Gửi đánh giá thất bại",
+    "update-status-success": "Cập nhật trạng thái thành công",
+    "update-status-fail": "Cập nhật trạng thái thất bại: Trạng thái đã thay đổi trước đó",
+    "remove-cart-success": "Xóa khỏi giỏ hàng thành công",
+    "remove-cart-fail": "Xóa khỏi giỏ hàng thất bại: {0}"
   }
 }

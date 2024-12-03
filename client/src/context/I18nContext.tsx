@@ -31,6 +31,7 @@ export type I18nReactComponent =
   | "OrderSection"
   | "ReviewSection"
   | "ScheduleSection"
+  | "ToastrSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

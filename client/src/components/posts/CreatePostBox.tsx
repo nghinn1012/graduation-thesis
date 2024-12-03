@@ -133,6 +133,7 @@ const CreatePostBox: React.FC = () => {
           commentCount: 0,
           isInShoppingList: false,
           hasProduct,
+          averageRating: 0,
         },
         {
           price: Number(price),

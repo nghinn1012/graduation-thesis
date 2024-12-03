@@ -165,13 +165,13 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         token
       )) as unknown as PostLikeResponse;
       if (response.saved === true) {
-        success("Post saved successfully");
+        success(lang("saved-success"));
         setIsSaved(true);
         toggleSavePost(post._id, true);
         toggleSavePostSearch(post._id, true);
         toggleSavePostProfile(post._id, true);
       } else {
-        success("Post unsaved successfully");
+        success(lang("unsaved-success"));
         setIsSaved(false);
         toggleSavePost(post._id, false);
         toggleSavePostSearch(post._id, false);
@@ -179,7 +179,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
       }
     } catch (err) {
       console.error("An error occurred while saving the post:", err);
-      error("An error occurred while saving the post");
+      error(lang("save-fail"));
     }
   };
 

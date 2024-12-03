@@ -12,37 +12,48 @@ import SetTime from "./SetTime";
 import { toZonedTime } from "date-fns-tz";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { Toaster } from "react-hot-toast";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 interface TodayTabProps {
   scheduledMeals: Meal[];
   fetchScheduledMeals: () => void;
 }
 
-const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals }) => {
+const TodayTab: React.FC<TodayTabProps> = ({
+  scheduledMeals,
+  fetchScheduledMeals,
+}) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [isModalScheduleOpen, setIsModalScheduleOpen] = useState(false);
+  const [mealToDelete, setMealToDelete] = useState<{
+    meal: Meal;
+    date: Date;
+  } | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isModalTimeOpen, setIsModalTimeOpen] = useState(false);
   const { auth } = useAuthContext();
   const { success } = useToastContext();
   const language = useI18nContext();
   const lang = language.of("ScheduleSection", "PostDetails");
   const langCode = language.language.code;
-  const locale = langCode === 'vi' ? vi : enUS;
+  const locale = langCode === "vi" ? vi : enUS;
   const { error } = useToastContext();
 
   const formatDateWithLocale = (date: Date, formatStr: string) => {
     return format(date, formatStr, { locale });
   };
 
-
   const getMealsForDate = (date: Date) => {
     return scheduledMeals?.filter((meal) =>
       meal?.plannedDate?.some((plannedDate: MealPlannedDate) => {
         const plannedDateObj = new Date(plannedDate.date);
-        const plannedDateFormatted = formatDateWithLocale(plannedDateObj, "yyyy-MM-dd");
+        const plannedDateFormatted = formatDateWithLocale(
+          plannedDateObj,
+          "yyyy-MM-dd"
+        );
         const selectedDateFormatted = formatDateWithLocale(date, "yyyy-MM-dd");
         return plannedDateFormatted === selectedDateFormatted;
       })
@@ -72,6 +83,45 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
       return;
     }
     setActiveDropdown(null);
+  };
+
+  const handleRemoveMeal = async () => {
+    if (!auth?.token || !mealToDelete) return;
+
+    const { meal, date: formattedDate } = mealToDelete;
+    const mealIndex = scheduledMeals.findIndex(
+      (scheduledMeal) => scheduledMeal.postId === meal.postId
+    );
+
+    if (mealIndex === -1) {
+      error(lang("error-meal-not-found"));
+      return;
+    }
+
+    const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
+    const updatedPlannedDates = scheduledMeals[mealIndex]?.plannedDate?.filter(
+      (plannedDate) =>
+        formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !==
+        today?.toString()
+    );
+
+    if (updatedPlannedDates?.length === 0) {
+      error(lang("error-failed-remove-today-meal-date"));
+    }
+    if (!updatedPlannedDates) {
+      error(lang("error-failed-remove-today-meal-date"));
+      return;
+    }
+
+    await postFetcher.scheduleMeal(
+      auth.token,
+      scheduledMeals[mealIndex]._id,
+      updatedPlannedDates
+    );
+    await fetchScheduledMeals();
+    setIsDeleteModalOpen(false);
+    setMealToDelete(null);
+    success(lang("removed-meal-success"));
   };
 
   const handleDropdownAction = async (
@@ -104,31 +154,39 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         setIsModalTimeOpen(true);
         setSelectedDate(formattedDate);
         break;
+      // case "remove":
+      //   if (!formattedDate) {
+      //     error(lang("error-failed-remove-meal-date"));
+      //     return;
+      //   }
+      //   const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
+      //   const updatedPlannedDates = scheduledMeals[
+      //     mealIndex
+      //   ]?.plannedDate?.filter(
+      //     (plannedDate) => formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !== today?.toString()
+      //   );
+      //   if (updatedPlannedDates?.length === 0) {
+      //     error(lang("log-meal-no-more-planned-dates"));
+      //     return;
+      //   }
+      //   if (!updatedPlannedDates) {
+      //     error(lang("error-failed-remove-today-meal-date"));
+      //     return;
+      //   }
+      //   await postFetcher.scheduleMeal(
+      //     auth.token,
+      //     scheduledMeals[mealIndex]._id,
+      //     updatedPlannedDates
+      //   );
+      //   await fetchScheduledMeals();
+      //   break;
       case "remove":
         if (!formattedDate) {
-          error(lang("error-failed-remove-meal-date"));
+          error(lang("remove-meal-fail"));
           return;
         }
-        const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
-        const updatedPlannedDates = scheduledMeals[
-          mealIndex
-        ]?.plannedDate?.filter(
-          (plannedDate) => formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !== today?.toString()
-        );
-        if (updatedPlannedDates?.length === 0) {
-          error(lang("log-meal-no-more-planned-dates"));
-          return;
-        }
-        if (!updatedPlannedDates) {
-          error(lang("error-failed-remove-today-meal-date"));
-          return;
-        }
-        await postFetcher.scheduleMeal(
-          auth.token,
-          scheduledMeals[mealIndex]._id,
-          updatedPlannedDates
-        );
-        await fetchScheduledMeals();
+        setMealToDelete({ meal, date: formattedDate });
+        setIsDeleteModalOpen(true);
         break;
       default:
         console.log("Unknown action");
@@ -154,8 +212,13 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     if (existingMeal) {
       const updatedPlannedDates = existingMeal?.plannedDate?.map((planned) => {
         const plannedMealDate = toZonedTime(new Date(planned.date), timeZone);
-        return formatDateWithLocale(plannedMealDate, "yyyy-MM-dd") === plannedDateString
-          ? { ...planned, date: plannedDate as unknown as string, mealTime: true }
+        return formatDateWithLocale(plannedMealDate, "yyyy-MM-dd") ===
+          plannedDateString
+          ? {
+              ...planned,
+              date: plannedDate as unknown as string,
+              mealTime: true,
+            }
           : planned;
       });
 
@@ -192,13 +255,14 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
     setIsModalTimeOpen(false);
   };
 
-
   const getMealTimeInfo = (meal: Meal, formattedDate: string) => {
     if (!meal?.plannedDate) {
       return "";
     }
     const mealSingleIndex = meal.plannedDate.find(
-      (plannedDate) => formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") === formattedDate
+      (plannedDate) =>
+        formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") ===
+        formattedDate
     );
 
     if (mealSingleIndex && mealSingleIndex.mealTime) {
@@ -265,10 +329,21 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
                         <div className="badge badge-success text-white gap-2 p-3">
                           <FaRegClock className="w-4 h-4" />
                           <span>
-                            {getMealTimeInfo(meal, formatDateWithLocale(selectedDate, "yyyy-MM-dd"))
-                              ? `${getMealTimeInfo(meal, formatDateWithLocale(selectedDate, "yyyy-MM-dd"))}
+                            {getMealTimeInfo(
+                              meal,
+                              formatDateWithLocale(selectedDate, "yyyy-MM-dd")
+                            )
+                              ? `${getMealTimeInfo(
+                                  meal,
+                                  formatDateWithLocale(
+                                    selectedDate,
+                                    "yyyy-MM-dd"
+                                  )
+                                )}
                               - ${handleShowTimeToTake(meal.timeToTake || "")}`
-                              : `${handleShowTimeToTake(meal.timeToTake || "")}`}
+                              : `${handleShowTimeToTake(
+                                  meal.timeToTake || ""
+                                )}`}
                           </span>
                         </div>
                       </div>
@@ -332,7 +407,10 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
         <SetTime
           meal={selectedMeal}
           date={selectedDate}
-          time={getMealTimeInfo(selectedMeal, formatDateWithLocale(selectedDate, "yyyy-MM-dd"))}
+          time={getMealTimeInfo(
+            selectedMeal,
+            formatDateWithLocale(selectedDate, "yyyy-MM-dd")
+          )}
           onClose={() => setIsModalTimeOpen(false)}
           onSubmit={handleSubmitSetTime}
         />
@@ -347,6 +425,19 @@ const TodayTab: React.FC<TodayTabProps> = ({ scheduledMeals, fetchScheduledMeals
           plannedDates={selectedMeal.plannedDate}
         />
       )}
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setMealToDelete(null);
+        }}
+        onConfirm={handleRemoveMeal}
+        title={lang("confirm-delete")}
+        message={lang("confirm-delete-message")}
+        confirmText={lang("delete")}
+        cancelText={lang("cancel")}
+      />
     </div>
   );
 };

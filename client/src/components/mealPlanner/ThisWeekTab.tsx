@@ -20,6 +20,7 @@ import SetTime from "./SetTime";
 import { toZonedTime } from "date-fns-tz";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { enUS, vi } from "date-fns/locale";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 interface ThisWeekTabProps {
   scheduledMeals: Meal[];
@@ -51,6 +52,11 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
   const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isServingsModalOpen, setIsServingsModalOpen] = useState(false);
   const [isModalScheduleOpen, setIsModalScheduleOpen] = useState(false);
+  const [mealToDelete, setMealToDelete] = useState<{
+    meal: Meal;
+    date: Date;
+  } | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isModalTimeOpen, setIsModalTimeOpen] = useState(false);
   const [date, setDate] = useState(new Date());
   const { auth } = useAuthContext();
@@ -101,6 +107,45 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
       ...prev,
       [formattedDate]: prev[formattedDate] === index ? null : index,
     }));
+  };
+
+  const handleRemoveMeal = async () => {
+    if (!auth?.token || !mealToDelete) return;
+
+    const { meal, date: formattedDate } = mealToDelete;
+    const mealIndex = scheduledMeals.findIndex(
+      (scheduledMeal) => scheduledMeal.postId === meal.postId
+    );
+
+    if (mealIndex === -1) {
+      error(lang("error-meal-not-found"));
+      return;
+    }
+
+    const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
+    const updatedPlannedDates = scheduledMeals[mealIndex]?.plannedDate?.filter(
+      (plannedDate) =>
+        formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !==
+        today?.toString()
+    );
+
+    if (updatedPlannedDates?.length === 0) {
+      error(lang("error-failed-remove-today-meal-date"));
+    }
+    if (!updatedPlannedDates) {
+      error(lang("error-failed-remove-today-meal-date"));
+      return;
+    }
+
+    await postFetcher.scheduleMeal(
+      auth.token,
+      scheduledMeals[mealIndex]._id,
+      updatedPlannedDates
+    );
+    await fetchScheduledMeals();
+    setIsDeleteModalOpen(false);
+    setMealToDelete(null);
+    success(lang("removed-meal-success"));
   };
 
   const handlePrevWeek = () => {
@@ -172,6 +217,8 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
           updatedPlannedDatesForRepeat as MealPlannedDate[]
         );
 
+        success(lang("success-repeat-meal"));
+
         await fetchScheduledMeals();
 
         break;
@@ -185,32 +232,40 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
         setIsModalTimeOpen(true);
         setDate(formattedDate);
         break;
+      // case "remove":
+      //   if (!formattedDate) {
+      //     error(lang("error-failed-remove-meal-date"));
+      //     return;
+      //   }
+      //   const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
+      //   const updatedPlannedDates = scheduledMeals[
+      //     mealIndex
+      //   ]?.plannedDate?.filter(
+      //     (plannedDate) =>
+      //       formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !==
+      //       today?.toString()
+      //   );
+      //   if (updatedPlannedDates?.length === 0) {
+      //     error(lang("error-failed-remove-today-meal-date"));
+      //   }
+      //   if (!updatedPlannedDates) {
+      //     error(lang("error-failed-remove-today-meal-date"));
+      //     return;
+      //   }
+      //   await postFetcher.scheduleMeal(
+      //     auth.token,
+      //     scheduledMeals[mealIndex]._id,
+      //     updatedPlannedDates
+      //   );
+      //   await fetchScheduledMeals();
+      //   break;
       case "remove":
         if (!formattedDate) {
-          error(lang("error-failed-remove-meal-date"));
+          error(lang("remove-meal-fail"));
           return;
         }
-        const today = formatDateWithLocale(formattedDate, "yyyy-MM-dd");
-        const updatedPlannedDates = scheduledMeals[
-          mealIndex
-        ]?.plannedDate?.filter(
-          (plannedDate) =>
-            formatDateWithLocale(new Date(plannedDate.date), "yyyy-MM-dd") !==
-            today?.toString()
-        );
-        if (updatedPlannedDates?.length === 0) {
-          error(lang("error-failed-remove-today-meal-date"));
-        }
-        if (!updatedPlannedDates) {
-          error(lang("error-failed-remove-today-meal-date"));
-          return;
-        }
-        await postFetcher.scheduleMeal(
-          auth.token,
-          scheduledMeals[mealIndex]._id,
-          updatedPlannedDates
-        );
-        await fetchScheduledMeals();
+        setMealToDelete({ meal, date: formattedDate });
+        setIsDeleteModalOpen(true);
         break;
       default:
         console.log("Unknown action");
@@ -386,7 +441,7 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
             </div>
 
             {expandedDays[formattedDate] && mealsForDay.length > 0 && (
-              <div className="space-y-4 mt-2">
+              <div className="mt-2">
                 {mealsForDay.map((meal, mealIndex) => (
                   <div key={mealIndex} className="card shadow-lg">
                     <div className="card-body">
@@ -518,10 +573,24 @@ const ThisWeekTab: React.FC<ThisWeekTabProps> = ({
                     onConfirm={handleServingsConfirm}
                   />
                 )}
+                <DeleteConfirmationModal
+                  isOpen={isDeleteModalOpen}
+                  onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setMealToDelete(null);
+                  }}
+                  onConfirm={handleRemoveMeal}
+                  title={lang("confirm-delete")}
+                  message={lang("confirm-delete-message")}
+                  confirmText={lang("delete")}
+                  cancelText={lang("cancel")}
+                />
               </div>
             )}
             {expandedDays[formattedDate] && mealsForDay.length === 0 && (
-              <div className="text-gray-500 italic mt-2">{lang("no-meal-planned")}</div>
+              <div className="text-gray-500 italic mt-2">
+                {lang("no-meal-planned")}
+              </div>
             )}
           </div>
         );

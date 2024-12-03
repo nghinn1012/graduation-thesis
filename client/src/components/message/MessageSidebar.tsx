@@ -43,7 +43,7 @@ const MessageSidebar: React.FC = () => {
     chatGroupSelect,
     setChatGroupSelect,
     updateChatGroupName,
-    markMessagesOfGroupAsRead
+    markMessagesOfGroupAsRead,
   } = useMessageContext();
 
   const { onlineUsers } = useSocket();
@@ -262,10 +262,10 @@ const MessageSidebar: React.FC = () => {
 
     try {
       updateChatGroupName(selectedChatGroup._id, newName);
-      success("Đổi tên nhóm thành công");
+      success(lang("rename-group-success"));
     } catch (err) {
       console.error("Failed to rename group", err);
-      error("Thao tác thất bại", (err as Error).message);
+      error(lang("rename-group-fail", (err as Error).message));
     }
 
     setIsNameModalOpen(false);
@@ -282,7 +282,6 @@ const MessageSidebar: React.FC = () => {
     setSelectedChatGroup(null);
   };
 
-  // Filtering and Sorting
   const getFilteredChats = () => {
     return chatGroups
       .filter((chat) => {
@@ -453,9 +452,7 @@ const MessageSidebar: React.FC = () => {
                   <div className="flex items-baseline">
                     <p className="text-sm text-gray-500 truncate max-w-[100px]">
                       {lastMessage?.content ||
-                        lang("chatSubtitle", {
-                          isPrivate: chatGroup.isPrivate,
-                        })}
+                        lang("chatSubtitle")}
                     </p>
                     {lastMessage && (
                       <>

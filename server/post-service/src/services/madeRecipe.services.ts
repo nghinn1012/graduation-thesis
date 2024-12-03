@@ -163,8 +163,9 @@ export const deleteMadeRecipeService = async (madeRecipeId: string) => {
     ratingOfPost.forEach((rating) => {
       totalRating += rating.rating;
     });
-    const rating = totalRating / ratingOfPost.length;
-    await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating });
+    const rating = totalRating / ratingOfPost.length as number;
+    console.log("ratingOfPost", rating);
+    await postModel.findByIdAndUpdate(madeRecipe.postId, { averageRating: rating || 0 });
 
     return madeRecipe;
   } catch (error) {

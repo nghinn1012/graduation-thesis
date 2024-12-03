@@ -7,6 +7,7 @@ import type { MealPlanner } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import MealPlannerSkeleton from "../../components/skeleton/MealPlannerSkeleton";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { Toaster } from "react-hot-toast";
 
 type Tab = "today" | "thisWeek" | "unscheduled";
 
@@ -81,6 +82,7 @@ const MealPlanner: React.FC = () => {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
+      <Toaster />
       {loading ? (
         <MealPlannerSkeleton />
       ) : (

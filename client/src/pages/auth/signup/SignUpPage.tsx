@@ -34,17 +34,17 @@ const SignUpPage = () => {
       );
 
       if (response.data) {
-        success("Google login successful");
+        success(lang("google-login-success"));
         auth.setAccount(response.data.user);
         auth.setToken(response.data.token || "");
       }
     } catch (err) {
-      error((err as Error).message || "Google login failed");
+      error(lang("google-login-fail", (err as Error).message));
     }
   };
 
   const handleGoogleError = () => {
-    error("Google login failed. Please try again.");
+    error(lang("google-login-fail"));
   };
 
   const createSignUpSchema = (lang: any) => {
@@ -82,11 +82,11 @@ const SignUpPage = () => {
       userFetcher
         .manualRegister(values)
         .then(() => {
-          success("Account created successfully. Please verify your email");
+          success(lang("account-created"));
           setTimeout(() => navigate("/verify", { state: values }), 2000);
         })
         .catch((err) => {
-          error(err);
+          error(lang("error-create-account"), err.message);
           console.log(err);
         });
     },
@@ -98,14 +98,14 @@ const SignUpPage = () => {
         .loginWithGoogle(tokenResponse.credential)
         .then((response) => {
           console.log(response);
-          success("Account created successfully");
+          success(lang("created-success"));
           setTimeout(() => {
             navigate("/"), auth.setAccount(response.user);
             auth.setToken(response.token.toString() || "");
           }, 2000);
         })
         .catch((error) => {
-          error(error);
+          error(lang("created-fail"), error.message);
         });
     } catch (err) {
       error(err as string);

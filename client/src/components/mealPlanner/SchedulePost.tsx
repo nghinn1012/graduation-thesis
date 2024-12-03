@@ -13,6 +13,7 @@ import { MealPlannedDate, postFetcher } from "../../api/post";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { enUS, vi } from "date-fns/locale";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface ScheduleRecipeModalProps {
   recipe: {
@@ -43,6 +44,7 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
   const language = useI18nContext();
   const lang = language.of("ScheduleSection");
   const langCode = language.language.code;
+  const {success, error} = useToastContext();
 
   const locale = langCode == "vi" ? vi : enUS;
   const formatDateWithLocale = (date: Date, formatStr: string) => {
@@ -96,13 +98,12 @@ const ScheduleRecipeModal: React.FC<ScheduleRecipeModalProps> = ({
 
   const handleSubmitSchedule = async () => {
     if (!auth?.token) return;
-    console.log("hi");
     const response = await postFetcher.scheduleMeal(
       auth.token,
       recipe._id,
       pickedDates
     );
-    console.log(response);
+    success(lang("success-schedule-recipe"));
 
     await onScheduleComplete();
     onClose();

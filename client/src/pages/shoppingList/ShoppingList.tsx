@@ -11,6 +11,7 @@ import { BsCheckCircle } from "react-icons/bs";
 import { FaCheckCircle } from "react-icons/fa";
 import ShoppingListSkeleton from "../../components/skeleton/ShoppingListSkeleton";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useToastContext } from "../../hooks/useToastContext";
 const ShoppingList: React.FC = () => {
   const [list, setList] = useState<ShoppingListData>({} as ShoppingListData);
   const [editingIngredientId, setEditingIngredientId] = useState<string | null>(
@@ -31,6 +32,7 @@ const ShoppingList: React.FC = () => {
   const [allStandaloneSelected, setAllStandaloneSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const { success, error } = useToastContext();
   const languageContext = useI18nContext();
   const lang = languageContext.of("ShoppingList");
   useEffect(() => {
@@ -128,6 +130,7 @@ const ShoppingList: React.FC = () => {
         },
         postId
       )) as unknown as ShoppingListData;
+      success(lang("edit-ingredients-success"));
       if (newIngredient) {
         if (postId) {
           setList((prevList) => ({
@@ -216,6 +219,7 @@ const ShoppingList: React.FC = () => {
           }));
         }
       }
+      success(lang("delete-ingredients-success"));
     };
 
     deleteIngredient();
@@ -244,6 +248,7 @@ const ShoppingList: React.FC = () => {
         standaloneIngredients: newIngredient.standaloneIngredients,
       }));
     }
+    success(lang("add-ingredients-success"));
   };
 
   const togglePostSelection = (postId: string) => {
@@ -321,6 +326,9 @@ const ShoppingList: React.FC = () => {
         setSelectedPostIds([]);
         setSelectedIngredientIds([]);
         setAllStandaloneSelected(false);
+        success(lang("delete-ingredients-success"));
+      } else {
+        error(lang("delete-ingredients-fail"));
       }
     };
 
@@ -359,7 +367,9 @@ const ShoppingList: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-center text-2xl font-bold uppercase">{lang("shoppinglist")}</h1>
+      <h1 className="text-center text-2xl font-bold uppercase">
+        {lang("shoppinglist")}
+      </h1>
       <button
         className={`btn btn-danger top-4 right-4 ${
           selectedIngredientIds.length === 0
@@ -407,7 +417,9 @@ const ShoppingList: React.FC = () => {
 
                       <div className="flex-1">
                         <h2 className="card-title">{post.title}</h2>
-                        <p className="text-sm">{lang("servings")}: {post.servings}</p>
+                        <p className="text-sm">
+                          {lang("servings")}: {post.servings}
+                        </p>
                       </div>
 
                       <button
@@ -453,7 +465,9 @@ const ShoppingList: React.FC = () => {
                         {post.ingredients.map((ingredient) => (
                           <div
                             key={ingredient._id}
-                            ref={(el) => (dropdownRefs.current[ingredient._id] = el)}
+                            ref={(el) =>
+                              (dropdownRefs.current[ingredient._id] = el)
+                            }
                             className="card bg-base-100 shadow-md my-2 p-4 relative"
                           >
                             <div className="flex justify-between items-center">
@@ -562,7 +576,9 @@ const ShoppingList: React.FC = () => {
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <h2 className="card-title">{lang("standardalone-ingredients")}</h2>
+                  <h2 className="card-title">
+                    {lang("standardalone-ingredients")}
+                  </h2>
                   <button
                     className="p-2"
                     onClick={() => toggleExpand("standalone")}

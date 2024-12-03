@@ -238,7 +238,6 @@ const RightPanel: React.FC = () => {
   };
 
   const handleFollowUser = (userId: string, event: any) => {
-    console.log("Follow User Context:", followUser);
     followUser(userId);
   };
 
@@ -279,7 +278,7 @@ const RightPanel: React.FC = () => {
               onClick={handleResetFilters}
               className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
             >
-              {lang("reset-filters")}
+              {lang("reset")}
             </button>
           </div>
 

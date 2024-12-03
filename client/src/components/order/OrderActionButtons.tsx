@@ -6,6 +6,7 @@ import ReviewModal from "./ReviewModal";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface OrderActionButtonsProps {
   order: OrderWithUserInfo;
@@ -24,10 +25,12 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const { cancelOrder, updateOrderStatus, createOrderReview } = useProductContext();
+  const { cancelOrder, updateOrderStatus, createOrderReview, errorProduct } =
+    useProductContext();
   const navigate = useNavigate();
   const language = useI18nContext();
   const lang = language.of("OrderSection");
+  const { error, success } = useToastContext();
 
   const nextStatus: { [key: string]: string } = {
     Pending: "Delivering",
@@ -55,9 +58,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
     }
   };
 
-  const handleSubmitReviews = async (
-    reviews: ReviewCreate[]
-  ) => {
+  const handleSubmitReviews = async (reviews: ReviewCreate[]) => {
     try {
       await createOrderReview(order._id, reviews);
     } catch (error) {
@@ -98,7 +99,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
           onClick={() => setIsReviewModalOpen(true)}
           className="btn btn-accent btn-sm text-xs"
         >
-        {lang("review-order")}
+          {lang("review-order")}
         </button>
         <ReviewModal
           isOpen={isReviewModalOpen}
@@ -119,8 +120,10 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
       >
         {isUpdating ? (
           <span className="loading loading-spinner loading-xs"></span>
+        ) : nextStatus[order.status] == "Delivering" ? (
+          lang("mark-as-delivering")
         ) : (
-          nextStatus[order.status] == "Delivering" ? lang("mark-as-delivering") : lang("mark-as-completed")
+          lang("mark-as-completed")
         )}
       </button>
     ) : null;

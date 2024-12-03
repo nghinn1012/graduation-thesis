@@ -1,9 +1,9 @@
+import { useState, useEffect } from "react";
 import XSvg from "../svgs/X";
-
 import { GoHome } from "react-icons/go";
 import { IoNotificationsOutline, IoSearchOutline } from "react-icons/io5";
-import { FaCartArrowDown, FaRegUser } from "react-icons/fa6";
-import { Link, NavLink } from "react-router-dom";
+import { FaRegUser } from "react-icons/fa6";
+import { NavLink } from "react-router-dom";
 import { BiDish, BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { PiPackageFill, PiShoppingCartLight } from "react-icons/pi";
@@ -13,6 +13,15 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { useNotificationContext } from "../../context/NotificationContext";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { useMessageContext } from "../../context/MessageContext";
+
+function LoadingSpinner() {
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    </div>
+  );
+}
+
 const Sidebar = () => {
   const auth = useAuthContext();
   const { account } = useAuthContext();
@@ -20,11 +29,29 @@ const Sidebar = () => {
   const { chatGroupUnreadCount } = useMessageContext();
   const language = useI18nContext();
   const lang = language.of("Sidebar");
+  const [isI18nReady, setIsI18nReady] = useState(false);
+
+  useEffect(() => {
+    // Check if translations are loaded by verifying a key translation
+    if (lang("home") !== "home") {
+      setIsI18nReady(true);
+    }
+  }, [lang]);
 
   const logout = () => {
     sessionStorage.clear();
     auth.logout();
   };
+
+  if (!isI18nReady) {
+    return (
+      <div className="md:flex-[2_2_0] w-18 max-w-60">
+        <div className="sticky top-0 left-0 h-screen flex flex-col border-r border-gray-300 w-20 md:w-full">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-60">

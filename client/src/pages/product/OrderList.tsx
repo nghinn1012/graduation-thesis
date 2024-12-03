@@ -7,6 +7,8 @@ import OrderListSkeleton from "../../components/skeleton/OrderListSkeleton";
 import OrderActionButtons from "../../components/order/OrderActionButtons";
 import Pagination from "../../components/product/Pagination";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { Toaster } from "react-hot-toast";
+import { useToastContext } from "../../hooks/useToastContext";
 
 const OrdersPage = () => {
   const [activeTab, setActiveTab] = useState("My Orders");
@@ -15,6 +17,7 @@ const OrdersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
+  const {error, success} = useToastContext();
 
   const {
     ordersBySeller,
@@ -35,9 +38,10 @@ const OrdersPage = () => {
     setLimit,
     loadingOrder,
     setLoadingOrder,
+    errorProduct,
   } = useProductContext();
   const language = useI18nContext();
-  const lang = language.of("OrderSection");
+  const lang = language.of("OrderSection", "ToastrSection");
   const langCode = language.language.code;
 
   const formatPrice = (price: number): string => {
@@ -160,6 +164,7 @@ const OrdersPage = () => {
 
     return (
       <div className="overflow-x-auto w-full">
+        <Toaster />
         <div className="inline-block min-w-full align-middle">
           <div className="overflow-hidden">
             <table className="table w-full">

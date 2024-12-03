@@ -178,7 +178,7 @@ const MadeSection: React.FC<MadeSectionProps> = ({ post, token }) => {
       setMadePosts((prevPosts) => prevPosts.filter((post) => post._id !== _id));
       success(lang("delete-made-success"));
     } catch (err) {
-      error(lang("fail-delete-made-it", (err as Error).message));
+      error(lang("fail-delete-made-it", (err as Error)));
     }
   }
 

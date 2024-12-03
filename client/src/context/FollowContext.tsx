@@ -5,6 +5,8 @@ import { FollowData, userFetcher } from "../api/user";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useProfileContext } from "./ProfileContext";
 import { PiVan } from "react-icons/pi";
+import { useToastContext } from "../hooks/useToastContext";
+import { useI18nContext } from "../hooks/useI18nContext";
 
 interface FollowContextType {
   followers: string[];
@@ -20,6 +22,9 @@ export const FollowProvider: React.FC<{ children: React.ReactNode }> = ({
   const { suggestUsers, setSuggestUsers, setAllUsers } = useUserContext();
   const { user, setUser } = useProfileContext();
   const { auth, account } = useAuthContext();
+  const {success, error} = useToastContext();
+  const languageContext = useI18nContext();
+  const lang = languageContext.of("ToastrSection");
   const followUser = useCallback(
     async (userId: string) => {
       try {
@@ -70,8 +75,10 @@ export const FollowProvider: React.FC<{ children: React.ReactNode }> = ({
             user._id === userId ? { ...user, followed: !user.followed } : user
           )
         );
-      } catch (error) {
-        console.error("Failed to follow user:", error);
+        success(lang("follow-success"));
+      } catch (err) {
+        console.error("Failed to follow user:", err);
+        error(lang("follow-fail"), (err as Error).message);
       }
     },
     [auth?.token, suggestUsers]

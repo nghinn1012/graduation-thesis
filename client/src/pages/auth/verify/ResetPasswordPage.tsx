@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
 import { useToastContext } from "../../../hooks/useToastContext";
 import { useI18nContext } from "../../../hooks/useI18nContext";
 import { userFetcher } from "../../../api/user";
+
+function LoadingSpinner() {
+  return (
+    <div className="flex justify-center items-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    </div>
+  );
+}
 
 const ResetPasswordPage = () => {
   const { success, error } = useToastContext();
@@ -13,10 +20,17 @@ const ResetPasswordPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+  const [isI18nReady, setIsI18nReady] = useState(false);
+
+  useEffect(() => {
+    if (lang("reset-password") !== "reset-password") {
+      setIsI18nReady(true);
+    }
+  }, [lang]);
 
   const handleResetPassword = async () => {
     if (!password || password !== confirmPassword) {
-      error(lang("passwords-not-match"));
+      error(lang("not-match"));
       return;
     }
     try {
@@ -32,6 +46,14 @@ const ResetPasswordPage = () => {
       error((err as Error).message || lang("password-reset-failed"));
     }
   };
+
+  if (!isI18nReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

@@ -19,6 +19,16 @@ import {
 } from "../api/post";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
+import { useToastContext } from "../hooks/useToastContext";
+import { useI18nContext } from "../hooks/useI18nContext";
+
+function LoadingSpinner() {
+  return (
+    <div className="flex justify-center items-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    </div>
+  );
+}
 
 interface ProductContextProps {
   products: ProductInfo[];
@@ -32,7 +42,7 @@ interface ProductContextProps {
   setCurrentProduct: React.Dispatch<React.SetStateAction<ProductInfo | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  error: string | null;
+  errorProduct: string | null;
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
@@ -108,7 +118,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingOrder, setLoadingOrder] = useState<boolean>(true);
   const [loadingCart, setLoadingCart] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorProduct, setErrorProduct] = useState<string | null>(null);
   const { auth } = useAuthContext();
   const [pageOrder, setPageOrder] = useState<number>(1);
   const location = useLocation();
@@ -134,6 +144,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     useState<OrderWithUserInfo | null>(null);
   const [currentOrderReview, setCurrentOrderReview] =
     useState<OrderWithUserInfo | null>(null);
+  const {success, error } = useToastContext();
+  const language = useI18nContext();
+  const lang = language.of("ToastrSection");
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -152,7 +165,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         const fetchedCart = await postFetcher.getCart(auth?.token);
         setCart(fetchedCart as unknown as ProductCart[]);
       } catch (err) {
-        setError("Failed to fetch cart");
+        setErrorProduct("Failed to fetch cart");
       }
     };
 
@@ -186,7 +199,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         });
         setCurrentProduct(product);
       } catch (err) {
-        setError("Failed to fetch product");
+        setErrorProduct("Failed to fetch product");
       } finally {
         setLoading(false);
       }
@@ -203,7 +216,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           prevProducts.filter((p) => p.postId !== postId)
         );
       } catch (err) {
-        setError("Failed to remove product");
+        setErrorProduct("Failed to remove product");
       } finally {
         setLoading(false);
       }
@@ -224,7 +237,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
 
         setCart(updatedCart.products);
       } catch (err) {
-        setError("Failed to add product to cart");
+        setErrorProduct("Failed to add product to cart");
       } finally {
         setAlreadyAddToCart(false);
       }
@@ -242,12 +255,13 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           productIds,
           auth?.token
         )) as unknown as Cart;
-        console.log(updatedCart);
+        // success(lang("remove-cart-success"));
         setCart((prevCart) =>
           prevCart.filter((p) => productIds.indexOf(p.productId) === -1)
         );
       } catch (err) {
-        setError("Failed to remove product from cart");
+        setErrorProduct("Failed to remove product from cart");
+        error(lang("remove-cart-fail"));
       } finally {
         setLoading(false);
       }
@@ -260,7 +274,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        setProducts([]); // Clear old products immediately
+        setProducts([]);
         const fetchedProducts = (await postFetcher.searchProduct(
           searchTerm,
           filter === "all" ? "" : filter,
@@ -271,7 +285,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         setProducts(fetchedProducts.products);
         setTotalPages(fetchedProducts.totalPages);
       } catch (err) {
-        setError("Failed to search products");
+        setErrorProduct("Failed to search products");
       } finally {
         setLoading(false);
       }
@@ -297,7 +311,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       setOrdersByUser(fetchedOrders.orders);
       setTotalUserPages(fetchedOrders.totalPages);
     } catch (err) {
-      setError("Failed to fetch orders");
+      setErrorProduct("Failed to fetch orders");
     } finally {
       setLoadingOrder(false);
     }
@@ -316,7 +330,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       setOrdersBySeller(fetchedOrders.orders);
       setTotalSellerPages(fetchedOrders.totalPages);
     } catch (err) {
-      setError("Failed to fetch orders");
+      setErrorProduct("Failed to fetch orders");
     } finally {
       setLoadingOrder(false);
     }
@@ -331,11 +345,13 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           orderInfo,
           auth?.token
         )) as unknown as OrderWithUserInfo;
+        success(lang("create-order-success"));
         setCurrentOrder(result);
         setOrdersByUser((prevOrders) => [...prevOrders, result]);
         return result;
       } catch (err) {
-        setError("Failed to create order");
+        setErrorProduct("Failed to create order");
+        error(lang("create-order-fail"));
       } finally {
         setLoading(false);
       }
@@ -356,7 +372,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         setCurrentOrderDetail(order);
         setCurrentOrderReview(order);
       } catch (err) {
-        setError("Failed to fetch order");
+        setErrorProduct("Failed to fetch order");
       } finally {
         setLoading(false);
       }
@@ -404,8 +420,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
             );
           }
         }
+        success(lang("cancel-order-success"));
       } catch (err) {
-        setError("Failed to cancel order");
+        setErrorProduct("Failed to cancel order");
+        error(lang("cancel-order-fail"));
       } finally {
         setLoading(false);
       }
@@ -430,8 +448,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
             prevOrders.filter((order) => order._id !== orderId)
           );
         }
+        success(lang("update-status-success"));
       } catch (err) {
-        setError("Failed to update order status");
+        setErrorProduct("Failed to update order status");
+        error(lang("update-status-fail"));
       } finally {
         setLoading(false);
       }
@@ -449,6 +469,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           reviews,
           auth?.token
         );
+        success(lang("submit-review-success"));
         setOrdersByUser((prevOrders) =>
           prevOrders.map((order) =>
             order._id === orderId ? { ...order, isReviewed: true } : order
@@ -456,7 +477,8 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         );
         fetchOrderById(orderId);
       } catch (err) {
-        setError("Failed to submit reviews");
+        setErrorProduct("Failed to submit reviews");
+        error(lang("submit-review-fail"));
       } finally {
         setLoading(false);
       }
@@ -481,7 +503,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         removeProduct,
         products,
         loading,
-        error,
+        errorProduct,
         cart,
         setCart,
         fetchProductByPostId,

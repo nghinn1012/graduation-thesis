@@ -4,6 +4,7 @@ import { useAuthContext } from "../../../hooks/useAuthContext";
 import MadeRecipeModal from "./MadeRecipeModal"; // Import MadeRecipeModal
 import { PostInfo } from "../../../api/post";
 import { useI18nContext } from "../../../hooks/useI18nContext";
+import { format } from "date-fns";
 
 interface MadePostCardProps {
   author: {
@@ -53,6 +54,7 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
   const isMyPostMade = currentUser?.email === author.email;
   const language = useI18nContext();
   const lang = language.of("MadeSection");
+  const langCode = language.language.code;
 
   const handleDropdownToggle = () => {
     setDropdownOpen(!dropdownOpen);
@@ -95,7 +97,10 @@ const MadePostCard: React.FC<MadePostCardProps> = ({
           <div>
             <h3 className="font-semibold text-lg">{author.name}</h3>
             <p className="text-xs text-gray-500">
-              {createdAt.toISOString().split("T")[0]}
+              {format(
+                new Date(createdAt),
+                langCode === "vi" ? "HH:mm dd/MM/yyyy" : "MM/dd/yyyy hh:mm a"
+              )}
             </p>
           </div>
         </div>

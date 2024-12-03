@@ -494,9 +494,11 @@ const PostDetails: React.FunctionComponent = () => {
       )) as unknown as PostLikeResponse;
       if (response.saved === true) {
         setIsSaved(true);
+        success(lang("saved-success"));
         toggleSavePost(post._id, true);
       } else {
         setIsSaved(false);
+        success(lang("unsaved-success"));
         toggleSavePost(post._id, false);
       }
     } catch (err) {
@@ -595,6 +597,11 @@ const PostDetails: React.FunctionComponent = () => {
           servings
         );
     if (response) {
+      success(
+        isSavedToShoppingList
+          ? lang("remove-shopping-list-success")
+          : lang("add-shopping-list-success")
+      );
       setIsSavedToShoppingList(!isSavedToShoppingList);
     } else {
       error(lang("fail-add-remove-shopping-list"));
@@ -616,8 +623,9 @@ const PostDetails: React.FunctionComponent = () => {
             is_planned: false,
           },
           auth?.token
-        );
+        )
     if (response) {
+      success(isInSchedule ? lang("remove-plan-success") : lang("add-plan-success"));
       setIsInSchedule(!isInSchedule);
     } else {
       error(lang("fail-add-remove-plan"));
@@ -815,7 +823,7 @@ const PostDetails: React.FunctionComponent = () => {
                 >
                   {postAuthor.name}
                 </Link>
-                <p className="text-sm text-gray-500">{postAuthor.username}</p>
+                <p className="text-sm text-gray-500">@{postAuthor.username}</p>
               </div>
               {account?.email !== postAuthor.email && (
                 <button
