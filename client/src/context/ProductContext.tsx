@@ -22,14 +22,6 @@ import { useLocation } from "react-router-dom";
 import { useToastContext } from "../hooks/useToastContext";
 import { useI18nContext } from "../hooks/useI18nContext";
 
-function LoadingSpinner() {
-  return (
-    <div className="flex justify-center items-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-    </div>
-  );
-}
-
 interface ProductContextProps {
   products: ProductInfo[];
   cart: ProductCart[];
@@ -43,6 +35,7 @@ interface ProductContextProps {
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   errorProduct: string | null;
+  setErrorProduct: React.Dispatch<React.SetStateAction<string | null>>;
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
@@ -92,15 +85,15 @@ interface ProductContextProps {
     reason: string,
     isMyOrder: boolean,
     tab: string
-  ) => void;
-  updateOrderStatus: (orderId: string, status: string, tab: string) => void;
+  ) => Promise<OrderWithUserInfo | undefined>;
+  updateOrderStatus: (orderId: string, status: string, tab: string) => Promise<OrderWithUserInfo | undefined>;
   alreadyAddToCart: boolean;
   setAlreadyAddToCart: React.Dispatch<React.SetStateAction<boolean>>;
   currentOrderReview: OrderWithUserInfo | null;
   setCurrentOrderReview: React.Dispatch<
     React.SetStateAction<OrderWithUserInfo | null>
   >;
-  createOrderReview: (orderId: string, reviews: ReviewCreate[]) => void;
+  createOrderReview: (orderId: string, reviews: ReviewCreate[]) => Promise<OrderWithUserInfo | undefined>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(
@@ -345,13 +338,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           orderInfo,
           auth?.token
         )) as unknown as OrderWithUserInfo;
-        success(lang("create-order-success"));
         setCurrentOrder(result);
         setOrdersByUser((prevOrders) => [...prevOrders, result]);
         return result;
       } catch (err) {
-        setErrorProduct("Failed to create order");
-        error(lang("create-order-fail"));
+        setErrorProduct(lang("create-order-fail"));
       } finally {
         setLoading(false);
       }
@@ -390,7 +381,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        await postFetcher.cancelOrder(orderId, reason, auth?.token);
+        const result = (await postFetcher.cancelOrder(orderId, reason, auth?.token)) as unknown as OrderWithUserInfo;
         if (isMyOrder) {
           if (tab === "All") {
             setOrdersByUser((prevOrders) =>
@@ -420,10 +411,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
             );
           }
         }
-        success(lang("cancel-order-success"));
+        return result;
       } catch (err) {
-        setErrorProduct("Failed to cancel order");
-        error(lang("cancel-order-fail"));
+        setErrorProduct(lang("cancel-order-fail"));
       } finally {
         setLoading(false);
       }
@@ -436,7 +426,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        await postFetcher.updateOrderStatus(orderId, auth?.token);
+        const result = (await postFetcher.updateOrderStatus(orderId, auth?.token)) as unknown as OrderWithUserInfo;
         if (tab === "All") {
           setOrdersBySeller((prevOrders) =>
             prevOrders.map((order) =>
@@ -448,10 +438,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
             prevOrders.filter((order) => order._id !== orderId)
           );
         }
-        success(lang("update-status-success"));
+      return result;
       } catch (err) {
-        setErrorProduct("Failed to update order status");
-        error(lang("update-status-fail"));
+        setErrorProduct(lang("update-status-fail"));
       } finally {
         setLoading(false);
       }
@@ -468,17 +457,16 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           orderId,
           reviews,
           auth?.token
-        );
-        success(lang("submit-review-success"));
+        ) as unknown as OrderWithUserInfo;
         setOrdersByUser((prevOrders) =>
           prevOrders.map((order) =>
             order._id === orderId ? { ...order, isReviewed: true } : order
           )
         );
         fetchOrderById(orderId);
+        return result;
       } catch (err) {
-        setErrorProduct("Failed to submit reviews");
-        error(lang("submit-review-fail"));
+        setErrorProduct(lang("submit-review-fail"));
       } finally {
         setLoading(false);
       }
@@ -504,6 +492,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         products,
         loading,
         errorProduct,
+        setErrorProduct,
         cart,
         setCart,
         fetchProductByPostId,

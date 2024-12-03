@@ -11,11 +11,13 @@ import { IAccountInfo } from "../../data/interface_data/account_info";
 import CancelOrderModal from "./CancelOrderModal";
 import ReviewModal from "./ReviewModal";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import { useProductContext } from "../../context/ProductContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface OrderActionsProps {
   order: OrderWithUserInfo;
   account?: IAccountInfo;
-  onUpdateStatus: (status: string) => Promise<void>;
+  onUpdateStatus: (status: string) => Promise<OrderWithUserInfo | undefined>;
   onOpenCancelModal: () => void;
   onOpenReviewModal: () => void;
   isMyOrders: boolean;
@@ -32,11 +34,12 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const language = useI18nContext();
   const lang = language.of("OrderSection");
+  const { errorProduct, setErrorProduct } = useProductContext();
+  const { error, success } = useToastContext();
 
   const isBuyer = isMyOrders;
   const canCancel = order.status === "Pending";
 
-  // Status mapping for next status
   const nextStatus: { [key: string]: string } = {
     Pending: "Delivering",
     Delivering: "Completed",
@@ -45,7 +48,12 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   const handleStatusUpdate = async () => {
     try {
       setIsUpdating(true);
-      await onUpdateStatus(nextStatus[order.status]);
+      const result = await onUpdateStatus(nextStatus[order.status]);
+      if (result) {
+        success(lang("order-status-updated"));
+      } else {
+        error(lang("order-status-failed"));
+      }
       setIsUpdating(false);
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -82,8 +90,9 @@ const OrderActions: React.FC<OrderActionsProps> = ({
                 ) : (
                   <>
                     <BsClock className="w-4 h-4 mr-2" />
-                    {nextStatus[order.status] === "Delivering" ?
-                    lang("mark-as-delivering") : lang("mark-as-completed")}
+                    {nextStatus[order.status] === "Delivering"
+                      ? lang("mark-as-delivering")
+                      : lang("mark-as-completed")}
                   </>
                 )}
               </button>

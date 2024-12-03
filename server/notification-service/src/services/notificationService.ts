@@ -14,7 +14,7 @@ export const createLikedFoodNotifications = async (
     users: [authorId],
     reads: [],
     type: "FOOD_LIKED",
-    message: `liked your food`,
+    message: `liked-your-post`,
     author: user._id,
     post: food,
   };
@@ -38,7 +38,7 @@ export const createNewFoodNotifications = async (
     users: followers,
     reads: [],
     type: "NEW_FOOD",
-    message: `created a new food`,
+    message: `created-a-new-food`,
     author: user._id,
     post: food,
   }
@@ -59,35 +59,53 @@ export const createCommentedFoodNotifications = async (
   author: string,
   mentions: string
 ) => {
-  const notificationData: NotificationInfo = {
-    users: [author, ...(mentions || [])],
+  const baseNotification: NotificationInfo = {
+    users: [author],
     reads: [],
     type: "FOOD_COMMENTED",
-    message: `commented on your post`,
     author: user._id,
     post: food,
+    message: ""
+  };
+
+  if (mentions?.length) {
+    const filteredMentions = mentions === author ? "" : mentions;
+
+    if (filteredMentions.length) {
+      const mentionNotification = new NotificationModel({
+        ...baseNotification,
+        users: filteredMentions,
+        message: "mentioned-you-in-a-comment",
+      });
+      await mentionNotification.save();
+
+      sendNotification(filteredMentions, {
+        ...baseNotification,
+        _id: mentionNotification._id,
+        author: user,
+        read: false,
+        message: "mentioned-you-in-a-comment",
+      });
+    }
   }
-  const notification = new NotificationModel(notificationData);
-  await notification.save();
-  console.log(mentions);
-  sendNotification(mentions, {
-    ...notificationData,
-    _id: notification._id,
-    author: user,
-    read: false,
-    message: `mentioned you in a comment`,
-  });
-  if (author !== user._id && !mentions?.includes(author)) {
+
+  if (author !== user._id) {
+    const commentNotification = new NotificationModel({
+      ...baseNotification,
+      message: "commented-on-your-post",
+    });
+    await commentNotification.save();
+
     sendNotification(author, {
-      ...notificationData,
-      _id: notification._id,
-      createdAt: notification.createdAt,
+      ...baseNotification,
+      _id: commentNotification._id,
+      createdAt: commentNotification.createdAt,
       author: user,
       read: false,
-      message: `commented on your post`,
+      message: "commented-on-your-post",
     });
   }
-}
+};
 
 export const createSavedFoodNotifications = async (
   user: IAuthor,
@@ -99,7 +117,7 @@ export const createSavedFoodNotifications = async (
     reads: [],
     type: "FOOD_SAVED",
     author: user._id,
-    message: `saved your food`,
+    message: `saved-your-post`,
     post: food,
   }
   const notification = new NotificationModel(notificationData);
@@ -123,7 +141,7 @@ export const createMadeFoodNotifications = async (
     users: [authorId],
     reads: [],
     type: "FOOD_MADE",
-    message: `made your food`,
+    message: `made-your-food`,
     author: user._id,
     post: food,
   }
@@ -147,7 +165,7 @@ export const createFollowNotifications = async (
     reads: [],
     type: "NEW_FOLLOWER",
     author: follower._id,
-    message: `started following you`,
+    message: `started-following-you`,
   }
   const notification = new NotificationModel(notificationData)
   await notification.save();

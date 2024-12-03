@@ -28,7 +28,7 @@ export const rpcGetUser = async <T>(
 ): Promise<T | null> => {
   if (user == null) return null;
   const rpcUserRequest: RpcRequest<IRpcGetUserByIdPayload> = {
-    source: RpcSource.POST,
+    source: RpcSource.NOTIFICATION,
     action: RpcAction.USER_RPC_GET_USER_BY_ID,
     payload: {
       _id: user,

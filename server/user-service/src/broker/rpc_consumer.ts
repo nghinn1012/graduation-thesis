@@ -70,6 +70,7 @@ export const initRpcConsumers = (rabbit: RabbitMQ): void => {
     RpcAction.USER_RPC_GET_AUTHORS,
     (req: RpcRequest<IRpcGetAuthorsPayload>) => {
       const { _ids, select } = req.payload;
+      console.log("rpcGetAuthors", _ids, select);
       return rpcGetUserByIds(_ids, select);
     }
   );

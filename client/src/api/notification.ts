@@ -61,12 +61,14 @@ export interface ChatGroupInfo {
   createdBy: string;
   isPrivate: boolean;
   lastMessage: string;
+  memberDetails: AccountInfo[];
+  avatarUrl?: string;
 }
 
 export interface EnhancedChatGroupInfo extends ChatGroupInfo {
   updatedAt?: any;
   createdAt?: any;
-  avatarUrl?: string | undefined;
+  avatarUrl: string | undefined;
   lastMessageInfo?: {
     _id: string;
     text?: string;

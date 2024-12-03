@@ -73,6 +73,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
       const response = (await notificationFetcher.getChatGroups(
         auth.token
       )) as unknown as EnhancedChatGroupInfo[];
+      console.log(response);
       if (response) {
         setChatGroups(response);
         setChatGroupUnreadCount(
@@ -85,11 +86,9 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
   }, [auth]);
 
   const getUserIfPrivate = (chatGroup: EnhancedChatGroupInfo) => {
-    const userId = chatGroup.members.find((member) => member !== account?._id);
-    console.log(userId);
-    const userInfo = allUsers.find((user) => user._id === userId);
-    console.log(userInfo);
-    return userInfo;
+    return chatGroup?.memberDetails?.find(
+      (member) => member._id !== account?._id
+    )
   };
 
   const getMessagesOfChatGroup = async (chatGroupId: string, page: number = 1) => {

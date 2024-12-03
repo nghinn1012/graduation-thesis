@@ -147,7 +147,8 @@ const PostDetails: React.FunctionComponent = () => {
   const { followUser } = useFollowContext();
   const { posts, setPosts } = usePostContext();
   const { user, setUser } = useProfileContext();
-  const { fetchProductByPostId, removeProduct, setCurrentProduct, setPage } = useProductContext();
+  const { fetchProductByPostId, removeProduct, setCurrentProduct, setPage } =
+    useProductContext();
   const [product, setProduct] = useState<ProductInfo>(
     [] as unknown as ProductInfo
   );
@@ -623,9 +624,11 @@ const PostDetails: React.FunctionComponent = () => {
             is_planned: false,
           },
           auth?.token
-        )
+        );
     if (response) {
-      success(isInSchedule ? lang("remove-plan-success") : lang("add-plan-success"));
+      success(
+        isInSchedule ? lang("remove-plan-success") : lang("add-plan-success")
+      );
       setIsInSchedule(!isInSchedule);
     } else {
       error(lang("fail-add-remove-plan"));
@@ -977,38 +980,42 @@ const PostDetails: React.FunctionComponent = () => {
                     ))}
                   </div>
                 </div>
-                <div className="mt-6 ml-4">
-                  <span className="font-semibold uppercase">{lang("made-it")}</span>
-                  <div className="flex flex-col gap-2 items-center justify-between">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="file-input"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                    <button
-                      className="btn btn-lg bg-gradient-to-r from-red-500 to-orange-500 text-white flex items-center space-x-2"
-                      onClick={() =>
-                        document.getElementById("file-input")?.click()
-                      }
-                    >
-                      <IoCameraOutline />
-                      <span className="text-base md:text-lg sm:text-md xs:text-sm">
-                        {lang("share-the-finished-product")}
-                      </span>
-                    </button>
-                  </div>
+                {account?._id !== postAuthor._id && (
+                  <div className="mt-6 ml-4">
+                    <span className="font-semibold uppercase">
+                      {lang("made-it")}
+                    </span>
+                    <div className="flex flex-col gap-2 items-center justify-between">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="file-input"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                      />
+                      <button
+                        className="btn btn-lg bg-gradient-to-r from-red-500 to-orange-500 text-white flex items-center space-x-2"
+                        onClick={() =>
+                          document.getElementById("file-input")?.click()
+                        }
+                      >
+                        <IoCameraOutline />
+                        <span className="text-base md:text-lg sm:text-md xs:text-sm">
+                          {lang("share-the-finished-product")}
+                        </span>
+                      </button>
+                    </div>
 
-                  <MadeRecipeModal
-                    post={post}
-                    postAuthor={postAuthor}
-                    isOpen={showModal}
-                    image={selectedImage}
-                    onClose={handleCloseModal}
-                    onSubmit={handleSubmitMadeModal}
-                  />
-                </div>
+                    <MadeRecipeModal
+                      post={post}
+                      postAuthor={postAuthor}
+                      isOpen={showModal}
+                      image={selectedImage}
+                      onClose={handleCloseModal}
+                      onSubmit={handleSubmitMadeModal}
+                    />
+                  </div>
+                )}
               </div>
             )}
 

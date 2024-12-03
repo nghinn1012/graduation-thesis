@@ -20,7 +20,7 @@ const NewChatButtons: React.FC<NewChatButtonsProps> = ({
   return (
     <div className="relative">
       {/* Desktop view - Two separate buttons */}
-      <div className="hidden md:flex gap-2">
+      <div className="hidden md:flex gap-1">
         <button
           className="btn btn-ghost flex-1 justify-start normal-case"
           onClick={onNewChat}

@@ -23,6 +23,7 @@ import CancelOrderModal from "../../components/order/CancelOrderModal";
 import ReviewModal from "../../components/order/ReviewModal";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { useMessageContext } from "../../context/MessageContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
@@ -151,6 +152,8 @@ const OrderDetails: React.FC = () => {
     cancelOrder,
     updateOrderStatus,
     createOrderReview,
+    errorProduct,
+    setErrorProduct,
   } = useProductContext();
   const [orderId, setOrderId] = React.useState<string>("");
   const { account } = useAuthContext();
@@ -162,6 +165,7 @@ const OrderDetails: React.FC = () => {
   const lang = language.of("ReviewSection", "OrderSection");
   const {chatGroupSelect, setChatGroupSelect, chatGroups} = useMessageContext();
   const langCode = language.language.code;
+  const { error, success } = useToastContext();
 
   function formatPrice(price: number): string {
     let currencyCode: string = "VND";
@@ -224,12 +228,13 @@ const OrderDetails: React.FC = () => {
   const handleUpdateStatus = async (newStatus: string) => {
     if (!currentOrderDetail) return;
     try {
-      await updateOrderStatus(
+      const result = await updateOrderStatus(
         currentOrderDetail._id,
         newStatus,
         "Orders Of My Shop"
       );
       await fetchOrderById(orderId);
+      return result;
     } catch (error) {
       console.error("Error updating order status:", error);
     }
@@ -239,6 +244,12 @@ const OrderDetails: React.FC = () => {
     if (!currentOrderDetail) return;
     try {
       await cancelOrder(currentOrderDetail._id, reason, true, "My Orders");
+      if (errorProduct) {
+        error(errorProduct);
+        setErrorProduct("");
+      } else {
+        success(lang("cancel-order-success"));
+      }
       setIsCancelModalOpen(false);
       setCancelReason("");
       await fetchOrderById(orderId);
@@ -251,6 +262,12 @@ const OrderDetails: React.FC = () => {
     try {
       if (!currentOrderDetail) return;
       await createOrderReview(currentOrderDetail._id, reviews);
+      if (errorProduct) {
+        error(errorProduct);
+        setErrorProduct("");
+      } else {
+        success(lang("submit-review-success"));
+      }
       setIsReviewModalOpen(false);
       await fetchOrderById(orderId);
     } catch (error) {

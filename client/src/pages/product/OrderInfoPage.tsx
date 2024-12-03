@@ -56,7 +56,7 @@ const OrderInfoPage: React.FC = () => {
   const [orderResults, setOrderResults] = useState<
     { orderNumber: string; totalAmount: number; deliveryAddress: string }[]
   >([]);
-  const {error} = useToastContext();
+  const {error, success} = useToastContext();
 
   const validateFormData = (data: FormData): Partial<FormData> => {
     const errors: Partial<FormData> = {};
@@ -227,11 +227,11 @@ const OrderInfoPage: React.FC = () => {
                 return null;
               }
               if (res && res.resultCode === 0) {
-                removeProductFromCart(
-                  selectedProducts.map((product) => product.productId)
-                );
                 window.location.href = res.payUrl;
               }
+              removeProductFromCart(
+                selectedProducts.map((product) => product.productId)
+              );
             } catch (error) {
               console.error("Error creating payment request:", error);
               return null;
@@ -271,8 +271,9 @@ const OrderInfoPage: React.FC = () => {
         } else {
           throw new Error("Failed to create any orders");
         }
-      } catch (error) {
-        console.error("Error creating orders:", error);
+        success(lang("create-order-success"));
+      } catch (err) {
+        console.error("Error creating orders:", err);
       }
     }
   };

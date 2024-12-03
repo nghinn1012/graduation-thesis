@@ -97,10 +97,9 @@ const MessageSidebar: React.FC = () => {
     chatGroup: EnhancedChatGroupInfo
   ): AccountInfo | null => {
     if (!account || chatGroup.members.length > 2) return null;
-    const otherUserId = chatGroup.members.find((id) => id !== account._id);
-    return otherUserId
-      ? allUsers.find((user) => user._id === otherUserId) || null
-      : null;
+    return chatGroup?.memberDetails?.find(
+      (member) => member._id !== account._id
+    ) || null;
   };
 
   const getChatDisplayInfo = (
@@ -116,6 +115,7 @@ const MessageSidebar: React.FC = () => {
         isOnline: onlineUsers.includes(otherUser._id),
       };
     }
+    // console.log(chatGroup);
 
     return {
       name: chatGroup.groupName || lang("groupChat"),
@@ -128,9 +128,9 @@ const MessageSidebar: React.FC = () => {
   const renderLastMessage = (chatGroup: EnhancedChatGroupInfo) => {
     if (!chatGroup.lastMessageInfo) return null;
 
-    const sender = allUsers.find(
-      (user) => user._id === chatGroup.lastMessageInfo?.senderId
-    );
+    const sender = chatGroup?.memberDetails?.find(
+      (member) => member._id === chatGroup?.lastMessageInfo?.senderId
+    ) || null;
 
     const content =
       chatGroup.lastMessageInfo.text ||

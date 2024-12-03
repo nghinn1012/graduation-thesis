@@ -6,7 +6,11 @@ import { FaRegUser } from "react-icons/fa6";
 import { NavLink } from "react-router-dom";
 import { BiDish, BiLogOut } from "react-icons/bi";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import { PiPackageFill, PiShoppingCartLight } from "react-icons/pi";
+import {
+  PiGlobeSimpleFill,
+  PiPackageFill,
+  PiShoppingCartLight,
+} from "react-icons/pi";
 import { LuCalendarDays, LuMail } from "react-icons/lu";
 import { MdOutlineExplore } from "react-icons/md";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
@@ -30,9 +34,14 @@ const Sidebar = () => {
   const language = useI18nContext();
   const lang = language.of("Sidebar");
   const [isI18nReady, setIsI18nReady] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const languages = [
+    { code: "en", label: lang("english") },
+    { code: "vi", label: lang("vietnamese") },
+  ];
 
   useEffect(() => {
-    // Check if translations are loaded by verifying a key translation
     if (lang("home") !== "home") {
       setIsI18nReady(true);
     }
@@ -244,6 +253,35 @@ const Sidebar = () => {
                 {lang("orders")}
               </span>
             </NavLink>
+          </li>
+
+          <li className="flex justify-center md:justify-start relative">
+            <div
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <PiGlobeSimpleFill className="w-6 h-6" />
+              <span className="text-lg hidden md:block mt-1">
+                {lang("language")}
+              </span>
+            </div>
+
+            {showDropdown && (
+              <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg py-2 min-w-[160px] z-50">
+                {languages.map(({ code, label }) => (
+                  <div
+                    key={code}
+                    onClick={() => {
+                      language.switchLanguage(code as "en" | "vi");
+                      setShowDropdown(false);
+                    }}
+                    className="px-4 py-2 hover:bg-stone-100 cursor-pointer"
+                  >
+                    {label}
+                  </div>
+                ))}
+              </div>
+            )}
           </li>
         </ul>
         {account && (

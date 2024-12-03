@@ -317,7 +317,10 @@
     "plans": "Kế hoạch",
     "product": "Sản phẩm",
     "cart": "Giỏ hàng",
-    "orders": "Đơn hàng"
+    "orders": "Đơn hàng",
+    "language": "Ngôn ngữ",
+    "vietnamese": "Tiếng Việt",
+    "english": "Tiếng Anh"
   },
   "HomePage": {
     "for-you": "Dành cho bạn",
@@ -652,5 +655,24 @@
     "update-status-fail": "Cập nhật trạng thái thất bại: Trạng thái đã thay đổi trước đó",
     "remove-cart-success": "Xóa khỏi giỏ hàng thành công",
     "remove-cart-fail": "Xóa khỏi giỏ hàng thất bại: {0}"
+  },
+  "NotificationSection": {
+    "made-your-food": "đã thực hiện công thức của bạn",
+    "commented-on-your-post": "đã bình luận về bài viết của bạn",
+    "replied-to-your-comment": "đã trả lời bình luận của bạn",
+    "liked-your-post": "đã thích bài viết của bạn",
+    "saved-your-post": "đã lưu bài viết của bạn",
+    "created-a-new-post": "đã tạo bài viết mới",
+    "mentioned-you-in-a-comment": "đã đề cập đến bạn trong một bình luận",
+    "started-following-you": "đã bắt đầu theo dõi bạn",
+    "notifications": "Thông báo",
+    "mark-all-read": "Đánh dấu tất cả là đã đọc",
+    "all":"Tất cả",
+    "unread":"Chưa đọc",
+    "no-notifications":"Không có thông báo",
+    "no-more-notifications":"Không còn thông báo nào",
+    "mark-read-confirm":"Bạn có chắc chắn muốn đánh dấu tất cả là đã đọc không?",
+    "mark-read-success":"Đánh dấu tất cả là đã đọc thành công",
+    "mark-read-failed":"Đánh dấu tất cả là đã đọc thất bại: {0}"
   }
 }

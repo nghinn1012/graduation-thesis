@@ -5,6 +5,7 @@ import { useAuthContext } from '../../hooks/useAuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { BsPostcard } from 'react-icons/bs';
+import { useI18nContext } from '../../hooks/useI18nContext';
 
 interface NotificationItemProps {
   notification: {
@@ -26,6 +27,8 @@ interface NotificationItemProps {
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onClick }) => {
   const { account } = useAuthContext();
   const [formattedDate, setFormattedDate] = useState<string | null>(null);
+  const language = useI18nContext();
+  const lang = language.of('NotificationSection');
 
   useEffect(() => {
     if (notification.createdAt) {
@@ -83,7 +86,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
           <div className="flex items-center justify-between">
             <p className={`text-sm ${!notification.read ? 'font-semibold' : 'text-gray-900'}`}>
               <span className="font-semibold">{notification.author.name}</span>{' '}
-              {`${notification.message}${notification?.post?.title ? `: ${notification.post.title}` : ''}`}
+              {`${lang(notification.message)}${notification?.post?.title ? `: ${notification.post.title}` : ''}`}
             </p>
             <div className="flex-shrink-0">{getIcon()}</div>
           </div>

@@ -7,6 +7,8 @@ import { usePostContext } from "../../context/PostContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import NotificationItem from "../../components/notifications/NotificationItem";
 import { AccountInfo } from "../../api/user";
+import { useI18nContext } from "../../hooks/useI18nContext";
+import { useToastContext } from "../../hooks/useToastContext";
 
 interface Notification {
   _id: string;
@@ -36,6 +38,9 @@ const NotificationPage: FC = () => {
   const locationPath = useLocation().pathname;
   const { fetchPost } = usePostContext();
   const { auth, account } = useAuthContext();
+  const language = useI18nContext();
+  const lang = language.of("NotificationSection");
+  const {success, error} = useToastContext();
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastNotificationRef = useCallback((node: HTMLDivElement) => {
@@ -57,13 +62,13 @@ const NotificationPage: FC = () => {
   }, [activeTab]);
 
   const markAllAsRead = async (): Promise<void> => {
-    if (window.confirm("Are you sure you want to mark all notifications as read?")) {
+    if (window.confirm(lang("mark-read-confirm"))) {
       try {
         await markAllNotificationsAsRead();
-        alert("All notifications marked as read");
-      } catch (error) {
-        console.error("Error marking notifications as read:", error);
-        alert("Failed to mark all notifications as read");
+        success(lang("mark-read-success"));
+      } catch (err) {
+        console.error("Error marking notifications as read:", err);
+        error(lang("mark-read-failed", lang(err as string)));
       }
     }
   };
@@ -75,7 +80,6 @@ const NotificationPage: FC = () => {
     type: string
   ) => {
     if (!author || !auth?.token) return;
-    console.log("Notification clicked:", postId, author, notificationId);
 
     try {
       if (type === "NEW_FOLLOWER" && author._id) {
@@ -105,7 +109,7 @@ const NotificationPage: FC = () => {
     <div className="flex flex-col h-full max-w-full overflow-hidden">
       <div className="flex-shrink-0 w-full">
         <div className="flex justify-between items-center p-4">
-          <p className="font-bold">Notifications</p>
+          <p className="font-bold">{lang("notifications")}</p>
           <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn btn-ghost btn-circle">
               <IoSettingsOutline className="w-5 h-5" />
@@ -115,7 +119,7 @@ const NotificationPage: FC = () => {
               className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
               <li>
-                <a onClick={markAllAsRead}>Mark all as read</a>
+                <a onClick={markAllAsRead}>{lang("mark-all-read")}</a>
               </li>
             </ul>
           </div>
@@ -129,7 +133,7 @@ const NotificationPage: FC = () => {
             role="tab"
             onClick={() => setActiveTab("all")}
           >
-            All
+            {lang("all")}
           </button>
           <button
             className={`tab w-full ${
@@ -138,14 +142,14 @@ const NotificationPage: FC = () => {
             role="tab"
             onClick={() => setActiveTab("unread")}
           >
-            Unread
+            {lang("unread")}
           </button>
         </div>
       </div>
 
       <div className="flex-grow overflow-y-auto border-b border-l border-r border-gray-300">
         {filteredNotifications.length === 0 ? (
-          <div className="text-center p-4 font-bold">No notifications 🤔</div>
+          <div className="text-center p-4 font-bold">{lang("no-notifications")}</div>
         ) : (
           filteredNotifications.map((notification, index) => (
             <div
@@ -168,7 +172,7 @@ const NotificationPage: FC = () => {
           ))
         )}
         {loading && <div className="text-center p-4"><LoadingSpinner size="md" /></div>}
-        {!loading && !hasMore && <div className="text-center p-4">No more notifications</div>}
+        {!loading && !hasMore && <div className="text-center p-4">{lang("no-more-notifications")}</div>}
       </div>
 
       {isLoadingPost && (

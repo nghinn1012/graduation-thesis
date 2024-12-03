@@ -4,6 +4,7 @@ import chatGroupModel from "../models/chatGroupModel";
 import messageModel from "../models/messageModel";
 import { userSocketMap } from "../socket";
 import { deleteImageFromCloudinary, extractPublicIdFromUrl, uploadImageToCloudinary } from "./imagesuploader.services";
+import { rpcGetUsers } from "./rpc.services";
 
 export const sendMessageService = async (
   senderId: string,
@@ -169,6 +170,7 @@ export const getChatGroupsService = async (userId: string) => {
           updatedAt: 1,
           isPrivate: 1,
           lastMessage: 1,
+          avatarUrl: 1,
           lastMessageInfo: { $arrayElemAt: ['$lastMessageInfo', 0] },
           unreadCount: {
             $cond: {
@@ -186,7 +188,29 @@ export const getChatGroupsService = async (userId: string) => {
       }
     ]);
 
-    return chatGroups;
+    const allMemberIds = Array.from(
+      new Set(
+        chatGroups.flatMap((group) => group.members.map(String))
+      )
+    );
+
+    const memberDetails = await rpcGetUsers(
+      allMemberIds,
+      ["_id", "name", "avatar", "email", "username"]
+    ) as any[];
+
+    const userDetailsMap = new Map(
+      memberDetails.map((user) => [user._id.toString(), user])
+    );
+
+    const chatGroupsWithMemberDetails = chatGroups.map((group) => ({
+      ...group,
+      memberDetails: group.members
+        .map((memberId: any) => userDetailsMap.get(String(memberId)) || null)
+    }));
+
+    return chatGroupsWithMemberDetails;
+
   } catch (error) {
     throw new Error(`Error fetching chat groups: ${(error as Error).message}`);
   }

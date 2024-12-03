@@ -133,7 +133,6 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
   rabbit.listenMessage(
     brokerOperations.food.NOTIFY_MADE_UPLOAD_COMPLETE,
     (msg: IBrokerMessage<NotifiFoodUploadResponse>) => {
-      console.log("Message data:", msg.data);
       io.emit(msg.data.type, msg.data._id);
     }
   )

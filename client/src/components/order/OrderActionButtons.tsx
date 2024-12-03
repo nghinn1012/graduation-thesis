@@ -25,7 +25,7 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const { cancelOrder, updateOrderStatus, createOrderReview, errorProduct } =
+  const { cancelOrder, updateOrderStatus, createOrderReview, errorProduct, setErrorProduct } =
     useProductContext();
   const navigate = useNavigate();
   const language = useI18nContext();
@@ -39,7 +39,12 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
 
   const handleCancelOrder = async (reason: string) => {
     try {
-      await cancelOrder(order._id, reason, activeTab === "My Orders", tab);
+      const result = await cancelOrder(order._id, reason, activeTab === "My Orders", tab);
+      if (result) {
+        success(lang("cancel-order-success"));
+      } else {
+        error(lang("cancel-order-fail"));
+      }
       setSelectedReason("");
       setIsCancelModalOpen(false);
     } catch (error) {
@@ -50,7 +55,12 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
   const handleStatusUpdate = async () => {
     try {
       setIsUpdating(true);
-      await updateOrderStatus(order._id, nextStatus[order.status], tab);
+      const result = await updateOrderStatus(order._id, nextStatus[order.status], tab);
+      if (result) {
+        success(lang("update-status-success"));
+      } else {
+        error(lang("update-status-fail"));
+      }
     } catch (error) {
       console.error("Error updating status:", error);
     } finally {
@@ -60,7 +70,12 @@ const OrderActionButtons: React.FC<OrderActionButtonsProps> = ({
 
   const handleSubmitReviews = async (reviews: ReviewCreate[]) => {
     try {
-      await createOrderReview(order._id, reviews);
+      const result = await createOrderReview(order._id, reviews);
+      if (result) {
+        success(lang("submit-reviews-success"));
+      } else {
+        error(lang("submit-reviews-fail"));
+      }
     } catch (error) {
       console.error("Error submitting reviews:", error);
     }
