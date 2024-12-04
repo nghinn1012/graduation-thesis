@@ -1,0 +1,67 @@
+[
+  {
+    "test": "It should add ingredients to the shopping list if postId is null",
+    "input": {
+      "postId": null,
+      "servings": 2,
+      "userId": "66252db3dce942e19b422a8e",
+      "ingredients": [
+        {
+          "name": "Tomato",
+          "quantity": 2,
+          "unit": "kg"
+        },
+        {
+          "name": "Onion",
+          "quantity": 1,
+          "unit": "kg"
+        }
+      ]
+    }
+  },
+  {
+    "test": "It should add ingredients to the shopping list if postId is provided and the post exists",
+    "input": {
+      "postId": "66dc78c1f1a188db1c43418a",
+      "servings": 3,
+      "userId": "66252db3dce942e19b422a8e",
+      "ingredients": []
+    }
+  },
+  {
+    "test": "It should create a new shopping list if none exists for the user",
+    "input": {
+      "postId": "66dc78c1f1a188db1c43418a",
+      "servings": 1,
+      "userId": "66252db3dce942e19b422a8e",
+      "ingredients": []
+    }
+  },
+  {
+    "test": "It should update servings for an existing post in the shopping list",
+    "input": {
+      "postId": "66dc78c1f1a188db1c43418a",
+      "servings": 2,
+      "userId": "66252db3dce942e19b422a8e",
+      "ingredients": []
+    }
+  },
+  {
+    "test": "It should throw an error if postId is provided but the post does not exist",
+    "input": {
+      "postId": "66dc78c1f1a188db1c43418e",
+      "servings": 1,
+      "userId": "66252db3dce942e19b422a8e",
+      "ingredients": []
+    }
+  },
+  {
+    "test": "It should throw an error if title or imageUrl is missing for the post",
+    "input": {
+      "postId": "postWithMissingTitleOrImage",
+      "servings": 1,
+      "userId": "66252db3dce942e19b422a8e",
+      "ingredients": []
+    }
+  }
+]

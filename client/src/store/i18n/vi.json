@@ -254,8 +254,8 @@
     "saved-fail": "Có lỗi xảy ra khi lưu bài viết: {0}",
     "remove-plan-success": "Xóa khỏi kế hoạch thành công",
     "add-plan-success": "Thêm vào kế hoạch thành công",
-    "add-shoppping-list-success": "Lưu vào danh sách mua sắm thành công",
-    "remove-shoppping-list-success": "Xóa khỏi danh sách mua sắm thành công"
+    "add-shopping-list-success": "Lưu vào danh sách mua sắm thành công",
+    "remove-shopping-list-success": "Xóa khỏi danh sách mua sắm thành công"
   },
   "CommentSection": {
     "replying-to": "Trả lời cho",

@@ -1,0 +1,73 @@
+[
+  {
+    "test": "It should create a new order and update product quantities correctly",
+    "input": {
+      "orderCreate": {
+        "userId": "66252db3dce942e19b422a8e",
+        "sellerId": "66dc787fb97fa3075225d390",
+        "products": [
+          { "productId": "66dc787fb97fa3075225d390", "quantity": 2 },
+          { "productId": "671212dccbf825434322a37d", "quantity": 1 }
+        ]
+      }
+    }
+  },
+  {
+    "test": "It should throw an error if products array is empty or not provided",
+    "input": {
+      "orderCreate": {
+        "userId": "66252db3dce942e19b422a8e",
+        "sellerId": "66dc787fb97fa3075225d390",
+        "products": []
+      }
+    }
+  },
+  {
+    "test": "It should throw an error if a product is not found in the database",
+    "input": {
+      "orderCreate": {
+        "userId": "66252db3dce942e19b422a8e",
+        "sellerId": "66dc787fb97fa3075225d390",
+        "products": [
+          { "productId": "66dc787fb97fa3075225d323", "quantity": 2 }
+        ]
+      }
+    }
+  },
+  {
+    "test": "It should throw an error if the quantity of a product is greater than available stock",
+    "input": {
+      "orderCreate": {
+        "userId": "66252db3dce942e19b422a8e",
+        "sellerId": "66dc787fb97fa3075225d390",
+        "products": [
+          { "productId": "66dc787fb97fa3075225d390", "quantity": 10 }
+        ]
+      }
+    }
+  },
+  {
+    "test": "It should return the correct order details including product and user information",
+    "input": {
+      "orderCreate": {
+        "userId": "66252db3dce942e19b422a8e",
+        "sellerId": "66dc787fb97fa3075225d390",
+        "products": [
+          { "productId": "66dc787fb97fa3075225d390", "quantity": 2 }
+        ]
+      }
+    }
+  },
+  {
+    "test": "It should throw an error if the RPC service fails to get user information",
+    "input": {
+      "orderCreate": {
+        "userId": "66252db3dce942e19b422a8e",
+        "sellerId": "66dc787fb97fa3075225d390",
+        "products": [
+          { "productId": "66dc787fb97fa3075225d390", "quantity": 2 }
+        ]
+      }
+    }
+  }
+]

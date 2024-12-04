@@ -202,7 +202,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
       return lang("daysAgo", days);
     }
   };
-  const formattedTime = getFormattedTime(new Date(post.createdAt).toISOString());
+  const formattedTime = post.createdAt ? getFormattedTime(new Date(post?.createdAt).toISOString()) : "";
 
   useEffect(() => {
     const account = auth.account;
@@ -274,7 +274,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
           <div className="flex flex-col gap-3 overflow-hidden">
             <span>{post.title}</span>
             <div className="carousel rounded-box w-full relative">
-              {post.images.map((img, index) => (
+              {post?.images?.map((img, index) => (
                 <div
                   key={index}
                   className={`carousel-item w-full ${
@@ -291,7 +291,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
               ))}
 
               {/* Navigation Buttons */}
-              {post.images.length > 1 && (
+              {post?.images?.length > 1 && (
                 <>
                   <button
                     onClick={goToPrevious}

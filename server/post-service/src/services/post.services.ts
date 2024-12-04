@@ -8,6 +8,8 @@ import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 import { notifyNewFood } from "./notify.services";
 import { AccountInfo, IProduct } from "../data/interface/post_create_interface";
 import productModel from "../models/productModel";
+import postLikeModel from "../models/postLikeModel";
+import CommentModel from "../models/commentModel";
 
 export const createPostService = async (data: IPost, productData?: IProduct) => {
   try {
@@ -462,6 +464,16 @@ export const deletePostService = async (postId: string, userId: string) => {
     }
 
     const postDelete = await postModel.findByIdAndDelete(postId);
+    const postLikes = await postLikeModel.deleteMany({ postId });
+    const postComments = await CommentModel.deleteMany({ postId });
+    const product = await productModel.findOne({
+      postId
+    });
+    if (product) {
+      await productModel.deleteOne({
+        postId
+      });
+    }
 
     const handleDeletions = async () => {
       try {

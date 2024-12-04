@@ -1,0 +1,64 @@
+[
+  {
+    "test": "It should return foods that match the query 'pizza'",
+    "input": {
+      "query": "pizza"
+    }
+  },
+  {
+    "test": "It should return foods for page 1 with pageSize 10",
+    "input": {
+      "page": 1,
+      "pageSize": 10
+    }
+  },
+  {
+    "test": "It should return foods with prep time between 10 and 60 minutes",
+    "input": {
+      "minTime": 10,
+      "maxTime": 60
+    }
+  },
+  {
+    "test": "It should return foods with quality >= 3",
+    "input": {
+      "minQuality": 3
+    }
+  },
+  {
+    "test": "It should return foods where haveMade is true",
+    "input": {
+      "haveMade": true
+    }
+  },
+  {
+    "test": "It should return foods with difficulty 'medium'",
+    "input": {
+      "difficulty": "medium"
+    }
+  },
+  {
+    "test": "It should return foods with hashtags 'healthy' and 'quick'",
+    "input": {
+      "hashtags": "healthy, quick"
+    }
+  },
+  {
+    "test": "It should return foods sorted by prep time in ascending order",
+    "input": {
+      "timeOrder": "asc"
+    }
+  },
+  {
+    "test": "It should return foods sorted by quality in descending order",
+    "input": {
+      "qualityOrder": "desc"
+    }
+  },
+  {
+    "test": {
+      "message": "It does not depend on any filter options"
+    },
+    "input": {}
+  }
+]

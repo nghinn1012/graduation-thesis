@@ -1,0 +1,59 @@
+[
+  {
+    "test": "It should schedule a meal and add planned dates to the meal",
+    "input": {
+      "userId": "66252db3dce942e19b422a8e",
+      "mealId": "66f565dcf0c52313de14fe7e",
+      "dates": [
+        { "date": "2024-12-05", "time": "12:00 PM" },
+        { "date": "2024-12-06", "time": "1:00 PM" }
+      ]
+    }
+  },
+  {
+    "test": "It should throw an error if the meal planner for the user is not found",
+    "input": {
+      "userId": "user999",
+      "mealId": "66f565dcf0c52313de14fe7e",
+      "dates": [
+        { "date": "2024-12-05", "time": "12:00 PM" }
+      ]
+    }
+  },
+  {
+    "test": "It should throw an error if the meal with the given ID is not found in the meal planner",
+    "input": {
+      "userId": "66252db3dce942e19b422a8e",
+      "mealId": "nonExistentMeal",
+      "dates": [
+        { "date": "2024-12-05", "time": "12:00 PM" }
+      ]
+    }
+  },
+  {
+    "test": "It should remove all planned dates when an empty array is provided",
+    "input": {
+      "userId": "66252db3dce942e19b422a8e",
+      "mealId": "66f565dcf0c52313de14fe7e",
+      "dates": []
+    }
+  },
+  {
+    "test": "It should keep the meal unplanned if no dates are provided",
+    "input": {
+      "userId": "66252db3dce942e19b422a8e",
+      "mealId": "66f565dcf0c52313de14fe7e",
+      "dates": []
+    }
+  },
+  {
+    "test": "It should throw an error if an invalid date format is provided in the dates array",
+    "input": {
+      "userId": "66252db3dce942e19b422a8e",
+      "mealId": "66f565dcf0c52313de14fe7e",
+      "dates": [
+        { "date": "invalid-date", "time": "12:00 PM" }
+      ]
+    }
+  }
+]

@@ -228,10 +228,14 @@ const OrderInfoPage: React.FC = () => {
               }
               if (res && res.resultCode === 0) {
                 window.location.href = res.payUrl;
+
+                setTimeout(() => {
+                  removeProductFromCart(
+                    selectedProducts.map((product) => product.productId)
+                  );
+                }, 1000);
               }
-              removeProductFromCart(
-                selectedProducts.map((product) => product.productId)
-              );
+
             } catch (error) {
               console.error("Error creating payment request:", error);
               return null;

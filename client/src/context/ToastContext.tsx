@@ -20,13 +20,7 @@ export const ToastContext = createContext<IToastContext>({
 });
 
 const preSetup = {
-  duration: 4000,
-  style: {
-    padding: '16px',
-    borderRadius: '8px',
-    background: '#333',
-    color: '#fff',
-  },
+  duration: 1000,
 } as const;
 
 export default function ToastContextProvider({
@@ -73,14 +67,9 @@ export default function ToastContextProvider({
     >
       <Toaster
         position={pos}
+        reverseOrder={false}
         toastOptions={{
           duration: 2000,
-          style: {
-            padding: '16px',
-            borderRadius: '8px',
-            background: '#333',
-            color: '#fff',
-          },
         }}
       />
       {children}

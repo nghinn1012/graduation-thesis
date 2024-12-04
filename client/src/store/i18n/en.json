@@ -254,8 +254,8 @@
     "saved-fail": "Error occurred while saving post: {0}",
     "remove-plan-success": "Removed from plan successfully",
     "add-plan-success": "Added to plan successfully",
-    "add-shoppping-list-success": "Saved to shopping list successfully",
-    "remove-shoppping-list-success": "Removed from shopping list successfully"
+    "add-shopping-list-success": "Saved to shopping list successfully",
+    "remove-shopping-list-success": "Removed from shopping list successfully"
   },
   "CommentSection": {
     "replying-to": "Replying to",

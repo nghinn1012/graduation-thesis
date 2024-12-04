@@ -1,0 +1,420 @@
+[
+  {
+    "test": {
+      "message": "It should reject due to missing images",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing title",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing ingredients",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing instructions",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "instructions": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing description",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing timeToTake",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "timeToTake": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing courses",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to missing difficulty",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to invalid userId id",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to invalid place id",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "images": [],
+        "title": "Test title",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to empty title",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "title": "",
+        "images": [],
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": "medium",
+        "dietary": null
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to images contains empty string",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "title": "Test title",
+        "images": [""],
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": "hard"
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to categories contains empty string",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "title": "Test title",
+        "images": [
+          "http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz"
+        ],
+        "categories": [""],
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": "hard"
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to timeToTake is not number",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "title": "Test title",
+        "images": [
+          "http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz"
+        ],
+        "categories": ["ANIMAL_PRODUCT"],
+        "timeToTake": "12",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": "hard"
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to servings is not number",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": "66252db3dce942e19b422a8e",
+        "title": "Test title",
+        "images": [
+          "http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz"
+        ],
+        "categories": ["ANIMAL_PRODUCT"],
+        "servings": "12",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": "hard"
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should reject due to author is not string",
+      "result": false,
+      "code": 400
+    },
+    "input": {
+      "body": {
+        "userId": 439758276479843796579,
+        "title": "Test title",
+        "images": [
+          "http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz"
+        ],
+        "categories": ["ANIMAL_PRODUCT"],
+        "servings": "12",
+        "ingredients": [
+          {
+            "name": "Test ingredient",
+            "quantity": 1
+          }
+        ],
+        "description": "Test description",
+        "courses": "breakfast",
+        "difficulty": "hard"
+      }
+    }
+  },
+  {
+    "test": {
+      "message": "It should success",
+      "result": true,
+      "code": 200
+    },
+    "input": {
+      "body": {
+        "title": "Bánh chuối đậu cà khoai môn",
+        "author": "66dc787fb97fa3075225d390",
+        "images": [
+          "https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/wwj86gl6vdtejkfo42m3.png",
+          "https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/m4ram0b2it7n6gaqdor4.png",
+          "https://res.cloudinary.com/dngqemjgu/image/upload/v1725724868/posts/eahcrk6sbdsqeolx3tfu.png"
+        ],
+        "hashtags": ["general"],
+        "timeToTake": 30,
+        "servings": 1,
+        "ingredients": [
+          {
+            "name": "1",
+            "quantity": "1",
+            "_id": {
+              "$oid": "66dc78c1f1a188db1c43418b"
+            }
+          },
+          {
+            "name": "1",
+            "quantity": "2",
+            "_id": {
+              "$oid": "66dc78c1f1a188db1c43418c"
+            }
+          }
+        ],
+        "instructions": [
+          {
+            "step": 1,
+            "description": "1",
+            "image": "https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/ary1u6jyktmkni5h9mr9.png",
+            "_id": {
+              "$oid": "66dc78c4f1a188db1c434191"
+            }
+          },
+          {
+            "step": 2,
+            "description": "2",
+            "image": "https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/obd8f2c4prbtdvvdr0mu.png",
+            "_id": {
+              "$oid": "66dc78c4f1a188db1c434192"
+            }
+          }
+        ],
+        "createdAt": {
+          "$date": "2024-09-07T16:01:05.645Z"
+        },
+        "updatedAt": {
+          "$date": "2024-09-07T16:01:05.645Z"
+        },
+        "__v": 0,
+        "likeCount": 0,
+        "savedCount": 1,
+        "commentCount": 0,
+        "averageRating": 0,
+        "difficulty": "medium"
+      }
+    }
+  }
+]
