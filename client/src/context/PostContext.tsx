@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useToastContext } from "../hooks/useToastContext";
 import { useProfileContext } from "./ProfileContext";
+import { useNavigate } from "react-router-dom";
 
 interface PostContextType {
   posts: PostInfo[];
@@ -72,6 +73,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   >({});
   const [postUpdatedHome, setPostUpdatedHome] = useState<string>("");
   const {postLikes, setPostLikes} = useProfileContext();
+  const navigate = useNavigate();
+
   const fetchPosts = useCallback(async () => {
     if (!auth?.token || isLoading || !hasMore) return;
 
@@ -191,7 +194,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       return updatedPost as unknown as PostInfo;
     } catch (err) {
       console.error("Failed to fetch the updated post:", error);
-      error("Failed to fetch the updated post: " + (err as Error).message);
     }
   };
 

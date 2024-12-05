@@ -442,7 +442,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
     <div className="inset-0 flex items-start justify-center">
       <Toaster />
       <div className="modal-overlay fixed inset-0 bg-black opacity-40"></div>
-      <div className="responsive modal-content absolute top-0 bg-white p-6 rounded-lg w-full max-w-lg z-50 overflow-y-auto max-h-[800px]">
+      <div className="responsive modal-content absolute top-0 bg-white rounded-lg p-5 w-full max-w-lg z-50 overflow-y-auto max-h-[800px]">
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           onClick={onClose}
@@ -453,7 +453,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
         <div className="tabs tabs-boxed mt-6" role="tablist">
           <a
             role="tab"
-            className={`tab tab-lifted ${
+            className={`tab tab-lifted sm:text-xs ${
               activeTab === 0 ? "tab-active active-tab" : ""
             }`}
             onClick={() => setActiveTab(0)}
@@ -462,7 +462,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           </a>
           <a
             role="tab"
-            className={`tab tab-lifted ${
+            className={`tab tab-lifted sm:text-xs ${
               activeTab === 1 ? "tab-active active-tab" : ""
             }`}
             onClick={() => setActiveTab(1)}
@@ -471,7 +471,7 @@ const CreatePostModal: React.FC<PostModalProps> = ({
           </a>
           <a
             role="tab"
-            className={`tab tab-lifted ${
+            className={`tab tab-lifted sm:text-xs ${
               activeTab === 2 ? "tab-active active-tab" : ""
             }`}
             onClick={() => setActiveTab(2)}

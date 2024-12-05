@@ -12,6 +12,9 @@ import RightPanel from "./components/common/RightPanel";
 import AppMainCenter from "./context/MainContext";
 import ForgotPasswordPage from "./pages/auth/verify/ForgotPassword";
 import ResetPasswordPage from "./pages/auth/verify/ResetPasswordPage";
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminIndex from "./pages/index/AdminIndex";
+import NotFoundPage from "./common/auth/NotFoundPage";
 export function App() {
   const location = useLocation();
   return (
@@ -24,12 +27,13 @@ export function App() {
               <IsAuthenticated>
                 <div className="flex max-w-7xl mx-auto">
                   <Sidebar />
-                  <AppMainCenter/>
-                  {location.pathname !== '/posts/explore' && <RightPanel />}
+                  <AppMainCenter />
+                  {location.pathname !== "/posts/explore" && <RightPanel />}
                 </div>
               </IsAuthenticated>
             }
           />
+          <Route path="/admin/*" element={<AdminIndex />} />
           <Route
             path="/login"
             element={
@@ -50,6 +54,15 @@ export function App() {
           <Route path="/verify/*" element={<VerifyPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+          <Route
+            path="not-found"
+            element={
+              <IsAuthenticated>
+                <NotFoundPage />
+              </IsAuthenticated>
+            }
+          />
         </Routes>
       </GoogleOAuthProvider>
     </AppContextProviders>

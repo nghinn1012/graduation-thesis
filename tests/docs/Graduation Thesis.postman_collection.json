@@ -1,0 +1,2056 @@
+{
+	"info": {
+		"_postman_id": "b8c9affd-63a7-499f-af7d-96cd559a97f4",
+		"name": "Graduation Thesis",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "28886358"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ name: \"John Doe\",\n  email: \"johndoe@example.com\",\n  password: \"JohnDoe@2024\",\n  confirmPassword: \"JohnDoe@2024\",\n  username: \"john_doe\",\n  avatar: \"https://example.com/johndoe_avatar.jpg\",\n  coverImage: \"https://example.com/johndoe_cover.jpg\",\n  bio: \"I am John Doe, a test user for API testing.\"}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:7070/users/register"
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"user7@gmail.com\",\n    \"password\": \"Password@123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:7070/users/login"
+							},
+							"response": []
+						},
+						{
+							"name": "Register with GG",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:7070/users/google-login"
+							},
+							"response": []
+						},
+						{
+							"name": "RefreshToken",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmM3NmQ1ZDE4ZDdiMTBlNWM5ZWZiOWUiLCJpYXQiOjE3MjQzNzg2OTUsImV4cCI6MTcyNDk4MzQ5NX0.OhS_21uXdMJzgwBsKSiPfVa8OriB6unmj_J60nCxlT0\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:7070/users/refresh-token"
+							},
+							"response": []
+						},
+						{
+							"name": "Active",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:7070/users/verifyUser?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7Im5hbWUiOiJoaWhpIiwiZW1haWwiOiJidm04ODY4NUB0Y2Noby5jb20iLCJwYXNzd29yZCI6IiQyYiQxMCRDTVFyUkJEaDFURGVlVW1uZGVra2V1SmRFSzZrNlpJRnJobm9uSVFid2lGL0x1eWhiVTd0UyIsImNvbmZpcm1QYXNzd29yZCI6IlBhc3N3b3JkQDEyMyJ9LCJpYXQiOjE3MjQ2MDQwNjYsImV4cCI6MTcyNDYwNzY2Nn0.Eukfiphsc90EquAr5W5xgVIDlB5vJsjk8LCp_1lurig",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "7070",
+									"path": [
+										"users",
+										"verifyUser"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7Im5hbWUiOiJoaWhpIiwiZW1haWwiOiJidm04ODY4NUB0Y2Noby5jb20iLCJwYXNzd29yZCI6IiQyYiQxMCRDTVFyUkJEaDFURGVlVW1uZGVra2V1SmRFSzZrNlpJRnJobm9uSVFid2lGL0x1eWhiVTd0UyIsImNvbmZpcm1QYXNzd29yZCI6IlBhc3N3b3JkQDEyMyJ9LCJpYXQiOjE3MjQ2MDQwNjYsImV4cCI6MTcyNDYwNzY2Nn0.Eukfiphsc90EquAr5W5xgVIDlB5vJsjk8LCp_1lurig"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Information",
+					"item": [
+						{
+							"name": "Get User By ID",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:7070/users/getUser/66dc787fb97fa3075225d390"
+							},
+							"response": []
+						},
+						{
+							"name": "SearchUser",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:7070/users/search?name=kfc",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "7070",
+									"path": [
+										"users",
+										"search"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "kfc"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "UpdateUser",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"bio\": \"Cơm ngon\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:7070/users/update/66df2545b714b857750b0202"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:7070/users"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Follow user/hashtag",
+					"item": [
+						{
+							"name": "Suggest",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:7070/users/suggest"
+							},
+							"response": []
+						},
+						{
+							"name": "Follow/Unfollow user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"url": "http://localhost:7070/users/followUser/66f9642055b5afcbe5242c38"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Followers Of User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:7070/users/following/66df2545b714b857750b0202"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Notification",
+			"item": [
+				{
+					"name": "Message",
+					"item": [
+						{
+							"name": "Send Message To User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyODEwMjMyMiwiZXhwIjoxNzI4MTA1OTIyfQ.Fb2_aITne--KfZFxA_82xeN-qCsSqz-OeS6hmH_566w"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"receiverId\": \"66dc7b7db97fa3075225d3ba\",\n    \"messageContent\": {\n        \"text\": \"Xin chào, đây là tin nhắn gửi từ API check xem text hoạt động\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8080/sendMessage"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Chat Groups",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzA1NzQyMSwiZXhwIjoxNzMzMDYxMDIxfQ.OYBd__05bOXVUpBmFxkOrrLCI8BFuUjsrSbdZSuNSao"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/notifications/getChatGroups?limit=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"notifications",
+										"getChatGroups"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Messages Of Chat Group",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMjEyMTc5MSwiZXhwIjoxNzMyMTI1MzkxfQ.42CrRgKhV7c1ZG_VmvwIq7RizKTL_-qsS7LyBTRG2M0"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/notifications/getMessages/67036470a15649ce01579742?page=1&limit=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"notifications",
+										"getMessages",
+										"67036470a15649ce01579742"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Group Chat",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Rename Group",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMjIwNzE3MywiZXhwIjoxNzMyMjEwNzczfQ.Ngy99rxOy2alVGDdpk5gdf0zFGQ6Ntil_M0WtWtqolU"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"chatGroupId\": \"66df2545b714b857750b0202\",\r\n    \"groupName\": \"Đổi tên từ API\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:8080/notifications/updateChatGroupName"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Notifications",
+					"item": [
+						{
+							"name": "Get All Notifications",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:8080/notifications/getAllNotifications"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Hello",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Create Post",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"author\": \"66cf3eacd036f599e51e1cbf\",\n  \"images\": [\"image1.jpg\", \"image2.jpg\"],\n  \"title\": \"Delicious Pasta\",\n  \"hashtags\": [\"#pasta\", \"#delicious\", \"#easyrecipe\"],\n  \"timeToTake\": 30,\n  \"servings\": 4,\n  \"ingredients\": [\n    {\n      \"name\": \"Pasta\",\n      \"quantity\": \"200g\"\n    },\n    {\n      \"name\": \"Tomato Sauce\",\n      \"quantity\": \"100g\"\n    },\n    {\n      \"name\": \"Cheese\",\n      \"quantity\": \"50g\"\n    },\n    {\n      \"name\": \"Salt\",\n      \"quantity\": \"To taste\"\n    },\n    {\n      \"name\": \"Pepper\",\n      \"quantity\": \"To taste\"\n    }\n  ],\n  \"instructions\": [\n    {\n      \"step\": 1,\n      \"description\": \"Boil the pasta.\"\n    },\n    {\n      \"step\": 2,\n      \"description\": \"Heat the tomato sauce.\"\n    },\n    {\n      \"step\": 3,\n      \"description\": \"Mix pasta with sauce.\"\n    },\n    {\n      \"step\": 4,\n      \"description\": \"Sprinkle cheese on top.\"\n    },\n    {\n      \"step\": 5,\n      \"description\": \"Add salt and pepper to taste.\"\n    }\n  ]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/create"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Posts",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2Y2YzZWFjZDAzNmY1OTllNTFlMWNiZiIsImVtYWlsIjoiam9obmRvZUBoaWhpLmNvbSJ9LCJpYXQiOjE3MjUwMjc1NTksImV4cCI6MTcyNTAzMTE1OX0.ibA90Xi212X_ngAnoM0aygSdgSEpdc93qThvCKwF97I"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"instructions\": [\n        {\n            \"description\": \"Step 2\"\n        },\n        {\n            \"description\": \"Boil the cream.\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/66d1d4f90555604a313194f9"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Posts",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Get Post By ID",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/672e1e84e6ce836cfe7a3f06"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Post",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": "http://localhost:9090/posts/672e1e84e6ce836cfe7a3f06"
+							},
+							"response": []
+						},
+						{
+							"name": "Search",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": [
+								{
+									"name": "Search",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "http://localhost:9090/posts/search?query=cơm&minTime=0&maxTime=60&minQuality=4&haveMade=true&difficulty=[\"easy\", \"medium\"]&hashtags=[\"quick\", \"dinner\"]&timeOrder=1&qualityOrder=1",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "9090",
+											"path": [
+												"posts",
+												"search"
+											],
+											"query": [
+												{
+													"key": "query",
+													"value": "cơm"
+												},
+												{
+													"key": "minTime",
+													"value": "0"
+												},
+												{
+													"key": "maxTime",
+													"value": "60"
+												},
+												{
+													"key": "minQuality",
+													"value": "4"
+												},
+												{
+													"key": "haveMade",
+													"value": "true"
+												},
+												{
+													"key": "difficulty",
+													"value": "[\"easy\", \"medium\"]"
+												},
+												{
+													"key": "hashtags",
+													"value": "[\"quick\", \"dinner\"]"
+												},
+												{
+													"key": "timeOrder",
+													"value": "1"
+												},
+												{
+													"key": "qualityOrder",
+													"value": "1"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "114"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"72-2Kzh35p/NeKkYU72aOWs5UTOkI8\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 04 Dec 2024 15:31:37 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"No posts found matching the search criteria.\",\n    \"posts\": [],\n    \"totalPosts\": 0,\n    \"currentPage\": 1,\n    \"pageSize\": 10\n}"
+								}
+							]
+						},
+						{
+							"name": "Get All Posts Of User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66df2545b714b857750b0202/getAllOfUser"
+							},
+							"response": []
+						},
+						{
+							"name": "Search Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"[\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing images\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing title\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing ingredients\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing instructions\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"instructions\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing description\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing timeToTake\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"timeToTake\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing courses\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to missing difficulty\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to invalid userId id\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to invalid place id\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"images\": [],\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to empty title\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"title\": \"\",\r",
+											"                \"images\": [],\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": \"medium\",\r",
+											"                \"dietary\": null\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to images contains empty string\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"images\": [\r",
+											"                    \"\"\r",
+											"                ],\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": \"hard\"\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to categories contains empty string\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"images\": [\r",
+											"                    \"http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz\"\r",
+											"                ],\r",
+											"                \"categories\": [\r",
+											"                    \"\"\r",
+											"                ],\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": \"hard\"\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to timeToTake is not number\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"images\": [\r",
+											"                    \"http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz\"\r",
+											"                ],\r",
+											"                \"categories\": [\r",
+											"                    \"ANIMAL_PRODUCT\"\r",
+											"                ],\r",
+											"                \"timeToTake\": \"12\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": \"hard\"\r",
+											"            }\r",
+											"        }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should reject due to servings is not number\",\r",
+											"            \"result\": false,\r",
+											"            \"code\": 400\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"                \"userId\": \"66252db3dce942e19b422a8e\",\r",
+											"                \"title\": \"Test title\",\r",
+											"                \"images\": [\r",
+											"                    \"http://res.cloudinary.com/dalvsnhwg/image/upload/v1702100786/mujq6q5cz\"\r",
+											"                ],\r",
+											"                \"categories\": [\r",
+											"                    \"ANIMAL_PRODUCT\"\r",
+											"                ],\r",
+											"                \"servings\": \"12\",\r",
+											"                \"ingredients\": [\r",
+											"                    {\r",
+											"                        name: \"Test ingredient\",\r",
+											"                        quantity: 1\r",
+											"                    }\r",
+											"                ],\r",
+											"                \"description\": \"Test description\",\r",
+											"                \"courses\": \"breakfast\",\r",
+											"                \"difficulty\": \"hard\"\r",
+											"        }\r",
+											"    }\r",
+											"    },\r",
+											"    {\r",
+											"        \"test\": {\r",
+											"            \"message\": \"It should success\",\r",
+											"            \"result\": true,\r",
+											"            \"code\": 200\r",
+											"        },\r",
+											"        \"input\": {\r",
+											"            \"body\": {\r",
+											"             \"title\": \"Bánh chuối đậu cà khoai môn\",\r",
+											"  \"author\": \"66dc787fb97fa3075225d390\",\r",
+											"  \"images\": [\r",
+											"    \"https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/wwj86gl6vdtejkfo42m3.png\",\r",
+											"    \"https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/m4ram0b2it7n6gaqdor4.png\",\r",
+											"    \"https://res.cloudinary.com/dngqemjgu/image/upload/v1725724868/posts/eahcrk6sbdsqeolx3tfu.png\"\r",
+											"  ],\r",
+											"  \"hashtags\": [\r",
+											"    \"general\"\r",
+											"  ],\r",
+											"  \"timeToTake\": 30,\r",
+											"  \"servings\": 1,\r",
+											"  \"ingredients\": [\r",
+											"    {\r",
+											"      \"name\": \"1\",\r",
+											"      \"quantity\": \"1\",\r",
+											"      \"_id\": {\r",
+											"        \"$oid\": \"66dc78c1f1a188db1c43418b\"\r",
+											"      }\r",
+											"    },\r",
+											"    {\r",
+											"      \"name\": \"1\",\r",
+											"      \"quantity\": \"2\",\r",
+											"      \"_id\": {\r",
+											"        \"$oid\": \"66dc78c1f1a188db1c43418c\"\r",
+											"      }\r",
+											"    }\r",
+											"  ],\r",
+											"  \"instructions\": [\r",
+											"    {\r",
+											"      \"step\": 1,\r",
+											"      \"description\": \"1\",\r",
+											"      \"image\": \"https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/ary1u6jyktmkni5h9mr9.png\",\r",
+											"      \"_id\": {\r",
+											"        \"$oid\": \"66dc78c4f1a188db1c434191\"\r",
+											"      }\r",
+											"    },\r",
+											"    {\r",
+											"      \"step\": 2,\r",
+											"      \"description\": \"2\",\r",
+											"      \"image\": \"https://res.cloudinary.com/dngqemjgu/image/upload/v1725724867/posts/obd8f2c4prbtdvvdr0mu.png\",\r",
+											"      \"_id\": {\r",
+											"        \"$oid\": \"66dc78c4f1a188db1c434192\"\r",
+											"      }\r",
+											"    }\r",
+											"  ],\r",
+											"  \"createdAt\": {\r",
+											"    \"$date\": \"2024-09-07T16:01:05.645Z\"\r",
+											"  },\r",
+											"  \"updatedAt\": {\r",
+											"    \"$date\": \"2024-09-07T16:01:05.645Z\"\r",
+											"  },\r",
+											"  \"__v\": 0,\r",
+											"  \"likeCount\": 0,\r",
+											"  \"savedCount\": 1,\r",
+											"  \"commentCount\": 0,\r",
+											"  \"averageRating\": 0,\r",
+											"  \"difficulty\": \"medium\"\r",
+											"            }\r",
+											"        }\r",
+											"    }\r",
+											"]"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzMyMzU4NCwiZXhwIjoxNzMzMzI3MTg0fQ.wrLlwNLkPjNKHeHUOV5y23nZ0pdUtyokgbXaeKdT7DY"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:9090/posts/search?query=cơm&minTime=0&maxTime=60&minQuality=4&haveMade=true&difficulty=[\"easy\", \"medium\"]&hashtags=[\"quick\", \"dinner\"]&timeOrder=1&qualityOrder=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "9090",
+									"path": [
+										"posts",
+										"search"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "cơm"
+										},
+										{
+											"key": "minTime",
+											"value": "0"
+										},
+										{
+											"key": "maxTime",
+											"value": "60"
+										},
+										{
+											"key": "minQuality",
+											"value": "4"
+										},
+										{
+											"key": "haveMade",
+											"value": "true"
+										},
+										{
+											"key": "difficulty",
+											"value": "[\"easy\", \"medium\"]"
+										},
+										{
+											"key": "hashtags",
+											"value": "[\"quick\", \"dinner\"]"
+										},
+										{
+											"key": "timeOrder",
+											"value": "1"
+										},
+										{
+											"key": "qualityOrder",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Post Action",
+					"item": [
+						{
+							"name": "LikeOrUnlikePost",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjIzMzY0NywiZXhwIjoxNzI2MjM3MjQ3fQ.tSrVLfF8fu5Xguc4JErlAX5b8gjtnb8diZzeDT1qJeQ"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e2fbbc8b8e3795ed9c8183/like"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Posts Like By UserId",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjIzNjM0NywiZXhwIjoxNzI2MjM5OTQ3fQ.vR6l_X7Cdb9XNCUg0pXi0j8XD49-nMWH3o5aa4-dMj8"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/likes"
+							},
+							"response": []
+						},
+						{
+							"name": "Save or Unsaved Post",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjI0ODAzMCwiZXhwIjoxNzI2MjUxNjMwfQ.X2ZhE2LhO3Ols9fugzOSi1Kg9rOR0nx5MyXt7nqJMGg"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e45fcdde01ed32d389e7a9/save"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Posts Save By User Id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjI1MzcxNywiZXhwIjoxNzI2MjU3MzE3fQ._2U8E4B0g_PRJySFV3LS0uhASE0_96TaDZU6o9u5yuk"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/savedList"
+							},
+							"response": []
+						},
+						{
+							"name": "Check Liked By User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e45fcdde01ed32d389e7a9/isLiked"
+							},
+							"response": []
+						},
+						{
+							"name": "Check Saved By User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e45fcdde01ed32d389e7a9/isSaved"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Posts By Following",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/following"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Made Recipe",
+					"item": [
+						{
+							"name": "Create New Made",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjMxNDQ1OSwiZXhwIjoxNzI2MzE4MDU5fQ.Uq0WBXVgkA54CJvnsQVYmR-6pR4bKoBnz6li86R8Dqs"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"image\": \"https://res.cloudinary.com/dngqemjgu/image/upload/v1726240960/posts/cpwaupfuobkgsqxzr7ty.png\",\n    \"review\": \"Ngon\",\n    \"rating\": 2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/66e45fcdde01ed32d389e7a9/made"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Made of Post",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e2fbbc8b8e3795ed9c8183/getMades"
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Made",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjQwNzQxNiwiZXhwIjoxNzI2NDExMDE2fQ.dE_g5ogB_Twjj9EV2Wpn3fz1AY40ROrKfVeT4dcdiH8"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"review\": \"Chirnh sua tu api\",\n    \"rating\": 2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/66e6b895b512ffc97cf7ea98/made"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Made By ID",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66f8522b6f91c1fdd0a477d4/made"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Made",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": "http://localhost:9090/posts/66f8522b6f91c1fdd0a477d4/made"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Comment",
+					"item": [
+						{
+							"name": "Create Comment",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjU2MjYzMSwiZXhwIjoxNzI2NTY2MjMxfQ.HgSQc-7f55iX6IUKS6JOXTBxtUI8ea3QVwEzIi_R-As"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"Test comment dau tien thu 2\",\n    \"userMention\": [\"UserId\"],\n    \"parentCommentId\": \"66e8724cf0cd68471a4f8982\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/66e45fcdde01ed32d389e7a9/comment"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Comment Of Post",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjUwODY0MiwiZXhwIjoxNzI2NTEyMjQyfQ.ywTX_YNznOG2PMnt4cxoJyHNqz0tyC3LfKthej1LnwA"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e45fcdde01ed32d389e7a9/comment"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Comment By Id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/66eaffb67611b8037d61b0e9/getComment"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Comment",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"Hihi\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/66eb01287611b8037d61b6cd/comment"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Comment",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjU4NjQxMSwiZXhwIjoxNzI2NTkwMDExfQ.5SYudMOXUgsT3dAzCS1ycBxNyGdtOo10ZUKYrqLG_fI"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": "http://localhost:9090/posts/66e9a3228a6fb38b7db20da5/comment"
+							},
+							"response": []
+						},
+						{
+							"name": "Like or Unlike Comment",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"url": "http://localhost:9090/posts/66eb01287611b8037d61b6cd/likeComment"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Shopping List",
+					"item": [
+						{
+							"name": "Add To Shopping List",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjY3OTUzNiwiZXhwIjoxNzI2NjgzMTM2fQ.EyykdlOpGdCUDOTx_ns4Pkpc22vUrTBBOusnY-mBPew"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"postId\": \"66e45fcdde01ed32d389e7a9\",\n    \"servings\": 2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/shoppingList/add"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Shopping List",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/shoppingList"
+							},
+							"response": []
+						},
+						{
+							"name": "Check Added Post To Shopping List",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/shoppingList/66e45fcdde01ed32d389e7a9"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Post From Shopping Lists",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNjc1MTcwMiwiZXhwIjoxNzI2NzU1MzAyfQ.HVCBCBKlEXW0uqE_euq1KNEHSwEah9_eQdyMVcOaKtI"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"url": "http://localhost:9090/posts/shoppingList/66e45fcdde01ed32d389e7a9"
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Ingredient",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"postId\": \"670ace50ee06695b0d197535\",\r\n    \"ingredients\": {\r\n        \"name\": \"Rau dền\",\r\n        \"quantity\": 10\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/shoppingList/update"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Ingredient",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"ingredientId\": \"67460bfbfdea6f5fdce1f9f2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/shoppingList/removeIngredient"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Ingredients (Nhiều)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"ingredientIds\": [\r\n        \"674edbe57c577171b2f33c9e\",\r\n        \"674edbe57c577171b2f33c9d\"\r\n    ],\r\n    \"postIds\": [\r\n        \"\",\r\n        \"\"\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/shoppingList/removeIngredients"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Meal Planner",
+					"item": [
+						{
+							"name": "Add Meal To Meal Planner",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNzAxNzg4MCwiZXhwIjoxNzI3MDIxNDgwfQ.qAyd-0eZsMnrnG9WyVG76TNzP51XDJwtLnQFbhcyPMI"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"postId\": \"66ebf9741808f13ec3fd9425\",\n    \"is_planned\": true,\n    \"plannedDate\": \"2024-09-22T15:17:51.799Z\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/mealPlanner/create"
+							},
+							"response": []
+						},
+						{
+							"name": "Check Post is Unscheduled",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/mealPlanner/checkPost/66dc787fb97fa3075225d390"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Meal Planner",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/mealPlanner/getAll"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Meal",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyNzAyMzI4MSwiZXhwIjoxNzI3MDI2ODgxfQ.3Q-1NTsop09phbM7q8QL7IKvuF0hqcD5CWRens5mK24"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"postId\": \"66e45a14015555d69b2a30a0\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/mealPlanner/remove"
+							},
+							"response": []
+						},
+						{
+							"name": "Schedule Meal",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mealId\": \"6712a773598e16fec30f7fd0\",\r\n    \"plannedDate\": [\r\n        {\r\n            \"date\": \"Wed Nov 27 2024 00:00:00 GMT+0700 (Indochina Time)\",\r\n            \"mealTime\": false\r\n        },\r\n        {\r\n            \"date\": \"Thu Nov 28 2024 00:00:00 GMT+0700 (Indochina Time)\",\r\n            \"mealTime\": false\r\n        },\r\n        {\r\n            \"date\": \"Tue Dec 03 2024 00:00:00 GMT+0700 (Indochina Time)\",\r\n            \"mealTime\": false\r\n        },\r\n        {\r\n            \"date\": \"Wed Dec 04 2024 00:00:00 GMT+0700 (Indochina Time)\",\r\n            \"mealTime\": false\r\n        },\r\n        {\r\n            \"date\": \"Thu Dec 05 2024 00:00:00 GMT+0700 (Indochina Time)\",\r\n            \"mealTime\": false\r\n        }\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/mealPlanner/scheduleMeal"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Product",
+					"item": [
+						{
+							"name": "Add Product To Cart",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyOTE3MDE4OSwiZXhwIjoxNzI5MTczNzg5fQ.xKee_5ltRN45k95AIIoOBeGRGwONW0_tZt2X0pmq85g"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"productId\": \"671106eed4c6d4f986d8f1db\",\n    \"quantity\": \"2\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/product/addToCart"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Products Active",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/product/getAll"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cart",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/product/getCart"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Product By Post Id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:9090/posts/product/getProductByPostId/66f42673df8e2eb254c53eff"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove From Cart",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyOTI1MzY1OCwiZXhwIjoxNzI5MjU3MjU4fQ.8ttJgjwv-BNeM8qIMsm6-cqimuLPh4_0itk6C4wy2ZA"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"url": "http://localhost:9090/posts/product/removeFromCart/671106eed4c6d4f986d8f1db"
+							},
+							"response": []
+						},
+						{
+							"name": "Search",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyOTMzMzg4MSwiZXhwIjoxNzI5MzM3NDgxfQ.wAhw516VSHARi69y77-MuNEQWxUEeLbT_07y2WutQTs"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:9090/posts/product/search?query=&page=1&limit=8",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "9090",
+									"path": [
+										"posts",
+										"product",
+										"search"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": ""
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "8"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Review",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMDU1Njg3MCwiZXhwIjoxNzMwNTYwNDcwfQ.OnPQ6eErfi4w5OYvMPcVpuRoee5kA6zDXhR5iBMmfJ4"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"orderId\": \"6725e66cf585db2f263a3f84\",\r\n    \"reviewsData\": [\r\n        {\r\n            \"productId\": \"6712803dc37055e7c2650070\",\r\n            \"rating\": 1,\r\n            \"review\": \"Ăn quá mặn\"\r\n        }\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/product/createReview"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Order",
+					"item": [
+						{
+							"name": "Create Order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMzM5MDc3NCwiZXhwIjoxNzMzMzk0Mzc0fQ.WStUvV0YZLu9diz_XJBNsCYVIZwHrz1KdOuC1i-kRFE"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"sellerId\": \"66dc7b7db97fa3075225d3ba\",\r\n    \"products\": [\r\n        {\r\n            \"productId\": \"6712803dc37055e7c2650070\",\r\n            \"quantity\": 2\r\n        }\r\n    ],\r\n    \"info\": {\r\n        \"name\": \"Ngô Thảo Hươngd\",\r\n        \"phone\": \"0316819122\",\r\n        \"address\": \"đ\",\r\n        \"note\": \"\"\r\n    },\r\n    \"address\": \"đ\",\r\n    \"shippingFee\": 50000,\r\n    \"note\": \"\",\r\n    \"paymentMethod\": \"cod\",\r\n    \"amount\": 2444\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/order/create"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Order By User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyOTU4MTg4OSwiZXhwIjoxNzI5NTg1NDg5fQ.PENtKbWXLG0LI4mGqQ4xKY6ZhScs1SqOn5EiSvAXI2s"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:9090/posts/order/getOrderByUser?page=1&limit=8&status=Canceled",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "9090",
+									"path": [
+										"posts",
+										"order",
+										"getOrderByUser"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "8"
+										},
+										{
+											"key": "status",
+											"value": "Canceled"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Order Of Seller",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTcyOTU4MTg4OSwiZXhwIjoxNzI5NTg1NDg5fQ.PENtKbWXLG0LI4mGqQ4xKY6ZhScs1SqOn5EiSvAXI2s"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:9090/posts/order/getOrderBySeller?page=1&limit=8&status=Pending",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "9090",
+									"path": [
+										"posts",
+										"order",
+										"getOrderBySeller"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "8"
+										},
+										{
+											"key": "status",
+											"value": "Pending"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Order By Id",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Cancel Order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMDIyMzQ5MiwiZXhwIjoxNzMwMjI3MDkyfQ.z97F0SYP4kfdKJbHQhsGNqEFt0OCdMaxFJneHz-ZjXM"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"orderId\": \"6720e7e879d537d277bf3fad\",\r\n    \"reason\": \"Dont want\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/order/cancelOrder"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Status Of Order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMDIyMzQ5MiwiZXhwIjoxNzMwMjI3MDkyfQ.z97F0SYP4kfdKJbHQhsGNqEFt0OCdMaxFJneHz-ZjXM"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"orderId\": \"671e767856ed089c396a6550\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:9090/posts/order/updateOrderStatus"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Payment",
+					"item": [
+						{
+							"name": "Create Payment Link",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6IjY2ZGYyNTQ1YjcxNGI4NTc3NTBiMDIwMiIsImVtYWlsIjoiZ2x1NzU0MjBAZGNvYmUuY29tIn0sImlhdCI6MTczMjg5OTM2OCwiZXhwIjoxNzMyOTAyOTY4fQ.jiTsme50EIzrK6cFlChNShCoL8j-UfBKQPVqZGKSfTM"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"orderId\": \"1255343333\",\r\n    \"amount\": 20000,\r\n    \"redirectUrl\": \"http://localhost:3000/\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:5000/api/post/posts/payment"
+							},
+							"response": []
+						},
+						{
+							"name": "Handle Callback Momo",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "API Gateway",
+			"item": [
+				{
+					"name": "Test Gateway",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user11@gmail.com\",\n    \"password\": \"Password@123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5000/api/user/users/login"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

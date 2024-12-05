@@ -129,6 +129,12 @@ public sortByQuality(sortOrder: number) {
     return this;
   }
 
+  public filterByNotDeleted() {
+    this.matchCriteria.isDeleted = false;
+    return this;
+  }
+
+
   public build(): any[] {
     const pipeline: any[] = [
       { $match: this.matchCriteria },

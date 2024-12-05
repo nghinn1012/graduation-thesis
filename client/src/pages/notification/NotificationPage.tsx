@@ -1,4 +1,11 @@
-import React, { FC, useState, useMemo, useRef, useCallback, useEffect } from "react";
+import React, {
+  FC,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IoSettingsOutline } from "react-icons/io5";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -30,7 +37,7 @@ const NotificationPage: FC = () => {
     markAllNotificationsAsRead,
     loadMoreNotifications,
     loading,
-    hasMore
+    hasMore,
   } = useNotificationContext();
   const [isLoadingPost, setIsLoadingPost] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
@@ -40,22 +47,25 @@ const NotificationPage: FC = () => {
   const { auth, account } = useAuthContext();
   const language = useI18nContext();
   const lang = language.of("NotificationSection");
-  const {success, error} = useToastContext();
+  const { success, error } = useToastContext();
 
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const lastNotificationRef = useCallback((node: HTMLDivElement) => {
-    if (loading) return;
-    if (observerRef.current) observerRef.current.disconnect();
-    observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        loadMoreNotifications();
-      }
-    });
-    if (node) observerRef.current.observe(node);
-  }, [loading, hasMore, loadMoreNotifications]);
+  const lastNotificationRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMoreNotifications();
+        }
+      });
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, hasMore, loadMoreNotifications]
+  );
 
   useEffect(() => {
-    const notificationContainer = document.querySelector('.overflow-y-auto');
+    const notificationContainer = document.querySelector(".overflow-y-auto");
     if (notificationContainer) {
       notificationContainer.scrollTop = 0;
     }
@@ -87,9 +97,15 @@ const NotificationPage: FC = () => {
       } else {
         setIsLoadingPost(true);
         const post = await fetchPost(postId);
-        navigate(`/posts/${author._id}`, {
-          state: { post, postAuthor: account?._id, locationPath },
-        });
+        console.log(post);
+        if (!post || post.isDeleted) {
+          navigate("/not-found");
+          console.error("Post not found");
+        } else {
+          navigate(`/posts/${postId}`, {
+            state: { post, postAuthor: account?._id, locationPath },
+          });
+        }
       }
       await markNotificationAsRead(notificationId);
     } catch (error) {
@@ -149,14 +165,20 @@ const NotificationPage: FC = () => {
 
       <div className="flex-grow overflow-y-auto border-b border-l border-r border-gray-300">
         {filteredNotifications.length === 0 ? (
-          <div className="text-center p-4 font-bold">{lang("no-notifications")}</div>
+          <div className="text-center p-4 font-bold">
+            {lang("no-notifications")}
+          </div>
         ) : (
           filteredNotifications.map((notification, index) => (
             <div
               key={`${notification._id}-${index}`}
-              ref={index === filteredNotifications.length - 1 ? lastNotificationRef : null}
+              ref={
+                index === filteredNotifications.length - 1
+                  ? lastNotificationRef
+                  : null
+              }
             >
-               <NotificationItem
+              <NotificationItem
                 notification={{
                   _id: notification._id,
                   author: notification.author as AccountInfo,
@@ -171,8 +193,14 @@ const NotificationPage: FC = () => {
             </div>
           ))
         )}
-        {loading && <div className="text-center p-4"><LoadingSpinner size="md" /></div>}
-        {!loading && !hasMore && <div className="text-center p-4">{lang("no-more-notifications")}</div>}
+        {loading && (
+          <div className="text-center p-4">
+            <LoadingSpinner size="md" />
+          </div>
+        )}
+        {!loading && !hasMore && (
+          <div className="text-center p-4">{lang("no-more-notifications")}</div>
+        )}
       </div>
 
       {isLoadingPost && (

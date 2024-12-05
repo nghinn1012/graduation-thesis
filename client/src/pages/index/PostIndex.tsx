@@ -5,6 +5,7 @@ import ScrollToTop from "../../components/common/ScrollToTop";
 import Explore from "../post/Explore";
 import ProductPage from "../post/Purchase";
 import ProductListPage from "../product/ProductList";
+
 export default function Food() {
   return (
     <div className="p-4">

@@ -1,8 +1,17 @@
 import postModel from "../models/postModel";
-import { rpcGetUser, Id, rpcGetUsers, IAuthor, uploadImageToCloudinary } from "./index.services";
+import {
+  rpcGetUser,
+  Id,
+  rpcGetUsers,
+  IAuthor,
+  uploadImageToCloudinary,
+} from "./index.services";
 import { IPost, InternalError, autoAssignSteps } from "../data/index";
-import { io } from '../../index';
-import { deleteImageFromCloudinary, extractPublicIdFromUrl } from "./imagesuploader.services";
+import { io } from "../../index";
+import {
+  deleteImageFromCloudinary,
+  extractPublicIdFromUrl,
+} from "./imagesuploader.services";
 import { PostSearchBuilder } from "../data/interface/queryBuilder";
 import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 import { notifyNewFood } from "./notify.services";
@@ -11,9 +20,18 @@ import productModel from "../models/productModel";
 import postLikeModel from "../models/postLikeModel";
 import CommentModel from "../models/commentModel";
 
-export const createPostService = async (data: IPost, productData?: IProduct) => {
+export const createPostService = async (
+  data: IPost,
+  productData?: IProduct
+) => {
   try {
-    const author = await rpcGetUser<AccountInfo>(data.author, ["_id", "name", "avatar", "username", "followers"]);
+    const author = await rpcGetUser<AccountInfo>(data.author, [
+      "_id",
+      "name",
+      "avatar",
+      "username",
+      "followers",
+    ]);
     if (!author) {
       console.log("rpc-author", "unknown create post");
       throw new InternalError({
@@ -34,10 +52,12 @@ export const createPostService = async (data: IPost, productData?: IProduct) => 
       instructions: [],
     });
 
-    const product = productData ? await productModel.create({
-      ...productData,
-      postId: post._id,
-    }) : null;
+    const product = productData
+      ? await productModel.create({
+          ...productData,
+          postId: post._id,
+        })
+      : null;
     console.log("product", product);
     const handleUploads = async () => {
       try {
@@ -50,17 +70,19 @@ export const createPostService = async (data: IPost, productData?: IProduct) => 
 
           try {
             const uploadedImages = await Promise.all(
-              chunks.map(chunk =>
-                Promise.all(chunk.map(async (image) => {
-                  try {
-                    return await uploadImageToCloudinary(image, "posts");
-                  } catch (error) {
-                    console.error(`Error uploading image:`, error);
-                    throw new Error(`Failed to upload image`);
-                  }
-                }))
+              chunks.map((chunk) =>
+                Promise.all(
+                  chunk.map(async (image) => {
+                    try {
+                      return await uploadImageToCloudinary(image, "posts");
+                    } catch (error) {
+                      console.error(`Error uploading image:`, error);
+                      throw new Error(`Failed to upload image`);
+                    }
+                  })
+                )
               )
-            ).then(results => results.flat());
+            ).then((results) => results.flat());
 
             await postModel.updateOne(
               { _id: post._id },
@@ -77,7 +99,10 @@ export const createPostService = async (data: IPost, productData?: IProduct) => 
               data.instructions.map(async (instruction) => {
                 if (instruction.image) {
                   try {
-                    const uploadedImage = await uploadImageToCloudinary(instruction.image, "posts");
+                    const uploadedImage = await uploadImageToCloudinary(
+                      instruction.image,
+                      "posts"
+                    );
                     return {
                       ...instruction,
                       image: uploadedImage,
@@ -122,11 +147,15 @@ export const createPostService = async (data: IPost, productData?: IProduct) => 
     };
 
     handleUploads();
-    await notifyNewFood(author, {
-      _id: post._id.toString(),
-      title: post.title,
-      image: post.images[0],
-    }, author.followers);
+    await notifyNewFood(
+      author,
+      {
+        _id: post._id.toString(),
+        title: post.title,
+        image: post.images[0],
+      },
+      author.followers
+    );
     return {
       post,
       product,
@@ -144,7 +173,10 @@ export const createPostService = async (data: IPost, productData?: IProduct) => 
 export const getPostService = async (postId: string) => {
   try {
     const post = await postModel.findById(postId);
-    const hasProduct = await productModel.findOne({ postId: postId });
+    const hasProduct = await productModel.findOne({
+      postId: postId,
+      isDeleted: false,
+    });
 
     if (!post) {
       throw new InternalError({
@@ -168,29 +200,67 @@ export const getPostService = async (postId: string) => {
       },
     });
   }
-}
+};
 
-export const getAllPostsService = async (page: number, limit: number, userId?: string) => {
+export const getAllPostsService = async (
+  page: number,
+  limit: number,
+  userId?: string
+) => {
   try {
     const skip = (page - 1) * limit;
 
-    const posts = userId ? await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit)
-      : await postModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const authors = userId ? await rpcGetUser<IAuthor[]>(userId,
-      ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]) :
-      await rpcGetUsers<IAuthor[]>(posts.map(post => post.author),
-        ["_id", "email", "name", "avatar", "username", "following", "followers"]);
+    const posts = userId
+      ? await postModel
+          .find({ author: userId, isDeleted: false })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+      : await postModel
+          .find({ isDeleted: false })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit);
+    const authors = userId
+      ? await rpcGetUser<IAuthor[]>(userId, [
+          "_id",
+          "email",
+          "name",
+          "avatar",
+          "username",
+          "following",
+          "followers",
+          "coverImage",
+          "bio",
+        ])
+      : await rpcGetUsers<IAuthor[]>(
+          posts.map((post) => post.author),
+          [
+            "_id",
+            "email",
+            "name",
+            "avatar",
+            "username",
+            "following",
+            "followers",
+          ]
+        );
 
-    const postsWithAuthors = userId ? {
-      posts,
-      authors: {
-        ...authors,
-        postCount: await postModel.countDocuments({ author: userId }),
-      },
-    } : posts.map((post, index) => ({
-      ...post.toObject(),
-      author: authors ? authors[index] : null,
-    }));
+    const postsWithAuthors = userId
+      ? {
+          posts,
+          authors: {
+            ...authors,
+            postCount: await postModel.countDocuments({
+              author: userId,
+              isDeleted: false,
+            }),
+          },
+        }
+      : posts.map((post, index) => ({
+          ...post.toObject(),
+          author: authors ? authors[index] : null,
+        }));
     return postsWithAuthors;
   } catch (error) {
     throw new InternalError({
@@ -200,15 +270,36 @@ export const getAllPostsService = async (page: number, limit: number, userId?: s
       },
     });
   }
-}
+};
 
-export const getAllPostsOfUserService = async (userId: string, page: number, limit: number) => {
+export const getAllPostsOfUserService = async (
+  userId: string,
+  page: number,
+  limit: number
+) => {
   try {
     const skip = (page - 1) * limit;
 
-    const posts = await postModel.find({ author: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const posts = await postModel
+      .find({ author: userId, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username", "following", "followers", "coverImage", "bio"]);
+    const authors = await rpcGetUsers<IAuthor[]>(
+      posts.map((post) => post.author),
+      [
+        "_id",
+        "email",
+        "name",
+        "avatar",
+        "username",
+        "following",
+        "followers",
+        "coverImage",
+        "bio",
+      ]
+    );
 
     const postsWithAuthors = posts.map((post, index) => ({
       ...post.toObject(),
@@ -224,9 +315,13 @@ export const getAllPostsOfUserService = async (userId: string, page: number, lim
       },
     });
   }
-}
+};
 
-export const updatePostService = async (postId: string, data: IPost, userId: string) => {
+export const updatePostService = async (
+  postId: string,
+  data: IPost,
+  userId: string
+) => {
   try {
     const post = await postModel.findById(postId);
     if (!post) {
@@ -258,16 +353,20 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       postUpdateData.images = [];
     }
     if (data.instructions) {
-      postUpdateData.instructions = data.instructions.map(instr => ({
+      postUpdateData.instructions = data.instructions.map((instr) => ({
         ...instr,
         image: undefined,
       }));
     }
 
-    const postUpdate = await postModel.findByIdAndUpdate(postId, postUpdateData, {
-      new: true,
-      runValidators: true,
-    });
+    const postUpdate = await postModel.findByIdAndUpdate(
+      postId,
+      postUpdateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!postUpdate) {
       throw new InternalError({
         data: {
@@ -275,12 +374,11 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
           reason: "not found",
         },
       });
-    };
+    }
     let product = await productModel.findOne({
-      postId
+      postId,
     });
     let result = null;
-    console.log("data", data);
     if (data.hasProduct && data.product) {
       const updateData: any = {};
 
@@ -288,33 +386,42 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
         updateData.price = data.product.price;
       }
 
-      if (data.product.quantity !== null && data.product.quantity !== undefined) {
+      if (
+        data.product.quantity !== null &&
+        data.product.quantity !== undefined
+      ) {
         updateData.quantity = data.product.quantity;
       }
 
-      if (data.product.timeToPrepare !== null && data.product.timeToPrepare !== undefined) {
+      if (
+        data.product.timeToPrepare !== null &&
+        data.product.timeToPrepare !== undefined
+      ) {
         updateData.timeToPrepare = data.product.timeToPrepare;
       }
 
       console.log("updateData", updateData);
       if (Object.keys(updateData).length > 0) {
         if (product) {
-          result = await productModel.updateOne({
-            postId
-          }, {
-            $set: updateData
-          });
-        }
-        else {
+          result = await productModel.updateOne(
+            {
+              postId,
+            },
+            {
+              $set: updateData,
+            }
+          );
+        } else {
           result = await productModel.create({
             ...data.product,
-            postId: post._id
+            postId: post._id,
           });
         }
       }
     } else if (product && data.hasProduct === false) {
-      await productModel.deleteOne({
-        postId
+      await productModel.findByIdAndUpdate(product._id, {
+        isDeleted: true,
+        deletedAt: new Date(),
       });
     }
 
@@ -322,15 +429,17 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       try {
         const deleteOldImages = async () => {
           try {
-            await Promise.all(oldImages.map(async (imageUrl) => {
-              const publicId = extractPublicIdFromUrl(imageUrl);
-              try {
-                await deleteImageFromCloudinary(publicId);
-              } catch (error) {
-                console.error(`Error deleting old image:`, error);
-                throw new Error(`Failed to delete old image`);
-              }
-            }));
+            await Promise.all(
+              oldImages.map(async (imageUrl) => {
+                const publicId = extractPublicIdFromUrl(imageUrl);
+                try {
+                  await deleteImageFromCloudinary(publicId);
+                } catch (error) {
+                  console.error(`Error deleting old image:`, error);
+                  throw new Error(`Failed to delete old image`);
+                }
+              })
+            );
           } catch (error) {
             console.error("Error deleting old images:", error);
           }
@@ -345,17 +454,19 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
 
           try {
             const uploadedImages = await Promise.all(
-              chunks.map(chunk =>
-                Promise.all(chunk.map(async (image) => {
-                  try {
-                    return await uploadImageToCloudinary(image, "posts");
-                  } catch (error) {
-                    console.error(`Error uploading image:`, error);
-                    throw new Error(`Failed to upload image`);
-                  }
-                }))
+              chunks.map((chunk) =>
+                Promise.all(
+                  chunk.map(async (image) => {
+                    try {
+                      return await uploadImageToCloudinary(image, "posts");
+                    } catch (error) {
+                      console.error(`Error uploading image:`, error);
+                      throw new Error(`Failed to upload image`);
+                    }
+                  })
+                )
               )
-            ).then(results => results.flat());
+            ).then((results) => results.flat());
 
             await postModel.updateOne(
               { _id: post._id },
@@ -372,7 +483,10 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
               data.instructions.map(async (instruction) => {
                 if (instruction.image) {
                   try {
-                    const uploadedImage = await uploadImageToCloudinary(instruction.image, "posts");
+                    const uploadedImage = await uploadImageToCloudinary(
+                      instruction.image,
+                      "posts"
+                    );
                     return {
                       ...instruction,
                       image: uploadedImage,
@@ -431,7 +545,6 @@ export const updatePostService = async (postId: string, data: IPost, userId: str
       hasProduct: data.hasProduct,
       product: result,
     };
-
   } catch (error) {
     throw new InternalError({
       data: {
@@ -463,52 +576,46 @@ export const deletePostService = async (postId: string, userId: string) => {
       });
     }
 
-    const postDelete = await postModel.findByIdAndDelete(postId);
-    const postLikes = await postLikeModel.deleteMany({ postId });
-    const postComments = await CommentModel.deleteMany({ postId });
-    const product = await productModel.findOne({
-      postId
-    });
+    post.isDeleted = true;
+    post.deletedAt = new Date();
+    await post.save();
+
+    await postLikeModel.updateMany({ postId }, { isDeleted: true });
+    await CommentModel.updateMany({ postId }, { isDeleted: true });
+    const product = await productModel.findOne({ postId });
     if (product) {
-      await productModel.deleteOne({
-        postId
-      });
+      product.isDeleted = true;
+      await product.save();
     }
 
     const handleDeletions = async () => {
       try {
         const deleteImages = async () => {
-          try {
-            await Promise.all(post.images.map(async (imageUrl) => {
+          await Promise.all(
+            post.images.map(async (imageUrl) => {
               const publicId = extractPublicIdFromUrl(imageUrl);
               try {
                 await deleteImageFromCloudinary(publicId);
               } catch (error) {
                 console.error(`Error deleting image:`, error);
-                throw new Error(`Failed to delete image`);
               }
-            }));
-          } catch (error) {
-            console.error("Error deleting images:", error);
-          }
+            })
+          );
         };
 
         const deleteInstructionsImages = async () => {
-          try {
-            await Promise.all(post.instructions.map(async (instruction) => {
+          await Promise.all(
+            post.instructions.map(async (instruction) => {
               if (instruction.image) {
                 const publicId = extractPublicIdFromUrl(instruction.image);
                 try {
                   await deleteImageFromCloudinary(publicId);
                 } catch (error) {
                   console.error(`Error deleting instruction image:`, error);
-                  throw new Error(`Failed to delete instruction image`);
                 }
               }
-            }));
-          } catch (error) {
-            console.error("Error deleting instruction images:", error);
-          }
+            })
+          );
         };
 
         await deleteImages();
@@ -520,7 +627,7 @@ export const deletePostService = async (postId: string, userId: string) => {
 
     handleDeletions();
 
-    return postDelete;
+    return post;
   } catch (error) {
     throw new InternalError({
       data: {
@@ -531,12 +638,33 @@ export const deletePostService = async (postId: string, userId: string) => {
   }
 };
 
-export const searchPostService = async (query: string, minTime: string,
-  maxTime: string, minQuality: number,
-  haveMade: boolean, difficulty: string[], hashtags: string[],
-  timeOrder: number, quantityOrder: number,
-  pageSize: number, page: number) => {
-  console.log("searchPostService", query, minTime, maxTime, minQuality, haveMade, difficulty, hashtags, timeOrder, quantityOrder, pageSize, page);
+export const searchPostService = async (
+  query: string,
+  minTime: string,
+  maxTime: string,
+  minQuality: number,
+  haveMade: boolean,
+  difficulty: string[],
+  hashtags: string[],
+  timeOrder: number,
+  quantityOrder: number,
+  pageSize: number,
+  page: number
+) => {
+  console.log(
+    "searchPostService",
+    query,
+    minTime,
+    maxTime,
+    minQuality,
+    haveMade,
+    difficulty,
+    hashtags,
+    timeOrder,
+    quantityOrder,
+    pageSize,
+    page
+  );
   const postSearchBuilder = new PostSearchBuilder()
     .search(query)
     .filterCookingTime(minTime, maxTime)
@@ -546,12 +674,18 @@ export const searchPostService = async (query: string, minTime: string,
     .filterByDifficulty(difficulty)
     .sortByTime(Number(timeOrder))
     .sortByQuality(Number(quantityOrder))
+    .filterByNotDeleted()
     .paginate(pageSize, page);
   const pipeline = postSearchBuilder.build();
   const posts = await postModel.aggregate(pipeline);
 
-  const totalPosts = await postModel.countDocuments(postSearchBuilder.getMatchCriteria());
-  const authors = await rpcGetUsers<IAuthor[]>(posts.map(post => post.author), ["_id", "email", "name", "avatar", "username"]);
+  const totalPosts = await postModel.countDocuments(
+    postSearchBuilder.getMatchCriteria()
+  );
+  const authors = await rpcGetUsers<IAuthor[]>(
+    posts.map((post) => post.author),
+    ["_id", "email", "name", "avatar", "username"]
+  );
   posts.forEach((post, index) => {
     post.author = authors ? authors[index] : null;
   });

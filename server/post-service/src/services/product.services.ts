@@ -29,7 +29,7 @@ export const getAllProductsService = async (
   try {
     const skip = (page - 1) * limit;
 
-    const products = await productModel.find({}).skip(skip).limit(limit);
+    const products = await productModel.find({isDeleted: false}).skip(skip).limit(limit);
 
     const totalProducts = await productModel.countDocuments({});
 
@@ -330,6 +330,7 @@ export const searchProductsService = async (
           { title: { $regex: query, $options: "i" } },
           { about: { $regex: query, $options: "i" } },
         ],
+        isDeleted: false,
       })
       .lean();
 

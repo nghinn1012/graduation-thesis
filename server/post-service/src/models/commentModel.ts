@@ -33,6 +33,14 @@ const CommentSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
 });
 
 CommentSchema.index({ post: 1, parentCommentId: 1 });

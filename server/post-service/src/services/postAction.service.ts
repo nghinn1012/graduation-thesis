@@ -62,7 +62,7 @@ export const getPostLikesByUserService = async (
 ) => {
   try {
     const likes = await postLikeModel
-      .find({ userId: userId })
+      .find({ userId: userId, isDeleted: false })
       .sort({ createdAt: -1 });
 
     const postsLikesWithInfo = await Promise.all(
@@ -180,7 +180,7 @@ export const saveOrUnsavedPostService = async (
 
 export const getSavedPostsByUserService = async (userId: string) => {
   try {
-    const savedList = await savedListModel.findOne({ userId: userId });
+    const savedList = await savedListModel.findOne({ userId: userId, isDeleted: false });
     if (!savedList) {
       return [];
     }
@@ -201,6 +201,7 @@ export const isLikedPostByUserService = async (
     const response = await postLikeModel.exists({
       postId: postId,
       userId: userId,
+      isDeleted: false,
     });
     return response;
   } catch (error) {
@@ -259,7 +260,7 @@ export const getPostByUserFollowingService = async (
       return [];
     }
 
-    const posts = await postModel.find({ author: { $in: following } });
+    const posts = await postModel.find({ author: { $in: following }, isDeleted: false }).sort({ createdAt: -1 });
 
     if (!posts || posts.length === 0 || !page || !limit) {
       return [];

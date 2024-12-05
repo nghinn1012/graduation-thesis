@@ -113,6 +113,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
       if (response) {
         if (setPosts) {
           setPosts(posts.filter((p) => p._id !== post._id));
+          setPostLikes(postLikes.filter((p) => p._id !== post._id));
         }
         success(lang("delete-success"));
       } else {

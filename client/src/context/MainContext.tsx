@@ -11,6 +11,7 @@ import OrdersPage from "../pages/product/OrderList";
 import OrderDetails from "../pages/product/OrderDetail";
 import ForgotPasswordPage from "../pages/auth/verify/ForgotPassword";
 import ResetPasswordPage from "../pages/auth/verify/ResetPasswordPage";
+import NotFoundPage from "../common/auth/NotFoundPage";
 
 export default function AppMainCenter() {
   return (
@@ -26,6 +27,7 @@ export default function AppMainCenter() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:orderId" element={<OrderDetails />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
   );

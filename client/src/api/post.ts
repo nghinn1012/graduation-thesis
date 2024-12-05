@@ -142,6 +142,7 @@ export interface PostInfo {
   dietary: string[];
   hasProduct: boolean;
   product?: ProductInfo;
+  isDeleted: boolean;
 }
 
 export interface PostInfoUpdate {

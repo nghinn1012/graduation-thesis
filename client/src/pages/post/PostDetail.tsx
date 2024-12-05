@@ -193,6 +193,7 @@ const PostDetails: React.FunctionComponent = () => {
         setServings(currentPost.servings || 1);
       } catch (error) {
         console.error("Error fetching post:", error);
+        navigate("/wrong-page");
       } finally {
         setIsLoading(false);
       }
@@ -205,6 +206,7 @@ const PostDetails: React.FunctionComponent = () => {
       fetchPost();
     }
   }, [location.state?.post, auth?.token, isLiked, isSaved]);
+
 
   useEffect(() => {
     const fetchUpdatedPostLike = async () => {
