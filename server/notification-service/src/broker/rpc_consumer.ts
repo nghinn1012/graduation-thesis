@@ -1,7 +1,8 @@
 import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo, sendForgotPassword } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { io } from "../../index";
-import { createCommentedFoodNotifications, createFollowNotifications, createLikedFoodNotifications, createMadeFoodNotifications, createNewFoodNotifications, createSavedFoodNotifications } from "../services/notificationService";
+import { createCommentedFoodNotifications, createFollowNotifications, createLikedFoodNotifications, createMadeFoodNotifications, createNewFoodNotifications, createSavedFoodNotifications, createSendReportNotification } from "../services/notificationService";
+import { PostNotification } from "../data/interface/notification_interface";
 export interface Ided {
   _id: string;
 }
@@ -28,6 +29,7 @@ export const brokerOperations = {
     NOTIFY_FOOD_COMMENTED: "NOTIFY_FOOD_COMMENTED",
     NOTIFY_FOOD_SAVED: "NOTIFY_FOOD_SAVED",
     NOTIFY_FOOD_MADE: "NOTIFY_FOOD_MADE",
+    NOTIFY_SEND_REPORT: "NOTIFY_SEND_REPORT",
   },
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
@@ -95,6 +97,11 @@ export interface IRpcGetAuthorsPayload {
 export interface IBrokerNotifyNewFollowerPayload {
   user: string;
   follower: IAuthor;
+}
+
+export interface IBrokerNotifySendReportPayload {
+  user: IAuthor;
+  post: PostNotification;
 }
 
 export const initRpcConsumers = (_rabbit: RabbitMQ): void => {
@@ -192,6 +199,15 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
       console.log("Message data:", msg.data);
       const { user, follower } = msg.data;
       createFollowNotifications(user, follower);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_SEND_REPORT,
+    (msg: IBrokerMessage<IBrokerNotifySendReportPayload>) => {
+      console.log("Message data:", msg.data);
+      const { user, post } = msg.data;
+      createSendReportNotification(user, post);
     }
   );
 

@@ -86,6 +86,7 @@ interface ManualRegisterInfo {
 export interface LoginInfo {
   email: string;
   password: string;
+  role?: string;
 }
 
 export interface searchInfoData {

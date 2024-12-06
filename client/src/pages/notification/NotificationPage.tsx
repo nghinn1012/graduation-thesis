@@ -92,6 +92,10 @@ const NotificationPage: FC = () => {
     if (!author || !auth?.token) return;
 
     try {
+      if (type === "SEND_REPORT") {
+        await markNotificationAsRead(notificationId);
+        return;
+      }
       if (type === "NEW_FOLLOWER" && author._id) {
         navigate(`/users/profile/${author._id}`);
       } else {

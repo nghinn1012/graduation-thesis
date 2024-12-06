@@ -208,7 +208,7 @@ const OrderInfoPage: React.FC = () => {
             shippingFee: deliveryFee,
             note: notes[order.sellerId] || "",
             paymentMethod: formData.paymentMethod,
-            amount: calculateOrderTotal(groupedProducts[order.sellerId]),
+            amount: calculateOrderTotal(groupedProducts[order.sellerId]) + deliveryFee,
           };
 
           const response = await createOrder(data as OrderInfo);
@@ -244,7 +244,7 @@ const OrderInfoPage: React.FC = () => {
           if (response && response._id && formData.paymentMethod === "cod") {
             return {
               orderNumber: response._id,
-              totalAmount: calculateOrderTotal(groupedProducts[order.sellerId]),
+              totalAmount: calculateOrderTotal(groupedProducts[order.sellerId]) + deliveryFee,
               deliveryAddress: formData.address,
             };
           }

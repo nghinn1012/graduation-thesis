@@ -34,6 +34,8 @@ export type I18nReactComponent =
   | "ToastrSection"
   | "NotificationSection"
   | "SavedListPage"
+  | "ErrorSection"
+  | "ReportSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

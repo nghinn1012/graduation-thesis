@@ -1,3 +1,5 @@
+import { AccountInfo } from "../../api/user";
+
 export interface IUserPersonal {
   name: string;
   avatar?: string;
@@ -16,6 +18,7 @@ export interface IUser extends IUserPersonal, IUserCredential { }
 export interface IAccountInfo
   extends Partial<Pick<IUserCredential, "_id" | "email">>,
   Partial<Pick<IUserPersonal, "avatar" | "name" | "username">> {
+  role?: string;
   token: string;
-  user: unknown;
+  user: any;
 }

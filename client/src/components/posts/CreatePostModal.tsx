@@ -10,9 +10,18 @@ import HashtagTab from "./HashTagTab";
 import { useI18nContext } from "../../hooks/useI18nContext";
 
 const validationSchema = yup.object({
+  images: yup.array().min(1, "At least one image is required"),
   title: yup.string().required("Title is required"),
   about: yup.string().required("About is required"),
-  timeToTake: yup.string().required("Time to take is required"),
+  timeToTake: yup.string()
+  .required("Time to take is required")
+  .test(
+    "not-zero",
+    "Time to take cannot be zero",
+    (value) => value !== "0"
+  )
+  .min(1, "Time to take must be at least 1"),
+
   servings: yup
     .number()
     .required("Servings are required")

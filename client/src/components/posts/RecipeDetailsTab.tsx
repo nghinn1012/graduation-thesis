@@ -111,8 +111,26 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
   const lang = language.of(RecipeDetailsTab);
 
   const validationSchema = Yup.object({
-    hours: Yup.string().required(lang("hours-required")),
-    minutes: Yup.string().required(lang("minutes-required")),
+    hours: Yup.string()
+    .required(lang("hours-required"))
+    .test(
+      "hours-and-minutes",
+      lang("hours-minutes-zero"),
+      function (value) {
+        const { minutes } = this.parent;
+        return !(value === "0" && minutes === "0");
+      }
+    ),
+  minutes: Yup.string()
+    .required(lang("minutes-required"))
+    .test(
+      "hours-and-minutes",
+      lang("hours-minutes-zero"),
+      function (value) {
+        const { hours } = this.parent;
+        return !(value === "0" && hours === "0");
+      }
+    ),
     timeToTake: Yup.string().required(lang("timeToTake-required")),
     servings: Yup.number()
       .typeError(lang("servings-number"))

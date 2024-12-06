@@ -178,6 +178,30 @@ export const createFollowNotifications = async (
   });
 }
 
+export const createSendReportNotification = async (
+  user: IAuthor,
+  post: PostNotification,
+) => {
+  const notificationData: NotificationInfo = {
+    users: [user._id],
+    author: user._id,
+    reads: [],
+    type: "SEND_REPORT",
+    message: "reported-a-post",
+    post: post,
+  }
+  const notification = new NotificationModel(notificationData);
+  await notification.save();
+  sendNotification(user._id, {
+    ...notificationData,
+    _id: notification._id,
+    createdAt: notification.createdAt,
+    author: user,
+    read: false,
+  });
+}
+
+
 export const getNotificationsServices = async (
   userId: string,
   page: number,

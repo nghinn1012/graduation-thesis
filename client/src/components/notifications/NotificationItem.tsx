@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { FaUser, FaHeart, FaComment, FaBookmark } from 'react-icons/fa';
-import { AccountInfo } from '../../api/user';
-import { useAuthContext } from '../../hooks/useAuthContext';
-import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
-import { BsPostcard } from 'react-icons/bs';
-import { useI18nContext } from '../../hooks/useI18nContext';
+import React, { useState, useEffect } from "react";
+import {
+  FaUser,
+  FaHeart,
+  FaComment,
+  FaBookmark,
+  FaExclamationTriangle,
+} from "react-icons/fa";
+import { AccountInfo } from "../../api/user";
+import { useAuthContext } from "../../hooks/useAuthContext";
+import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
+import { BsPostcard } from "react-icons/bs";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 interface NotificationItemProps {
   notification: {
@@ -21,19 +27,30 @@ interface NotificationItemProps {
     read: boolean;
     createdAt?: string;
   };
-  onClick: (postId: string, author: AccountInfo, notificationId: string, type: string) => void;
+  onClick: (
+    postId: string,
+    author: AccountInfo,
+    notificationId: string,
+    type: string
+  ) => void;
 }
 
-const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onClick }) => {
+const NotificationItem: React.FC<NotificationItemProps> = ({
+  notification,
+  onClick,
+}) => {
   const { account } = useAuthContext();
   const [formattedDate, setFormattedDate] = useState<string | null>(null);
   const language = useI18nContext();
-  const lang = language.of('NotificationSection');
+  const lang = language.of("NotificationSection","ReportSection");
 
   useEffect(() => {
     if (notification.createdAt) {
       const date = new Date(notification.createdAt);
-      const formatted = formatDistanceToNow(date, { addSuffix: true, locale: vi });
+      const formatted = formatDistanceToNow(date, {
+        addSuffix: true,
+        locale: vi,
+      });
       setFormattedDate(formatted);
     } else {
       setFormattedDate("Unknown date");
@@ -42,16 +59,18 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
 
   const getIcon = () => {
     switch (notification.type) {
-      case 'NEW_FOOD':
+      case "NEW_FOOD":
         return <BsPostcard className="w-5 h-5 text-blue-500" />;
-      case 'FOOD_LIKED':
+      case "FOOD_LIKED":
         return <FaHeart className="w-5 h-5 text-red-500" />;
-      case 'FOOD_SAVED':
+      case "FOOD_SAVED":
         return <FaBookmark className="w-5 h-5 text-red-500" />;
-      case 'FOOD_COMMENTED':
+      case "FOOD_COMMENTED":
         return <FaComment className="w-5 h-5 text-green-500" />;
       case "NEW_FOLLOWER":
         return <FaUser className="w-5 h-5 text-blue-500" />;
+      case "SEND_REPORT":
+        return <FaExclamationTriangle className="w-5 h-5 text-red-500" />;
       default:
         return <FaComment className="w-5 h-5 text-green-500" />;
     }
@@ -60,7 +79,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
   return (
     <div
       className={`py-3 px-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
-        !notification.read ? 'bg-blue-50' : ''
+        !notification.read ? "bg-blue-50" : ""
       }`}
       onClick={() =>
         onClick(
@@ -75,7 +94,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
         <div className="flex-shrink-0 relative">
           <img
             className="w-10 h-10 rounded-full"
-            src={notification.author.avatar || '/avatar-placeholder.png'}
+            src={notification.author.avatar || "/avatar-placeholder.png"}
             alt={`${notification.author.name}'s profile`}
           />
           {!notification.read && (
@@ -84,9 +103,31 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
         </div>
         <div className="flex-grow min-w-0">
           <div className="flex items-center justify-between">
-            <p className={`text-sm ${!notification.read ? 'font-semibold' : 'text-gray-900'}`}>
-              <span className="font-semibold">{notification.author.name}</span>{' '}
-              {`${lang(notification.message)}${notification?.post?.title ? `: ${notification.post.title}` : ''}`}
+            <p
+              className={`text-sm ${
+                !notification.read ? "font-semibold" : "text-gray-900"
+              }`}
+            >
+              {notification.type === "SEND_REPORT" ? (
+                <>
+                  <div>
+                    <span className="font-semibold">
+                      {lang("report-notification")}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <span>
+                  <span className="font-semibold">
+                    {notification.author.name}
+                  </span>
+                  {` ${lang(notification.message)}${
+                    notification?.post?.title
+                      ? `: ${notification.post.title}`
+                      : ""
+                  }`}
+                </span>
+              )}
             </p>
             <div className="flex-shrink-0">{getIcon()}</div>
           </div>

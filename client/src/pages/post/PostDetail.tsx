@@ -44,7 +44,7 @@ import { useI18nContext } from "../../hooks/useI18nContext";
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
   about: yup.string().required("About is required"),
-  timeToTake: yup.number().required("Time to take is required"),
+  timeToTake: yup.number().required("Time to take is required").min(0, "Time to take must be at least 0"),
   servings: yup
     .number()
     .required("Servings are required")
@@ -448,7 +448,6 @@ const PostDetails: React.FunctionComponent = () => {
             changes.product.timeToPrepare = Number(timeToPrepare);
           }
         }
-        console.log(changes);
 
         await postFetcher.updatePost(editPost._id, changes, token);
         await setPostUpdated(editPost._id);

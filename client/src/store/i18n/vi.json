@@ -133,6 +133,7 @@
   "RecipeDetailsTab": {
     "hours-required": "Giờ là bắt buộc",
     "minutes-required": "Phút là bắt buộc",
+    "hours-minutes-zero": "Giờ và phút không thể cùng bằng 0",
     "timeToTake-required": "Thời gian là bắt buộc",
     "servings-number": "Phần ăn phải là một số",
     "servings-required": "Phần ăn là bắt buộc",
@@ -682,5 +683,29 @@
     "saved-posts": "Bài viết đã lưu",
     "saved-posts-desc": "Xem và quản lý tất cả bài viết bạn đã lưu",
     "no-saved-posts-desc": "Lưu bài viết mà bạn muốn xem sau"
+  },
+  "ErrorSection": {
+    "page-not-found": "Trang không tồn tại",
+    "page-not-found-desc": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+    "back-home": "Quay lại trang chủ",
+    "access-denied": "Truy cập bị từ chối",
+    "access-denied-desc": "Xin lỗi, bạn không có quyền truy cập trang này.",
+    "home":"Trang chủ",
+    "back": "Quay lại"
+  },
+  "ReportSection": {
+    "report": "Báo cáo",
+    "report-notification": "Chúng tôi đã nhận được báo cáo của bạn và sẽ xem xét nó",
+    "complaint": "Khiếu nại",
+    "select-reason": "Chọn lý do",
+    "spam": "Spam",
+    "inappropriate": "Nội dung không phù hợp",
+    "harassment": "Quấy rối",
+    "other": "Khác",
+    "description": "Mô tả chi tiết",
+    "close": "Đóng",
+    "submit": "Gửi khiếu nại",
+    "complaint-success": "Khiếu nại của bạn đã được gửi",
+    "complaint-fail": "Gửi khiếu nại thất bại: {0}"
   }
 }

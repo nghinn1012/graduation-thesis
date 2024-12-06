@@ -5,6 +5,7 @@ import UserModel from '../db/models/User.models';
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
+  role?: string;
 }
 
 export const protectedRequest = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -44,4 +45,11 @@ export const authenticateUser = async (req: AuthenticatedRequest, res: Response,
       });
     }
   });
+};
+
+export const isAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (req.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+  next();
 };

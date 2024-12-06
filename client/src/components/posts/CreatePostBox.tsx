@@ -134,6 +134,7 @@ const CreatePostBox: React.FC = () => {
           isInShoppingList: false,
           hasProduct,
           averageRating: 0,
+          isDeleted: false,
         },
         {
           price: Number(price),
@@ -151,11 +152,11 @@ const CreatePostBox: React.FC = () => {
       const errorMessage = isEditing
         ? lang(
             "error-update-post",
-            (err as Error)?.message || "Unknown error"
+            (err as Error)?.message || "Các trường không đúng định dạng"
           )
         : lang(
             "error-create-post",
-            (err as Error)?.message || "Unknown error"
+            (err as Error)?.message || "Các trường không đúng định dạng"
           );
 
       error(errorMessage);

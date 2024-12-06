@@ -46,4 +46,5 @@ export interface AccountInfo {
   avatar: string;
   username: string;
   followers: string[];
+  role: string;
 }

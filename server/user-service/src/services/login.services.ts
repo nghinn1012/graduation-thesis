@@ -12,6 +12,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 interface LoginInfo {
   email: string;
   password: string;
+  role?: string;
 }
 
 interface GooglePayload {
@@ -30,12 +31,58 @@ interface GooglePayload {
   exp: number;
 }
 
-export const loginService = async (info: LoginInfo) => {
-  const { email, password } = info;
-  console.log(email, password);
+// export const loginService = async (info: LoginInfo) => {
+//   const { email, password } = info;
+//   console.log(email, password);
 
-  const user = await UserModel.findOne({ email: email });
+//   const user = await UserModel.findOne({ email: email });
+//   console.log(user);
+//   if (user === null) {
+//     throw new InvalidDataError({
+//       message: "Invalid email or password",
+//     });
+//   }
+
+//   const isPasswordValid = await compareHash(password, user.password || "");
+//   if (!isPasswordValid) {
+//     throw new InvalidDataError({
+//       message: "Invalid email or password",
+//     });
+//   }
+
+//   if (user.verify == 0) {
+//     throw new InvalidDataError({
+//       message: "User is not verify!",
+//     });
+//   }
+
+//   const token = signToken({ userId: user._id, email: user.email });
+//   const refreshToken = signRefreshToken({
+//     userId: user._id,
+//     email: user.email,
+//   });
+
+//   user.refreshToken = refreshToken;
+//   await user.save();
+//   const { password: userPassword, ...userWithoutPassword } = user.toJSON();
+//   return {
+//     ...userWithoutPassword,
+//     token,
+//     refreshToken,
+//   };
+// };
+
+export const loginService = async (info: LoginInfo) => {
+  const { email, password, role = "user" } = info;
+  console.log(email, password, role);
+
+  const user = await UserModel.findOne({
+    email: email,
+    role: role
+  });
+
   console.log(user);
+
   if (user === null) {
     throw new InvalidDataError({
       message: "Invalid email or password",
@@ -51,18 +98,25 @@ export const loginService = async (info: LoginInfo) => {
 
   if (user.verify == 0) {
     throw new InvalidDataError({
-      message: "User is not verify!",
+      message: "User is not verified!",
     });
   }
 
-  const token = signToken({ userId: user._id, email: user.email });
+  const token = signToken({
+    userId: user._id,
+    email: user.email,
+    role: user.role
+  });
+
   const refreshToken = signRefreshToken({
     userId: user._id,
     email: user.email,
+    role: user.role
   });
 
   user.refreshToken = refreshToken;
   await user.save();
+
   const { password: userPassword, ...userWithoutPassword } = user.toJSON();
   return {
     ...userWithoutPassword,

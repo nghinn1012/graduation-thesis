@@ -4,6 +4,7 @@ import {
   FaRegBookmark,
   FaTrash,
   FaBookmark,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import { useToastContext } from "../../hooks/useToastContext";
 import { useSearchContext } from "../../context/SearchContext";
 import { useProfileContext } from "../../context/ProfileContext";
 import { useI18nContext } from "../../hooks/useI18nContext";
+import ComplaintModal from "./complaint/ComplaintModal";
 
 interface Ingredient {
   name: string;
@@ -70,13 +72,14 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
     usePostContext();
   const { postLikes, setPostLikes } = useProfileContext();
   const { toggleLikePostSearch, toggleSavePostSearch } = useSearchContext();
-  const {toggleLikePostProfile, toggleSavePostProfile} = useProfileContext();
+  const { toggleLikePostProfile, toggleSavePostProfile } = useProfileContext();
   const { success, error } = useToastContext();
   const [commentCount, setCommentCount] = useState<number>(
     postCommentCounts[post._id] || post.commentCount
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const location = useLocation();
   const language = useI18nContext();
   const lang = language.of("PostInfo");
@@ -102,9 +105,7 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
   const handleDeletePost = async () => {
     const token = auth?.auth?.token;
     if (!token) return;
-    const confirmDelete = window.confirm(
-      lang("delete")
-    );
+    const confirmDelete = window.confirm(lang("delete"));
 
     if (!confirmDelete) return;
 
@@ -138,11 +139,14 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
         toggleLikePost(post._id, true);
         toggleLikePostSearch(post._id, true);
         toggleLikePostProfile(post._id, true);
-        setPostLikes([{
-          ...post,
-          liked: true,
-          likeCount: post.likeCount + 1,
-        } as unknown as PostInfo, ...postLikes]);
+        setPostLikes([
+          {
+            ...post,
+            liked: true,
+            likeCount: post.likeCount + 1,
+          } as unknown as PostInfo,
+          ...postLikes,
+        ]);
       } else {
         setIsLiked(false);
         toggleLikePost(post._id, false);
@@ -203,7 +207,9 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
       return lang("daysAgo", days);
     }
   };
-  const formattedTime = post.createdAt ? getFormattedTime(new Date(post?.createdAt).toISOString()) : "";
+  const formattedTime = post.createdAt
+    ? getFormattedTime(new Date(post?.createdAt).toISOString())
+    : "";
 
   useEffect(() => {
     const account = auth.account;
@@ -240,7 +246,10 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
             to={`/users/profile/${postAuthor?._id}`}
             className="w-8 h-8 rounded-full overflow-hidden"
           >
-            <img src={postAuthor?.avatar || "/avatar-placeholder.png"} alt="Profile" />
+            <img
+              src={postAuthor?.avatar || "/avatar-placeholder.png"}
+              alt="Profile"
+            />
           </Link>
         </div>
         <div className="flex flex-col flex-1">
@@ -268,6 +277,14 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
                 <FaTrash
                   className="cursor-pointer hover:text-red-500"
                   onClick={handleDeletePost}
+                />
+              </span>
+            )}
+            {!isMyPost && (
+              <span className="flex justify-end flex-1">
+                <FaExclamationTriangle
+                  className="hover:text-red-500 cursor-pointer"
+                  onClick={() => setIsComplaintModalOpen(true)}
                 />
               </span>
             )}
@@ -358,6 +375,11 @@ const Post: React.FC<PostProps> = ({ post, locationPath }) => {
               )}
               <span className="text-sm text-slate-500">{post.savedCount}</span>
             </div>
+            <ComplaintModal
+              isOpen={isComplaintModalOpen}
+              onClose={() => setIsComplaintModalOpen(false)}
+              postId={post._id}
+            />
           </div>
         </div>
       </div>

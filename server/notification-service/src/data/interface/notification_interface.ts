@@ -10,7 +10,7 @@ export interface NotificationInfo {
   users: string[],
   message: string,
   type: "FOOD_LIKED" | "NEW_FOOD" | "FOOD_UPLOAD_COMPLETE" |
-  "FOOD_COMMENTED" | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER",
+  "FOOD_COMMENTED" | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER" | "SEND_REPORT",
   link?: string,
   reads: string[],
   author: string,
@@ -23,7 +23,7 @@ export interface NotificationToUser {
   message: string,
   type: "FOOD_LIKED" | "NEW_FOOD" |
   "FOOD_UPLOAD_COMPLETE" | "FOOD_COMMENTED"
-  | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER",
+  | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER" | "SEND_REPORT",
   read: boolean,
   link?: string,
   author?: IAuthor,

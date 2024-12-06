@@ -6,6 +6,8 @@ import { UserErrorReason, UserErrorTarget } from "../data/user_error";
 import { AccountInfo } from "./user";
 
 export const postEndpoints = {
+  createComplaint: "/posts/complaint",
+  getComplaints: "/posts/complaint",
   // product
   getOrderById: "/posts/order/getOrderById/:orderId",
   getAllProducts: "/posts/product/getAll",
@@ -541,6 +543,24 @@ export interface MomoPaymentCallback {
   signature: string; // Chữ ký dùng để xác thực tính toàn vẹn của callback
 }
 
+export interface ComplaintData {
+  _id: string;
+  postId: string;
+  reason: string;
+  status: string;
+  description: string;
+  user?: AccountInfo;
+  post?: PostInfo;
+  createdAt: string;
+}
+
+export interface ComplaintResponse {
+  page: number;
+  total: number;
+  complaints: ComplaintData[];
+  totalPages: number;
+}
+
 export interface PostFetcher {
   // product
   getAllProducts: (
@@ -787,6 +807,17 @@ export interface PostFetcher {
     mealId: string,
     dates: MealPlannedDate[]
   ) => Promise<PostResponse<Meal>>;
+  createComplaint: (
+    postId: string,
+    reason: string,
+    description: string,
+    token: string
+  ) => Promise<PostResponse<ComplaintData>>;
+  getComplaints: (
+    page: number,
+    pageSize: number,
+    token: string
+  ) => Promise<PostResponse<ComplaintResponse>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -1549,4 +1580,39 @@ export const postFetcher: PostFetcher = {
       }
     );
   },
+  createComplaint: async (
+    postId: string,
+    reason: string,
+    description: string,
+    token: string
+  ): Promise<PostResponse<ComplaintData>> => {
+    return postInstance.post(
+      postEndpoints.createComplaint,
+      {
+        postId,
+        reason,
+        description,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  getComplaints: async (
+    page: number,
+    pageSize: number,
+    token: string
+  ): Promise<PostResponse<ComplaintResponse>> => {
+    return postInstance.get(postEndpoints.getComplaints, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        page,
+        pageSize,
+      },
+    });
+  }
 };

@@ -6,6 +6,7 @@ import DefaultLayout from '../../common/admin/DefaultLayout';
 import PageTitle from '../../common/admin/PageTitle';
 import AdminLoginPage from '../admin/AdminLoginPage';
 import DashBoard from '../admin/DashBoard';
+import ComplaintPage from '../admin/ComplaintPage';
 function Admin() {
   const [loading, setLoading] = useState<boolean>(true);
   const { pathname } = useLocation();
@@ -114,20 +115,20 @@ function Admin() {
           }
         /> */}
         <Route
-          path="/login"
-          element={
-            <>
-              <PageTitle title="Signin | TailAdmin - Tailwind CSS Admin Dashboard Template" />
-              <AdminLoginPage />
-            </>
-          }
-        />
-        <Route
           path="/dashboard"
           element={
             <>
               <PageTitle title="Dashboard | TailAdmin - Tailwind CSS Admin Dashboard Template" />
               <DashBoard />
+            </>
+          }
+        />
+        <Route
+          path="/complaints"
+          element={
+            <>
+              <PageTitle title="Complaints | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <ComplaintPage />
             </>
           }
         />

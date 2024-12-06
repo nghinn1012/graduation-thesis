@@ -15,6 +15,9 @@ import ResetPasswordPage from "./pages/auth/verify/ResetPasswordPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminIndex from "./pages/index/AdminIndex";
 import NotFoundPage from "./common/auth/NotFoundPage";
+import ProtectedAdminRoute from "./common/auth/ProtectedAdminRoute";
+import UnauthorizedPage from "./common/auth/UnauthorizedPage";
+import { AdminComplaintProvider } from "./context/AdminComplaintContext";
 export function App() {
   const location = useLocation();
   return (
@@ -33,7 +36,24 @@ export function App() {
               </IsAuthenticated>
             }
           />
-          <Route path="/admin/*" element={<AdminIndex />} />
+          <Route
+            path="/admin/login"
+            element={
+              <IsNotAuthenticated>
+                <AdminLoginPage />
+              </IsNotAuthenticated>
+            }
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedAdminRoute>
+                <AdminComplaintProvider>
+                  <AdminIndex />
+                </AdminComplaintProvider>
+              </ProtectedAdminRoute>
+            }
+          />
           <Route
             path="/login"
             element={
@@ -60,6 +80,14 @@ export function App() {
             element={
               <IsAuthenticated>
                 <NotFoundPage />
+              </IsAuthenticated>
+            }
+          />
+          <Route
+            path="unauthorized"
+            element={
+              <IsAuthenticated>
+                <UnauthorizedPage />
               </IsAuthenticated>
             }
           />

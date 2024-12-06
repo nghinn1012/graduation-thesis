@@ -556,7 +556,7 @@ const OrderDetails: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-base-content/70">
                     <span>{lang("subtotal")}</span>
-                    <span>{formatPrice(currentOrderDetail.amount)}</span>
+                    <span>{formatPrice(currentOrderDetail.amount - currentOrderDetail.shippingFee)}</span>
                   </div>
                   <div className="flex justify-between text-base-content/70">
                     <span>{lang("shipping-fee")}</span>
@@ -568,8 +568,7 @@ const OrderDetails: React.FC = () => {
                     <span className="text-primary">
 
                       {formatPrice(
-                        currentOrderDetail.amount +
-                        currentOrderDetail.shippingFee
+                        currentOrderDetail.amount
                       )}
                     </span>
                   </div>
