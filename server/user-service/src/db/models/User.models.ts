@@ -94,6 +94,10 @@ const UserSchema = new Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  reportCount: {
+    type: Number,
+    default: 0,
+  },
 },
 { timestamps: true });
 

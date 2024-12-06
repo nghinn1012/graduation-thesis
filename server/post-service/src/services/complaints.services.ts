@@ -1,7 +1,11 @@
+import { brokerOperations, BrokerSource, RabbitMQ } from "../broker";
 import { AccountInfo } from "../data/interface/post_create_interface";
 import complaintModel from "../models/complaintModel";
 import postModel from "../models/postModel";
-import { notifySendReport } from "./notify.services";
+import {
+  notifySendReport,
+  notifySendReportCountUpdate,
+} from "./notify.services";
 import { rpcGetUser } from "./rpc.services";
 
 export const createComplaintService = async (
@@ -65,7 +69,7 @@ export const getComplaintsService = async (page: number, pageSize: number) => {
         }
         return {
           ...complaint.toJSON(),
-          post
+          post,
         };
       })
     );
@@ -86,14 +90,18 @@ export const getComplaintsService = async (page: number, pageSize: number) => {
     return {
       complaints: complaintsWithUserInfo,
       total: await complaintModel.countDocuments(),
-      totalPage: Math.ceil(await complaintModel.countDocuments() / pageSize),
+      totalPage: Math.ceil((await complaintModel.countDocuments()) / pageSize),
     };
   } catch (error) {
     throw new Error("Error getting complaints: " + (error as Error).message);
   }
-}
+};
 
-export const updateComplaintService = async (userId: string, complaintId: string, status: string) => {
+export const updateComplaintService = async (
+  userId: string,
+  complaintId: string,
+  status: string
+) => {
   try {
     const user = await rpcGetUser<AccountInfo>(userId, ["_id", "role"]);
     if (!user || user.role !== "admin") {
@@ -115,10 +123,11 @@ export const updateComplaintService = async (userId: string, complaintId: string
       }
       post.isDeleted = true;
       await post.save();
+      await notifySendReportCountUpdate(post.author);
     }
     await complaint.save();
     return complaint;
   } catch (error) {
     throw new Error("Error updating complaint: " + (error as Error).message);
   }
-}
+};

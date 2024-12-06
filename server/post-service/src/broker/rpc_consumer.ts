@@ -7,6 +7,7 @@ export const RpcAction = {
   USER_RPC_GET_USER_MENTIONED: "rpcGetUserMentioned",
   USER_RPC_GET_USER_SUBCRIBERS_BY_USER_ID: "rpcGetUserSubcribersByUserId",
   NOTIFICATION_RPC_UPLOADS_COMPLETE: "rpcSendUploadsComplete",
+  USER_RPC_UPDATE_REPORT_COUNT: "rpcUpdateReportCount",
 } as const;
 
 export type RpcAction = (typeof RpcAction)[keyof typeof RpcAction];
@@ -25,6 +26,9 @@ export const brokerOperations = {
     NOTIFY_FOOD_SAVED: "NOTIFY_FOOD_SAVED",
     NOTIFY_FOOD_MADE: "NOTIFY_FOOD_MADE",
     NOTIFY_SEND_REPORT: "NOTIFY_SEND_REPORT",
+  },
+  user: {
+    USER_UPDATE_REPORT_COUNT: "USER_UPDATE_REPORT_COUNT",
   },
 } as const;
 

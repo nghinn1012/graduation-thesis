@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createComplaintService, getComplaintsService } from "../services/complaints.services";
+import { createComplaintService, getComplaintsService, updateComplaintService } from "../services/complaints.services";
 import { AuthRequest } from "../data";
 
 export const createComplaintController = async (
@@ -34,6 +34,28 @@ export const getComplaintsController = async (
       Number(pageSize)
     );
     res.status(200).json(complaints);
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const updateComplaintController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { complaintId } = req.params;
+    const userId = req.authContent?.data.userId;
+    const { status } = req.body;
+    if (!userId) {
+      return res.status(400).json({
+        error: "User not found",
+      });
+    }
+    const result = await updateComplaintService(userId, complaintId, status);
+    res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({
       error: (error as Error).message,

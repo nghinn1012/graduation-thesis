@@ -97,7 +97,7 @@ export class RabbitMQ {
     try {
       const data = JSON.parse(content) as IBrokerMessage<unknown>;
       const path = data.path;
-      const consumers = this._pathToBrokerListConsumers[path];
+      const consumers = RabbitMQ.instance._pathToBrokerListConsumers[path];
       if (consumers != null) {
         consumers.forEach((consumer) => consumer(data));
       }
@@ -110,6 +110,7 @@ export class RabbitMQ {
     const consumers = this._pathToBrokerListConsumers[path];
     if (consumers == null) {
       this._pathToBrokerListConsumers[path] = [consumer];
+      console.log(this._pathToBrokerListConsumers);
     } else {
       consumers.push(consumer);
     }

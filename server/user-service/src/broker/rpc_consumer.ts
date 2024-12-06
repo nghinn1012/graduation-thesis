@@ -2,7 +2,8 @@ import {
   rpcGetUserById,
   rpcGetUserByIds,
 } from "../services/rpc.services";
-import { RabbitMQ } from "./rpc";
+import { updateReportCountService } from "../services/users.services";
+import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { RpcRequest } from "./rpc_req_and_res";
 
 export interface IPagination {
@@ -28,6 +29,7 @@ export const brokerOperations = {
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
     NOTIFY_NEW_FOLLOWER: "NOTIFY_NEW_FOLLOWER",
+    USER_UPDATE_REPORT_COUNT: "USER_UPDATE_REPORT_COUNT",
   }
 } as const;
 
@@ -48,6 +50,10 @@ export interface IRpcGetUserSubcribersPayload {
 export interface IRpcGetAuthorsPayload {
   _ids: string[];
   select?: string | string[];
+}
+
+export interface IAuthor {
+  user: string;
 }
 
 export const initRpcConsumers = (rabbit: RabbitMQ): void => {
@@ -86,4 +92,11 @@ export const initRpcConsumers = (rabbit: RabbitMQ): void => {
 
 export const initBrokerConsumners = (_rabbit: RabbitMQ): void => {
   // Do nothing
+  _rabbit.listenMessage(
+    brokerOperations.user.USER_UPDATE_REPORT_COUNT,
+    (msg: IBrokerMessage<IAuthor>) => {
+      console.log("Update report count", msg.data);
+      updateReportCountService(msg.data.user);
+    }
+  );
 };

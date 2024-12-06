@@ -136,3 +136,25 @@ export const getAllUsersService = async () => {
     });
   }
 }
+
+export const updateReportCountService = async (userId: string) => {
+  console.log(userId);
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new InvalidDataError({
+        message: "User not found",
+      });
+    }
+    user.reportCount += 1;
+    if (user.reportCount >= 3) {
+      user.verify = 2;
+    }
+    await user.save();
+    return user;
+  } catch (error) {
+    throw new InvalidDataError({
+      message: (error as Error).message || 'Update report count failed!',
+    });
+  }
+}

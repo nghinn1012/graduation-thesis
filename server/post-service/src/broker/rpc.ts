@@ -3,8 +3,8 @@ import { v4 as uuid4 } from "uuid";
 import {
   AMQP_PATH,
   EXCHANGE_NAME,
-  NOTIFICATION_SERVICE,
-  NOTIFICATION_SERVICE_RPC_QUEUE,
+  POST_SERVICE,
+  POST_SERVICE_RPC_QUEUE,
   RPC_REQUEST_TIME_OUT,
 } from "../config/post.config";
 import { RpcRequest, RpcResponse } from "./rpc_req_and_res";
@@ -246,8 +246,8 @@ export class RabbitMQ {
       this._instance = new RabbitMQ({
         exchange: EXCHANGE_NAME,
         path: AMQP_PATH,
-        rpc: NOTIFICATION_SERVICE_RPC_QUEUE,
-        service: NOTIFICATION_SERVICE,
+        rpc: POST_SERVICE_RPC_QUEUE,
+        service: POST_SERVICE,
       });
     }
     return this._instance;

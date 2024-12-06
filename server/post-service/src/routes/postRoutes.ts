@@ -69,11 +69,13 @@ import {
 import {
   createComplaintController,
   getComplaintsController,
+  updateComplaintController,
 } from "../controllers/complaint.controller";
 
 const postRouter = express.Router();
 postRouter.post("/complaint", tokenValidate, createComplaintController);
 postRouter.get("/complaint", tokenValidate, getComplaintsController);
+postRouter.patch("/complaint/:complaintId", tokenValidate, updateComplaintController);
 // product
 postRouter.patch(
   "/product/addToCart",
