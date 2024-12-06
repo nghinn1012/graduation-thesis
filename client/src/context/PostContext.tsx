@@ -223,12 +223,12 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!auth?.token) return;
 
     try {
-      const savedPosts = await postFetcher.postSavedByUser(auth.token);
+      const savedPosts = await postFetcher.postSavedByUser(auth.token) as unknown as PostInfo[];
       if (Array.isArray(savedPosts)) {
         setPosts((prevPosts) =>
           prevPosts.map((post) => ({
             ...post,
-            saved: savedPosts.includes(post._id.toString()),
+            saved: savedPosts.map((savedPost) => savedPost._id).includes(post._id.toString()),
           }))
         );
       } else {

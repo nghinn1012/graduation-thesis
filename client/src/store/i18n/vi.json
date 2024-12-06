@@ -316,6 +316,7 @@
     "shopping-list": "Danh sách mua sắm",
     "plans": "Kế hoạch",
     "product": "Sản phẩm",
+    "bookmark": "Đánh dấu",
     "cart": "Giỏ hàng",
     "orders": "Đơn hàng",
     "language": "Ngôn ngữ",
@@ -674,5 +675,12 @@
     "mark-read-confirm":"Bạn có chắc chắn muốn đánh dấu tất cả là đã đọc không?",
     "mark-read-success":"Đánh dấu tất cả là đã đọc thành công",
     "mark-read-failed":"Đánh dấu tất cả là đã đọc thất bại: {0}"
+  },
+  "SavedListPage": {
+    "bookmark": "Danh sách đã lưu",
+    "no-saved-posts": "Không có bài viết nào được lưu",
+    "saved-posts": "Bài viết đã lưu",
+    "saved-posts-desc": "Xem và quản lý tất cả bài viết bạn đã lưu",
+    "no-saved-posts-desc": "Lưu bài viết mà bạn muốn xem sau"
   }
 }

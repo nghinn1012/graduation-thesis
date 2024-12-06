@@ -75,7 +75,7 @@ export const FollowProvider: React.FC<{ children: React.ReactNode }> = ({
             user._id === userId ? { ...user, followed: !user.followed } : user
           )
         );
-        success(lang("follow-success"));
+        user?.followed ? success(lang("unfollow-success")) : success(lang("follow-success"));
       } catch (err) {
         console.error("Failed to follow user:", err);
         error(lang("follow-fail"), (err as Error).message);

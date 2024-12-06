@@ -180,12 +180,33 @@ export const saveOrUnsavedPostService = async (
 
 export const getSavedPostsByUserService = async (userId: string) => {
   try {
-    const savedList = await savedListModel.findOne({ userId: userId, isDeleted: false });
+    const savedList = await savedListModel.findOne({ userId: userId });
     if (!savedList) {
       return [];
     }
-    const postIds = savedList.postIds.map((postId) => postId.toString());
-    return postIds;
+    const savedListWithInfo = await Promise.all(
+      savedList.postIds.map(async (postId) => {
+        const post = await postModel.findOne({ _id: postId, isDeleted: false });
+        if (!post) {
+          return null;
+        }
+        return post;
+      })
+    );
+
+    const filteredList = savedListWithInfo.filter((post) => post !== null);
+
+    const authors = await rpcGetUsers<IAuthor[]>(
+      filteredList.map((post) => post?.author || ""),
+      ["_id", "email", "name", "avatar", "username"]
+    );
+    return filteredList.map((post) => ({
+      ...post?.toObject(),
+      author:
+        authors?.find(
+          (author) => author._id.toString() == post?.author.toString()
+        ) || post?.author,
+    })).reverse();
   } catch (error) {
     throw new Error(
       `Cannot get saved posts by user: ${(error as Error).message}`
@@ -260,7 +281,9 @@ export const getPostByUserFollowingService = async (
       return [];
     }
 
-    const posts = await postModel.find({ author: { $in: following }, isDeleted: false }).sort({ createdAt: -1 });
+    const posts = await postModel
+      .find({ author: { $in: following }, isDeleted: false })
+      .sort({ createdAt: -1 });
 
     if (!posts || posts.length === 0 || !page || !limit) {
       return [];

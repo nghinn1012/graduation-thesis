@@ -33,6 +33,7 @@ export type I18nReactComponent =
   | "ScheduleSection"
   | "ToastrSection"
   | "NotificationSection"
+  | "SavedListPage"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

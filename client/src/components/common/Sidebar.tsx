@@ -17,6 +17,7 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { useNotificationContext } from "../../context/NotificationContext";
 import { useI18nContext } from "../../hooks/useI18nContext";
 import { useMessageContext } from "../../context/MessageContext";
+import { BsBookmark } from "react-icons/bs";
 
 function LoadingSpinner() {
   return (
@@ -66,14 +67,14 @@ const Sidebar = () => {
     <div className="md:flex-[2_2_0] w-18 max-w-60">
       <div className="sticky top-0 left-0 h-screen flex flex-col border-r border-gray-300 w-20 md:w-full">
         <NavLink to="/" className="flex justify-center md:justify-start">
-          <XSvg className="px-2 w-12 h-12 rounded-full fill-white" />
+          <XSvg className="px-2 w-8 h-8 rounded-full fill-white" />
         </NavLink>
         <ul className="flex flex-col gap-3 mt-6">
           <li className="flex justify-center md:justify-start">
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -88,7 +89,7 @@ const Sidebar = () => {
             <NavLink
               to="/posts/explore"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -103,7 +104,7 @@ const Sidebar = () => {
             <NavLink
               to="/users/search"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -118,7 +119,7 @@ const Sidebar = () => {
             <NavLink
               to="/users/notifications"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -141,7 +142,7 @@ const Sidebar = () => {
             <NavLink
               to="/message"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -164,7 +165,7 @@ const Sidebar = () => {
             <NavLink
               to={`/users/profile/${account?._id}`}
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -175,11 +176,28 @@ const Sidebar = () => {
               </span>
             </NavLink>
           </li>
+
+          <li className="flex justify-center md:justify-start">
+            <NavLink
+              to="posts/savedList"
+              className={({ isActive }) =>
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
+                  isActive ? "bg-stone-300" : ""
+                }`
+              }
+            >
+              <BsBookmark className="w-5 h-5" />
+              <span className="text-lg hidden md:block mt-1">
+                {lang("bookmark")}
+              </span>
+            </NavLink>
+          </li>
+
           <li className="flex justify-center md:justify-start">
             <NavLink
               to="users/shoppingList"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -195,7 +213,7 @@ const Sidebar = () => {
             <NavLink
               to="users/mealPlanner"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -211,7 +229,7 @@ const Sidebar = () => {
             <NavLink
               to="products"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -227,7 +245,7 @@ const Sidebar = () => {
             <NavLink
               to="cart"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -243,7 +261,7 @@ const Sidebar = () => {
             <NavLink
               to="orders"
               className={({ isActive }) =>
-                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer ${
+                `flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer ${
                   isActive ? "bg-stone-300" : ""
                 }`
               }
@@ -258,7 +276,7 @@ const Sidebar = () => {
           <li className="flex justify-center md:justify-start relative">
             <div
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              className="flex gap-4 items-center hover:bg-stone-200 transition-all rounded-full duration-300 py-1.5 pl-2 pr-4 max-w-fit cursor-pointer"
             >
               <PiGlobeSimpleFill className="w-6 h-6" />
               <span className="text-lg hidden md:block mt-1">
@@ -267,7 +285,7 @@ const Sidebar = () => {
             </div>
 
             {showDropdown && (
-              <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg py-2 min-w-[160px] z-50">
+              <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg py-1.5 min-w-[160px] z-50">
                 {languages.map(({ code, label }) => (
                   <div
                     key={code}
@@ -275,7 +293,7 @@ const Sidebar = () => {
                       language.switchLanguage(code as "en" | "vi");
                       setShowDropdown(false);
                     }}
-                    className="px-4 py-2 hover:bg-stone-100 cursor-pointer"
+                    className="px-4 py-1.5 hover:bg-stone-100 cursor-pointer"
                   >
                     {label}
                   </div>
@@ -285,7 +303,7 @@ const Sidebar = () => {
           </li>
         </ul>
         {account && (
-          <div className="mt-auto mb-10 flex gap-2 items-start transition-all duration-300 py-2 px-4 rounded-full">
+          <div className="mt-auto mb-10 flex gap-2 items-start transition-all duration-300 py-1.5 px-4 rounded-full">
             <NavLink
               to={`/users/profile/${account._id}`}
               className="flex gap-2 items-start flex-1"

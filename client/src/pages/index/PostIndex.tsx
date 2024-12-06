@@ -5,6 +5,7 @@ import ScrollToTop from "../../components/common/ScrollToTop";
 import Explore from "../post/Explore";
 import ProductPage from "../post/Purchase";
 import ProductListPage from "../product/ProductList";
+import SavedListPage from "../savePost/SavedListPage";
 
 export default function Food() {
   return (
@@ -14,6 +15,7 @@ export default function Food() {
         <Route path="/:id" element={<PostDetails />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/productDetails/:productId" element={<ProductPage />} />
+        <Route path="/savedList" element={<SavedListPage />} />
       </Routes>
     </div>
   );
