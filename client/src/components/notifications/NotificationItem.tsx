@@ -12,21 +12,23 @@ import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { BsPostcard } from "react-icons/bs";
 import { useI18nContext } from "../../hooks/useI18nContext";
+interface Notification {
+  _id: string;
+  author: AccountInfo;
+  post?: {
+    _id: string;
+    title: string;
+    image: string;
+    accepted?: boolean;
+  };
+  type: string;
+  message: string;
+  read: boolean;
+  createdAt?: string;
+}
 
 interface NotificationItemProps {
-  notification: {
-    _id: string;
-    author: AccountInfo;
-    post?: {
-      _id: string;
-      title: string;
-      image: string;
-    };
-    type: string;
-    message: string;
-    read: boolean;
-    createdAt?: string;
-  };
+  notification: Notification;
   onClick: (
     postId: string,
     author: AccountInfo,
@@ -42,7 +44,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   const { account } = useAuthContext();
   const [formattedDate, setFormattedDate] = useState<string | null>(null);
   const language = useI18nContext();
-  const lang = language.of("NotificationSection","ReportSection");
+  const lang = language.of("NotificationSection", "ReportSection");
 
   useEffect(() => {
     if (notification.createdAt) {
@@ -71,8 +73,38 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         return <FaUser className="w-5 h-5 text-blue-500" />;
       case "SEND_REPORT":
         return <FaExclamationTriangle className="w-5 h-5 text-red-500" />;
+      case "SEND_REPORT_UPDATE":
+        return <FaExclamationTriangle className="w-5 h-5 text-red-500" />;
       default:
         return <FaComment className="w-5 h-5 text-green-500" />;
+    }
+  };
+
+  const renderNotificationContent = (notification: Notification) => {
+    switch (notification.type) {
+      case "SEND_REPORT":
+        return (
+          <div>
+            <span className="font-semibold">{lang("report-notification")}</span>
+          </div>
+        );
+
+      case "SEND_REPORT_UPDATE":
+        return (
+          <div>
+            <span className="font-semibold">{notification?.post?.accepted ? lang("report-update-notification-success", notification.post.title) : lang("report-update-notification-fail", notification?.post?.title || "")}</span>
+          </div>
+        );
+
+      default:
+        return (
+          <span>
+            <span className="font-semibold">{notification.author.name}</span>
+            {` ${lang(notification.message)}${
+              notification?.post?.title ? `: ${notification.post.title}` : ""
+            }`}
+          </span>
+        );
     }
   };
 
@@ -108,26 +140,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                 !notification.read ? "font-semibold" : "text-gray-900"
               }`}
             >
-              {notification.type === "SEND_REPORT" ? (
-                <>
-                  <div>
-                    <span className="font-semibold">
-                      {lang("report-notification")}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <span>
-                  <span className="font-semibold">
-                    {notification.author.name}
-                  </span>
-                  {` ${lang(notification.message)}${
-                    notification?.post?.title
-                      ? `: ${notification.post.title}`
-                      : ""
-                  }`}
-                </span>
-              )}
+              {renderNotificationContent(notification)}
             </p>
             <div className="flex-shrink-0">{getIcon()}</div>
           </div>

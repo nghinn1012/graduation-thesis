@@ -10,6 +10,7 @@ import { useI18nContext } from "../../../hooks/useI18nContext";
 import { useFormik } from "formik";
 import { useToastContext } from "../../../hooks/useToastContext";
 import axios from "axios";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const SignUpPage = () => {
   const auth = useAuthContext();
@@ -19,6 +20,8 @@ const SignUpPage = () => {
     password: "",
     confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const languageContext = useI18nContext();
   const lang = languageContext.of("SignUpForm", "LoginPage");
@@ -195,52 +198,79 @@ const SignUpPage = () => {
                 <label htmlFor="password" className="mb-2 text-md">
                   {lang("password")}
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  className={`w-full p-2 border ${
-                    formik.touched.password && formik.errors.password
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  } rounded-md placeholder:font-light placeholder:text-gray-500`}
-                  placeholder={lang("password-placeholder")}
-                  value={formik.values.password}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                />
-              </div>
-              {formik.touched.password && formik.errors.password ? (
-                <div className="text-red-500 text-sm">
-                  {formik.errors.password}
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    id="password"
+                    className={`w-full p-2 border ${
+                      formik.touched.password && formik.errors.password
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md placeholder:font-light placeholder:text-gray-500`}
+                    placeholder={lang("password-placeholder")}
+                    value={formik.values.password}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <AiOutlineEyeInvisible />
+                    ) : (
+                      <AiOutlineEye />
+                    )}
+                  </button>
                 </div>
-              ) : null}
+                {formik.touched.password && formik.errors.password ? (
+                  <div className="text-red-500 text-sm">
+                    {formik.errors.password}
+                  </div>
+                ) : null}
+              </div>
+              {/* Confirm Password field with visibility toggle */}
               <div className="py-4">
                 <label htmlFor="confirm-password" className="mb-2 text-md">
                   {lang("confirm-password")}
                 </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  id="confirm-password"
-                  placeholder={lang("confirm-password-placeholder")}
-                  className={`w-full p-2 border ${
-                    formik.touched.confirmPassword &&
-                    formik.errors.confirmPassword
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  } rounded-md placeholder:font-light placeholder:text-gray-500`}
-                  value={formik.values.confirmPassword}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                />
-              </div>
-              {formik.touched.confirmPassword &&
-              formik.errors.confirmPassword ? (
-                <div className="text-red-500 text-sm">
-                  {formik.errors.confirmPassword}
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    id="confirm-password"
+                    placeholder={lang("confirm-password-placeholder")}
+                    className={`w-full p-2 border ${
+                      formik.touched.confirmPassword &&
+                      formik.errors.confirmPassword
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md placeholder:font-light placeholder:text-gray-500`}
+                    value={formik.values.confirmPassword}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <AiOutlineEyeInvisible />
+                    ) : (
+                      <AiOutlineEye />
+                    )}
+                  </button>
                 </div>
-              ) : null}
+                {formik.touched.confirmPassword &&
+                formik.errors.confirmPassword ? (
+                  <div className="text-red-500 text-sm">
+                    {formik.errors.confirmPassword}
+                  </div>
+                ) : null}
+              </div>
               <button
                 className="w-full bg-black text-white p-2 rounded-lg mb-6 hover:bg-white hover:text-black hover:border hover:border-gray-300"
                 type="submit"

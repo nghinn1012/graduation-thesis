@@ -8,6 +8,8 @@ import { AccountInfo } from "./user";
 export const postEndpoints = {
   createComplaint: "/posts/complaint",
   getComplaints: "/posts/complaint",
+  updateComplaintStatus: "/posts/complaint/:complaintId",
+  getDashboard: "/posts/dashboard",
   // product
   getOrderById: "/posts/order/getOrderById/:orderId",
   getAllProducts: "/posts/product/getAll",
@@ -555,10 +557,32 @@ export interface ComplaintData {
 }
 
 export interface ComplaintResponse {
-  page: number;
-  total: number;
   complaints: ComplaintData[];
-  totalPages: number;
+}
+
+export interface ComplaintUpdate {
+  status: string;
+}
+
+export interface OrderStats {
+  total: number;
+  successful: number;
+  percentage: number;
+}
+
+export interface OrderAnalytics {
+  daily: OrderStats;
+  weekly: OrderStats;
+  monthly: OrderStats;
+}
+
+export interface DashboardStats {
+  orderAnalytics: OrderAnalytics;
+  totalStats: {
+    totalPosts: number;
+    totalProducts: number;
+    totalOrders: number;
+  };
 }
 
 export interface PostFetcher {
@@ -814,10 +838,14 @@ export interface PostFetcher {
     token: string
   ) => Promise<PostResponse<ComplaintData>>;
   getComplaints: (
-    page: number,
-    pageSize: number,
     token: string
   ) => Promise<PostResponse<ComplaintResponse>>;
+  updateComplaintStatus: (
+    complaintId: string,
+    status: string,
+    token: string
+  ) => Promise<PostResponse<ComplaintData>>;
+  getDashboard: (token: string) => Promise<PostResponse<DashboardStats>>;
 }
 
 export const postFetcher: PostFetcher = {
@@ -1601,18 +1629,32 @@ export const postFetcher: PostFetcher = {
     );
   },
   getComplaints: async (
-    page: number,
-    pageSize: number,
     token: string
   ): Promise<PostResponse<ComplaintResponse>> => {
     return postInstance.get(postEndpoints.getComplaints, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      params: {
-        page,
-        pageSize,
+    });
+  },
+  updateComplaintStatus: async (
+    complaintId: string,
+    status: string,
+    token: string
+  ): Promise<PostResponse<ComplaintData>> => {
+    return postInstance.patch(postEndpoints.updateComplaintStatus.replace(":complaintId", complaintId), {
+      status,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     });
-  }
+  },
+  getDashboard: async (token: string): Promise<PostResponse<DashboardStats>> => {
+    return postInstance.get(postEndpoints.getDashboard, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };

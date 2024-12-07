@@ -18,6 +18,7 @@ import NotFoundPage from "./common/auth/NotFoundPage";
 import ProtectedAdminRoute from "./common/auth/ProtectedAdminRoute";
 import UnauthorizedPage from "./common/auth/UnauthorizedPage";
 import { AdminComplaintProvider } from "./context/AdminComplaintContext";
+import { AdminUserProvider } from "./context/AdminUserContext";
 export function App() {
   const location = useLocation();
   return (
@@ -48,9 +49,11 @@ export function App() {
             path="/admin/*"
             element={
               <ProtectedAdminRoute>
-                <AdminComplaintProvider>
-                  <AdminIndex />
-                </AdminComplaintProvider>
+                <AdminUserProvider>
+                  <AdminComplaintProvider>
+                    <AdminIndex />
+                  </AdminComplaintProvider>
+                </AdminUserProvider>
               </ProtectedAdminRoute>
             }
           />

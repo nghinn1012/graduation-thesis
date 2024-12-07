@@ -158,3 +158,30 @@ export const updateReportCountService = async (userId: string) => {
     });
   }
 }
+
+export const banndedOrUnbanndedUserService = async (userId: string, adminId: string) => {
+  try {
+    const user = await UserModel.findById(userId);
+    const admin = await UserModel.findById(adminId);
+    if (!admin || !admin.role.includes("admin")) {
+      throw new InvalidDataError({
+        message: "Admin not found",
+      });
+    }
+    if (!user) {
+      throw new InvalidDataError({
+        message: "User not found",
+      });
+    }
+    if (user.verify == 2) {
+      user.reportCount = 0;
+    }
+    user.verify = user.verify == 2 ? 1 : 2;
+    await user.save();
+    return user;
+  } catch (error) {
+    throw new InvalidDataError({
+      message: (error as Error).message || 'Banned or unbanned user failed!',
+    });
+  }
+}

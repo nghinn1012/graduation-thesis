@@ -1,7 +1,7 @@
-import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo, sendForgotPassword } from "../services/mailService";
+                                                                                                                                                             import { sendActiveMannualAccount, MannualAccountInfo, UpdateProfileInfo, sendForgotPassword } from "../services/mailService";
 import { IBrokerMessage, RabbitMQ } from "./rpc";
 import { io } from "../../index";
-import { createCommentedFoodNotifications, createFollowNotifications, createLikedFoodNotifications, createMadeFoodNotifications, createNewFoodNotifications, createSavedFoodNotifications, createSendReportNotification } from "../services/notificationService";
+import { createCommentedFoodNotifications, createFollowNotifications, createLikedFoodNotifications, createMadeFoodNotifications, createNewFoodNotifications, createSavedFoodNotifications, createSendReportNotification, createSendReportUpdateNotification } from "../services/notificationService";
 import { PostNotification } from "../data/interface/notification_interface";
 export interface Ided {
   _id: string;
@@ -30,6 +30,7 @@ export const brokerOperations = {
     NOTIFY_FOOD_SAVED: "NOTIFY_FOOD_SAVED",
     NOTIFY_FOOD_MADE: "NOTIFY_FOOD_MADE",
     NOTIFY_SEND_REPORT: "NOTIFY_SEND_REPORT",
+    NOTIFY_SEND_REPORT_UPDATE: "NOTIFY_SEND_REPORT_UPDATE",
   },
   user: {
     NOTIFY_UPLOADS_IMAGE_COMPLETE: "NOTIFY_UPLOADS_IMAGE_COMPLETE",
@@ -104,6 +105,10 @@ export interface IBrokerNotifySendReportPayload {
   post: PostNotification;
 }
 
+export interface IBrokerNotifySendReportUpdatePayload {
+  user: IAuthor;
+  food: PostNotification;
+}
 export const initRpcConsumers = (_rabbit: RabbitMQ): void => {
   // Do nothing
 };
@@ -208,6 +213,15 @@ export const initBrokerConsumners = (rabbit: RabbitMQ): void => {
       console.log("Message data:", msg.data);
       const { user, post } = msg.data;
       createSendReportNotification(user, post);
+    }
+  );
+
+  rabbit.listenMessage(
+    brokerOperations.food.NOTIFY_SEND_REPORT_UPDATE,
+    (msg: IBrokerMessage<IBrokerNotifySendReportUpdatePayload>) => {
+      console.log("Message data:", msg.data);
+      const { user, food } = msg.data;
+      createSendReportUpdateNotification(user, food);
     }
   );
 

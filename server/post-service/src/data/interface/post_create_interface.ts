@@ -37,6 +37,7 @@ export interface IPostNotification {
   _id: string;
   title: string;
   image: string;
+  accepted?: boolean;
 }
 
 export interface AccountInfo {
@@ -47,4 +48,26 @@ export interface AccountInfo {
   username: string;
   followers: string[];
   role: string;
+}
+
+
+export interface OrderStats {
+  total: number;
+  successful: number;
+  percentage: number;
+}
+
+export interface OrderAnalytics {
+  daily: OrderStats;
+  weekly: OrderStats;
+  monthly: OrderStats;
+}
+
+export interface DashboardStats {
+  orderAnalytics: OrderAnalytics;
+  totalStats: {
+    totalPosts: number;
+    totalProducts: number;
+    totalOrders: number;
+  };
 }

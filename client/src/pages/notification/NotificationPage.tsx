@@ -92,7 +92,7 @@ const NotificationPage: FC = () => {
     if (!author || !auth?.token) return;
 
     try {
-      if (type === "SEND_REPORT") {
+      if (type === "SEND_REPORT" || type === "SEND_REPORT_UPDATE") {
         await markNotificationAsRead(notificationId);
         return;
       }

@@ -22,6 +22,7 @@ export const userEndpoints = {
   getFollowers: "/users/followers/:userId",
   getFollowing: "/users/following/:userId",
   updateUser: "/users/update/:userId",
+  banned: "/users/banned/:userId",
 } as const;
 
 export interface UserResponseError
@@ -154,6 +155,7 @@ export interface UserFetcher {
     data: UpdateDataInfo,
     token: string
   ): Promise<UserResponse<AccountInfo>>;
+  banned(userId: string, token: string): Promise<UserResponse<AccountInfo>>;
 }
 
 export const userFetcher: UserFetcher = {
@@ -304,6 +306,20 @@ export const userFetcher: UserFetcher = {
     return userInstance.post(
       userEndpoints.updatePassword,
       { password, confirmPassword },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+  banned: async (
+    userId: string,
+    token: string
+  ): Promise<UserResponse<AccountInfo>> => {
+    return userInstance.post(
+      userEndpoints.banned.replace(":userId", userId),
+      {},
       {
         headers: {
           Authorization: `Bearer ${token}`,

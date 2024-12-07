@@ -6,72 +6,73 @@ import { ComplaintData, ComplaintResponse, postFetcher } from "../api/post";
 interface AdminComplaintType {
   complaints: ComplaintData[];
   loading: boolean;
-  loadMoreComplaints: () => void;
-  hasMore: boolean;
   fetchComplaints: () => Promise<void>;
   setComplaints: React.Dispatch<React.SetStateAction<ComplaintData[]>>;
+  updateComplaintStatus: (complaintId: string, newStatus: string) => Promise<void>;
 }
+
 const AdminComplaintContext = createContext<AdminComplaintType | undefined>(undefined);
+
 export const AdminComplaintProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [complaints, setComplaints] = useState<ComplaintData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const { auth } = useAuthContext();
-  const { error } = useToastContext();
+  const { error, success } = useToastContext();
   const limit = 10;
 
-  const fetchComplaints = useCallback(async (page: number) => {
-    if (!auth?.token || loading || !hasMore) return;
+  const fetchComplaints = useCallback(async () => {
+    if (!auth?.token || loading) return;
 
     setLoading(true);
     try {
-      const response = await postFetcher.getComplaints(page, limit, auth.token) as unknown as ComplaintResponse;
-
-      if (page === 1) {
-        setComplaints(response.complaints);
-      } else {
-        setComplaints(prev => [...prev, ...response.complaints]);
-      }
-
-      setHasMore(response.complaints.length === limit);
+      const response = await postFetcher.getComplaints(auth.token) as unknown as ComplaintData[];
+      setComplaints(response);
     } catch (err) {
       error("Không thể tải khiếu nại.");
     } finally {
       setLoading(false);
     }
-  }, [auth?.token, loading, hasMore]);
+  }, [auth?.token, loading]);
 
-  const loadMoreComplaints = useCallback(() => {
-    if (!loading && hasMore) {
-      setCurrentPage(prev => prev + 1);
-    }
-  }, [loading, hasMore]);
+  const updateComplaintStatus = useCallback(async (complaintId: string, newStatus: string) => {
+    if (!auth?.token) return;
 
-  useEffect(() => {
-    if (auth?.token) {
-      setCurrentPage(1);
-      fetchComplaints(1);
+    setLoading(true);
+    try {
+      await postFetcher.updateComplaintStatus(complaintId, newStatus, auth.token);
+
+      setComplaints(prevComplaints =>
+        prevComplaints.map(complaint =>
+          complaint._id === complaintId
+            ? { ...complaint, status: newStatus }
+            : complaint
+        )
+      );
+
+      success("Cập nhật trạng thái khiếu nại thành công.");
+    } catch (err) {
+      error("Không thể cập nhật trạng thái khiếu nại.");
+    } finally {
+      setLoading(false);
     }
   }, [auth?.token]);
 
   useEffect(() => {
-    if (currentPage > 1) {
-      fetchComplaints(currentPage);
+    if (auth?.token) {
+      fetchComplaints();
     }
-  }, [currentPage]);
+  }, [auth?.token]);
 
   return (
     <AdminComplaintContext.Provider
       value={{
         complaints,
         loading,
-        loadMoreComplaints,
-        hasMore,
-        fetchComplaints: () => fetchComplaints(1),
+        fetchComplaints,
         setComplaints,
+        updateComplaintStatus,
       }}
     >
       {children}

@@ -7,6 +7,7 @@ import PageTitle from '../../common/admin/PageTitle';
 import AdminLoginPage from '../admin/AdminLoginPage';
 import DashBoard from '../admin/DashBoard';
 import ComplaintPage from '../admin/ComplaintPage';
+import UserManagementPage from '../admin/UserManagementPage';
 function Admin() {
   const [loading, setLoading] = useState<boolean>(true);
   const { pathname } = useLocation();
@@ -129,6 +130,15 @@ function Admin() {
             <>
               <PageTitle title="Complaints | TailAdmin - Tailwind CSS Admin Dashboard Template" />
               <ComplaintPage />
+            </>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <>
+              <PageTitle title="Login | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <UserManagementPage />
             </>
           }
         />

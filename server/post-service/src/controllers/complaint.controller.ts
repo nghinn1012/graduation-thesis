@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { createComplaintService, getComplaintsService, updateComplaintService } from "../services/complaints.services";
+import {
+  createComplaintService,
+  getComplaintsService,
+  getDashboardStatisticsService,
+  updateComplaintService,
+} from "../services/complaints.services";
 import { AuthRequest } from "../data";
 
 export const createComplaintController = async (
@@ -14,7 +19,12 @@ export const createComplaintController = async (
         error: "User not found",
       });
     }
-    const result = await createComplaintService(postId, userId, reason, description);
+    const result = await createComplaintService(
+      postId,
+      userId,
+      reason,
+      description
+    );
     res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({
@@ -23,23 +33,17 @@ export const createComplaintController = async (
   }
 };
 
-export const getComplaintsController = async (
-  req: Request,
-  res: Response
-) => {
+export const getComplaintsController = async (req: Request, res: Response) => {
   try {
     const { page, pageSize } = req.query;
-    const complaints = await getComplaintsService(
-      Number(page),
-      Number(pageSize)
-    );
+    const complaints = await getComplaintsService();
     res.status(200).json(complaints);
   } catch (error) {
     return res.status(400).json({
       error: (error as Error).message,
     });
   }
-}
+};
 
 export const updateComplaintController = async (
   req: AuthRequest,
@@ -61,4 +65,18 @@ export const updateComplaintController = async (
       error: (error as Error).message,
     });
   }
-}
+};
+
+export const getDashboardStatisticsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const result = await getDashboardStatisticsService();
+    res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+};

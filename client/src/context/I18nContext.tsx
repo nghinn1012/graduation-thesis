@@ -36,6 +36,7 @@ export type I18nReactComponent =
   | "SavedListPage"
   | "ErrorSection"
   | "ReportSection"
+  | "AdminSection"
 
 interface II18nContextProviderProps {
   children: React.ReactNode;

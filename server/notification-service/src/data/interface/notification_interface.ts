@@ -2,7 +2,7 @@ import { IAuthor } from "../../broker/rpc_consumer";
 export interface PostNotification {
   _id: string;
   title: string;
-  image: string;
+  accepted?: boolean;
 }
 
 export interface NotificationInfo {
@@ -10,7 +10,7 @@ export interface NotificationInfo {
   users: string[],
   message: string,
   type: "FOOD_LIKED" | "NEW_FOOD" | "FOOD_UPLOAD_COMPLETE" |
-  "FOOD_COMMENTED" | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER" | "SEND_REPORT",
+  "FOOD_COMMENTED" | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER" | "SEND_REPORT" | "SEND_REPORT_UPDATE",
   link?: string,
   reads: string[],
   author: string,
@@ -23,10 +23,11 @@ export interface NotificationToUser {
   message: string,
   type: "FOOD_LIKED" | "NEW_FOOD" |
   "FOOD_UPLOAD_COMPLETE" | "FOOD_COMMENTED"
-  | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER" | "SEND_REPORT",
+  | "FOOD_SAVED" | "FOOD_MADE" | "NEW_FOLLOWER" | "SEND_REPORT" | "SEND_REPORT_UPDATE",
   read: boolean,
   link?: string,
   author?: IAuthor,
   post?: PostNotification,
   createdAt?: Date,
+  accepted?: boolean,
 }

@@ -201,6 +201,30 @@ export const createSendReportNotification = async (
   });
 }
 
+export const createSendReportUpdateNotification = async (
+  user: IAuthor,
+  post: PostNotification,
+) => {
+  console.log(post);
+  const notificationData: NotificationInfo = {
+    users: [user._id],
+    author: user._id,
+    reads: [],
+    type: "SEND_REPORT_UPDATE",
+    message: "updated-report",
+    post: post,
+  }
+  const notification = new NotificationModel(notificationData);
+  await notification.save();
+  sendNotification(user._id, {
+    ...notificationData,
+    _id: notification._id,
+    createdAt: notification.createdAt,
+    author: user,
+    read: false,
+  });
+}
+
 
 export const getNotificationsServices = async (
   userId: string,

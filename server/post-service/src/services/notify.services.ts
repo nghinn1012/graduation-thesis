@@ -75,6 +75,17 @@ export const notifySendReport = async (user: IAuthor, food: IPostNotification) =
   );
 }
 
+export const notifySendReportUpdate = async (user: IAuthor, food: IPostNotification) => {
+  RabbitMQ.instance.publicMessage(
+    BrokerSource.NOTIFICATION,
+    brokerOperations.food.NOTIFY_SEND_REPORT_UPDATE,
+    {
+      user: user,
+      food: food,
+    }
+  );
+}
+
 export const notifySendReportCountUpdate = async (user: string) => {
   RabbitMQ.instance.publicMessage(
     BrokerSource.USER,

@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { RiDashboardLine } from 'react-icons/ri';
 import { FiUsers } from 'react-icons/fi';
 import { MdOutlineReport } from 'react-icons/md';
+import { useI18nContext } from '../../hooks/useI18nContext';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -12,6 +13,8 @@ interface SidebarProps {
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const location = useLocation();
   const { pathname } = location;
+  const language = useI18nContext();
+  const lang = language.of("AdminSection");
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
@@ -52,7 +55,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       {/* <!-- SIDEBAR HEADER --> */}
       <div className="flex items-center justify-between gap-2 px-6 py-5 lg:py-6 border-b border-gray-200">
         <NavLink to="/" className="text-gray-800 text-xl font-bold">
-          Admin Dashboard
+          {lang('admin-dashboard')}
         </NavLink>
 
         <button
@@ -71,8 +74,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <nav className="mt-5 py-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            <h3 className="mb-4 ml-4 text-sm font-semibold text-gray-600">
-              MENU
+            <h3 className="mb-4 ml-4 text-sm font-semibold text-gray-600 uppercase">
+              {lang("menu")}
             </h3>
 
             <ul className="mb-6 flex flex-col gap-2">
@@ -89,7 +92,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   }
                 >
                   <RiDashboardLine size={20} />
-                  Dashboard
+                  {lang('dashboard')}
                 </NavLink>
               </li>
 
@@ -106,7 +109,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   }
                 >
                   <FiUsers size={20} />
-                  Users
+                  {lang('users')}
                 </NavLink>
               </li>
 
@@ -123,7 +126,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   }
                 >
                   <MdOutlineReport size={20} />
-                  Complaints
+                  {lang('complaints')}
                 </NavLink>
               </li>
             </ul>

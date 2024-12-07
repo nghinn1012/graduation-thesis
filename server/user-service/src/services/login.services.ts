@@ -98,7 +98,13 @@ export const loginService = async (info: LoginInfo) => {
 
   if (user.verify == 0) {
     throw new InvalidDataError({
-      message: "User is not verified!",
+      message: "not-verified",
+    });
+  }
+
+  if (user.verify == 2) {
+    throw new InvalidDataError({
+      message: "banned",
     });
   }
 
@@ -150,6 +156,11 @@ export const googleLoginService = async (idToken: string) => {
       $or: [{ email }, { googleId }],
     });
 
+    if (user && user.verify == 2) {
+      throw new InvalidDataError({
+        message: "banned",
+      });
+    }
     if (user) {
       const token = signToken({ userId: user?._id, email: user?.email });
       const refreshToken = signRefreshToken({

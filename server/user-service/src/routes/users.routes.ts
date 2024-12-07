@@ -6,7 +6,7 @@ import {
   updateUserControler, verifyUser
 } from '../controllers/index.controllers';
 import { validateRegistration, checkLoginBodyAndParams, protectedRequest, authenticateUser } from '../middlewares/index.middlewares';
-import { getAllUsersController, getFollowersController, getFollowingController } from '../controllers/users.controllers';
+import { banndedOrUnbanndedUserController, getAllUsersController, getFollowersController, getFollowingController } from '../controllers/users.controllers';
 import { resendEmailVerifyController, resetPasswordController, updatePasswordController } from '../controllers/auth.controllers';
 
 const userRouter = Router();
@@ -32,4 +32,5 @@ userRouter.post('/followUser/:id', protectedRequest, followAndUnFollowUserContro
 userRouter.get('/suggest', protectedRequest, getSuggestUserController)
 userRouter.get('/followers/:id', protectedRequest, getFollowersController)
 userRouter.get('/following/:id', protectedRequest, getFollowingController)
+userRouter.post('/banned/:id', protectedRequest, banndedOrUnbanndedUserController)
 export default userRouter;

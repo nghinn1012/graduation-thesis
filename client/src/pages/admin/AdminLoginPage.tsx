@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
+import { FiMail, FiLock, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 import { AccountInfo, userFetcher } from "../../api/user";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { IAccountInfo } from "../../data/interface_data/account_info";
+import { useI18nContext } from "../../hooks/useI18nContext";
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
@@ -13,7 +14,10 @@ const AdminLoginPage = () => {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const auth = useAuthContext();
+  const language = useI18nContext();
+  const lang = language.of("LoginPage", "AdminSection");
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
@@ -65,12 +69,16 @@ const AdminLoginPage = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200 py-12 px-4">
       <div className="card w-full max-w-md bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title text-2xl font-bold text-center justify-center">
-            Admin Login
+            {lang("admin-login")}
           </h2>
 
           {error && (
@@ -83,7 +91,7 @@ const AdminLoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Email</span>
+                <span className="label-text">{lang("email")}</span>
               </label>
               <div className="relative">
                 <input
@@ -91,7 +99,7 @@ const AdminLoginPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="admin@example.com"
+                  placeholder={lang("email-placeholder")}
                   className="input input-bordered w-full pr-10"
                 />
                 <FiMail className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
@@ -100,18 +108,28 @@ const AdminLoginPage = () => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Password</span>
+                <span className="label-text">{lang("password")}</span>
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Enter your password"
+                  placeholder={lang("password-placeholder")}
                   className="input input-bordered w-full pr-10"
                 />
-                <FiLock className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" />
+                  ) : (
+                    <FiEye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -123,18 +141,12 @@ const AdminLoginPage = () => {
               {isLoading ? (
                 <>
                   <span className="loading loading-spinner"></span>
-                  Loading
+                  {lang("loading")}...
                 </>
               ) : (
-                "Sign in"
+                lang("signin")
               )}
             </button>
-
-            <div className="text-center mt-4">
-              <Link to="/forgot-password" className="link link-primary text-sm">
-                Forgot your password?
-              </Link>
-            </div>
           </form>
         </div>
       </div>

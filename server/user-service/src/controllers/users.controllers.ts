@@ -7,6 +7,7 @@ import { followAndUnFollowUserService,
   updateUserService
 } from "../services/index.services";
 import { getFollowersService, getFollowingService } from "../services/follow.services";
+import { banndedOrUnbanndedUserService } from "../services/users.services";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -147,6 +148,24 @@ export const getFollowingController = async (req: AuthenticatedRequest, res: Res
     const userId = req.params.id;
     const following = await getFollowingService(userId);
     res.status(200).json(following);
+  } catch (error) {
+    return res.status(400).json({
+      error: (error as Error).message,
+    });
+  }
+}
+
+export const banndedOrUnbanndedUserController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const adminId = req.userId;
+    if (!adminId) {
+      res.status(400).json({
+        message: "Admin not found!",
+      })
+    }
+    const result = await banndedOrUnbanndedUserService(userId, adminId as string);
+    res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({
       error: (error as Error).message,
