@@ -39,6 +39,7 @@ const ChatHeader: React.FC = () => {
   useEffect(() => {
     const checkPrivateUser = () => {
       if (chatGroupSelect && chatGroupSelect.isPrivate) {
+        console.log(chatGroupSelect);
         const user = getUserIfPrivate(chatGroupSelect);
         if (user) {
           setUserIfPrivate(user);

@@ -24,9 +24,8 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
   const [selectedUsers, setSelectedUsers] = useState<AccountInfo[]>([]);
   const [groupName, setGroupName] = useState<string>('');
   const [isGroupChat, setIsGroupChat] = useState<boolean>(initialChatType === 'group');
-  const { allUsers } = useUserContext();
   const { account } = useAuthContext();
-  const { chatGroups, setChatGroupSelect } = useMessageContext();
+  const { chatGroups, setChatGroupSelect, allUsers } = useMessageContext();
   const { error } = useToastContext();
   const languageContext = useI18nContext();
   const lang = languageContext.of('MessageSection');
@@ -94,10 +93,14 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({
 
     const chatData: createChatGroup = {
       members,
+      memberDetails: selectedUsers.map(user =>
+        allUsers.find(u => u._id === user._id) || user
+      ),
       createdBy: account?._id || '',
       isPrivate: !isGroupChat,
       groupName: isGroupChat ? groupName : selectedUsers[0].name
     };
+    console.log(chatData);
 
     if (isGroupChat && !groupName.trim()) return;
 

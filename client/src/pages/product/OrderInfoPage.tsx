@@ -236,8 +236,9 @@ const OrderInfoPage: React.FC = () => {
                 }, 1000);
               }
 
-            } catch (error) {
-              console.error("Error creating payment request:", error);
+            } catch (err) {
+              console.error("Error creating payment request:", err);
+              error("Failed to create payment request");
               return null;
             }
           };
@@ -485,7 +486,7 @@ const OrderInfoPage: React.FC = () => {
                     </label>
                   </div>
                   {/* QR Code Payment */}
-                  <div className="form-control">
+                  {/* <div className="form-control">
                     <label className="label cursor-pointer">
                       <span className="label-text flex items-center gap-2">
                         <FaQrcode /> {lang("qr-code")}
@@ -499,7 +500,7 @@ const OrderInfoPage: React.FC = () => {
                         className="radio radio-primary"
                       />
                     </label>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

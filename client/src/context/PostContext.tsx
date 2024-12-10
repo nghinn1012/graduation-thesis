@@ -93,8 +93,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
           return {
             ...post,
             author: {
-              ...post.author,
-              followed: post.author.followers?.includes(account?._id  || ""),
+              ...post?.author,
+              followed: post?.author?.followers?.includes(account?._id  || ""),
             },
           };
         });

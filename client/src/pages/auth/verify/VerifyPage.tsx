@@ -98,9 +98,15 @@ function AccountTokenVerify() {
 
   useEffect(() => {
     let isMounted = true;
+
     if (!token) {
+      error(lang("email-verified-fail", "Invalid token"));
       navigate("/error/page-wrong", { replace: true });
       return;
+    }
+
+    if (!isI18nReady) {
+      return; // Đợi i18n ready trước khi gọi API
     }
 
     userFetcher.verifyEmail(token)
@@ -111,17 +117,17 @@ function AccountTokenVerify() {
           setTimeout(() => navigate("/login"), 2000);
         }
       })
-      .catch((error: any) => {
+      .catch((err: any) => {
         if (isMounted) {
-          error(lang("email-verified-fail", error.message));
-          navigate("/error/page-wrong", { replace: true });
+          error(lang("email-verified-fail", err.message));
+          // Không cần navigate ở đây vì đã có thông báo lỗi
         }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [token, navigate, isI18nReady]); // Add isI18nReady to dependencies
+  }, [token, navigate, isI18nReady, error, success, lang]);
 
   if (!isI18nReady) {
     return <LoadingSpinner />;

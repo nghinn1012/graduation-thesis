@@ -109,6 +109,7 @@ export interface createChatGroup {
   members: string[];
   createdBy: string;
   isPrivate: boolean;
+  memberDetails?: AccountInfo[];
 }
 
 export interface NotificationInfo {

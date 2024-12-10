@@ -33,7 +33,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const language = useI18nContext();
-  const lang = language.of("OrderSection");
+  const lang = language.of("OrderSection", "ToastrSection");
   const { errorProduct, setErrorProduct } = useProductContext();
   const { error, success } = useToastContext();
 
@@ -50,9 +50,9 @@ const OrderActions: React.FC<OrderActionsProps> = ({
       setIsUpdating(true);
       const result = await onUpdateStatus(nextStatus[order.status]);
       if (result) {
-        success(lang("order-status-updated"));
+        success(lang("update-status-success"));
       } else {
-        error(lang("order-status-failed"));
+        error(lang("update-status-failed"));
       }
       setIsUpdating(false);
     } catch (error) {

@@ -3,7 +3,8 @@ import { NODE_MAILER_SENDER } from "../config/notification.config";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 export const mailTemplates = {
-  ACTIVE_ACCOUNT_MANNUAL: "active-account-mannual.ejs"
+  ACTIVE_ACCOUNT_MANNUAL: "active-account-mannual.ejs",
+  RESET_PASSWORD: "reset-password.ejs"
 } as const;
 
 
@@ -28,7 +29,7 @@ export const sendActiveMannualAccount = async (info: MannualAccountInfo): Promis
     result = await sendMail({
       from: NODE_MAILER_SENDER,
       to: info.email,
-      subject: `Verify your account`,
+      subject: `Xác thực tài khoản`,
       html: html
     });
   } catch (error) {
@@ -41,14 +42,14 @@ export const sendActiveMannualAccount = async (info: MannualAccountInfo): Promis
 export const sendForgotPassword = async (email: string, token: string): Promise<SMTPTransport.SentMessageInfo | null> => {
   let result: SMTPTransport.SentMessageInfo | null = null;
   try {
-    const html = await renderHtmlFromTemplate(mailTemplates.ACTIVE_ACCOUNT_MANNUAL, {
+    const html = await renderHtmlFromTemplate(mailTemplates.RESET_PASSWORD, {
       email: email,
-      activeUrl: "http://localhost:3000/reset-password?token=" + token
+      resetUrl: "http://localhost:3000/reset-password?token=" + token
     });
     result = await sendMail({
       from: NODE_MAILER_SENDER,
       to: email,
-      subject: `Reset your password`,
+      subject: `Thay đổi mật khẩu`,
       html: html
     });
   } catch (error) {

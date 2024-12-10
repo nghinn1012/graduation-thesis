@@ -86,14 +86,21 @@ interface ProductContextProps {
     isMyOrder: boolean,
     tab: string
   ) => Promise<OrderWithUserInfo | undefined>;
-  updateOrderStatus: (orderId: string, status: string, tab: string) => Promise<OrderWithUserInfo | undefined>;
+  updateOrderStatus: (
+    orderId: string,
+    status: string,
+    tab: string
+  ) => Promise<OrderWithUserInfo | undefined>;
   alreadyAddToCart: boolean;
   setAlreadyAddToCart: React.Dispatch<React.SetStateAction<boolean>>;
   currentOrderReview: OrderWithUserInfo | null;
   setCurrentOrderReview: React.Dispatch<
     React.SetStateAction<OrderWithUserInfo | null>
   >;
-  createOrderReview: (orderId: string, reviews: ReviewCreate[]) => Promise<OrderWithUserInfo | undefined>;
+  createOrderReview: (
+    orderId: string,
+    reviews: ReviewCreate[]
+  ) => Promise<OrderWithUserInfo | undefined>;
 }
 
 export const ProductContext = createContext<ProductContextProps | undefined>(
@@ -137,7 +144,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     useState<OrderWithUserInfo | null>(null);
   const [currentOrderReview, setCurrentOrderReview] =
     useState<OrderWithUserInfo | null>(null);
-  const {success, error } = useToastContext();
+  const { success, error } = useToastContext();
   const language = useI18nContext();
   const lang = language.of("ToastrSection");
 
@@ -268,6 +275,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       try {
         setLoading(true);
         setProducts([]);
+
         const fetchedProducts = (await postFetcher.searchProduct(
           searchTerm,
           filter === "all" ? "" : filter,
@@ -275,6 +283,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
           limit,
           auth?.token
         )) as unknown as ProductList;
+
         setProducts(fetchedProducts.products);
         setTotalPages(fetchedProducts.totalPages);
       } catch (err) {
@@ -286,10 +295,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     [auth?.token, page, limit]
   );
 
-  useEffect(() => {
-    if (!auth?.token) return;
-    searchProducts(searchTerm, selectedCategory);
-  }, [auth?.token, page, searchTerm, selectedCategory, searchProducts]);
+  // useEffect(() => {
+  //   if (!auth?.token) return;
+
+  //   searchProducts(searchTerm, selectedCategory);
+  // }, [auth?.token, page, searchTerm, selectedCategory]);
 
   const fetchOrdersByUser = useCallback(async () => {
     if (!auth?.token) return;
@@ -381,7 +391,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const result = (await postFetcher.cancelOrder(orderId, reason, auth?.token)) as unknown as OrderWithUserInfo;
+        const result = (await postFetcher.cancelOrder(
+          orderId,
+          reason,
+          auth?.token
+        )) as unknown as OrderWithUserInfo;
         if (isMyOrder) {
           if (tab === "All") {
             setOrdersByUser((prevOrders) =>
@@ -426,7 +440,10 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const result = (await postFetcher.updateOrderStatus(orderId, auth?.token)) as unknown as OrderWithUserInfo;
+        const result = (await postFetcher.updateOrderStatus(
+          orderId,
+          auth?.token
+        )) as unknown as OrderWithUserInfo;
         if (tab === "All") {
           setOrdersBySeller((prevOrders) =>
             prevOrders.map((order) =>
@@ -438,7 +455,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
             prevOrders.filter((order) => order._id !== orderId)
           );
         }
-      return result;
+        return result;
       } catch (err) {
         setErrorProduct(lang("update-status-fail"));
       } finally {
@@ -453,11 +470,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
       if (!auth?.token) return;
       try {
         setLoading(true);
-        const result = await postFetcher.createReviewProduct(
+        const result = (await postFetcher.createReviewProduct(
           orderId,
           reviews,
           auth?.token
-        ) as unknown as OrderWithUserInfo;
+        )) as unknown as OrderWithUserInfo;
         setOrdersByUser((prevOrders) =>
           prevOrders.map((order) =>
             order._id === orderId ? { ...order, isReviewed: true } : order

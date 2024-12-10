@@ -55,7 +55,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(data);
       console.log(chatMessages);
       console.log(`Message from ${data.chatGroupId}: ${data.message.text}`);
-      setChatMessages([...chatMessages, data.message]);
+      setChatMessages([...chatMessages]);
       console.log(chatGroups);
       setChatGroups((prevChatGroups: any[]) =>
         prevChatGroups.map((group: { _id: any; unreadCount: any }) => {

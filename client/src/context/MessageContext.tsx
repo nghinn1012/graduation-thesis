@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { AccountInfo } from "../api/user";
+import { AccountInfo, userFetcher } from "../api/user";
 import { ChatGroupInfo, EnhancedChatGroupInfo, MessageFetchInfo, MessageInfo, notificationFetcher } from "../api/notification";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useUserContext } from "./UserContext";
@@ -28,6 +28,8 @@ interface MessageContextProps {
   markMessagesOfGroupAsRead: (chatGroupId: string) => void;
   chatGroupUnreadCount: number;
   setChatGroupUnreadCount: (count: any) => void;
+  allUsers: AccountInfo[];
+  setAllUsers: (users: AccountInfo[]) => void;
 }
 
 const MessageContext = createContext<MessageContextProps | undefined>(
@@ -48,7 +50,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
   const [chatGroupUnreadCount, setChatGroupUnreadCount] = useState<number>(0);
   const limit = 10;
   const { auth, account } = useAuthContext();
-  const { allUsers } = useUserContext();
+  const [allUsers, setAllUsers] = useState<AccountInfo[]>([]);
 
   const addMessage = useCallback((newMessage: MessageInfo) => {
     setChatMessages(prevMessages => {
@@ -65,6 +67,18 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
       return [...prevMessages, newMessage];
     });
   }, []);
+
+  useEffect(() => {
+    const loadAllUsers = async () => {
+      if (!auth?.token) return;
+      const response = (await userFetcher.getAllUsers(auth.token)) as unknown as AccountInfo[];
+      if (response) {
+        setAllUsers(response);
+      }
+    };
+
+    loadAllUsers();
+  }, [auth]);
 
 
   useEffect(() => {
@@ -88,7 +102,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
   const getUserIfPrivate = (chatGroup: EnhancedChatGroupInfo) => {
     return chatGroup?.memberDetails?.find(
       (member) => member._id !== account?._id
-    )
+    ) || allUsers.find(user => user._id === chatGroup.members[0]);
   };
 
   const getMessagesOfChatGroup = async (chatGroupId: string, page: number = 1) => {
@@ -197,6 +211,8 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({
         markMessagesOfGroupAsRead,
         chatGroupUnreadCount,
         setChatGroupUnreadCount,
+        allUsers,
+        setAllUsers,
       }}
     >
       {children}

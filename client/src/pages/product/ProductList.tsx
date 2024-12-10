@@ -20,9 +20,18 @@ const ProductListPage = () => {
     searchProducts(searchTerm, selectedCategory === "all" ? "" : selectedCategory);
   }, [selectedCategory]);
 
-  const createPageArray = () => {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  };
+  function createPageArray() {
+    const pages = [];
+    const maxPagesToShow = 2;
+
+    pages.push(page);
+
+    if (page > 1) pages.unshift(page - 1);
+    if (page < totalPages) pages.push(page + 1); 
+
+    return pages;
+  }
+
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

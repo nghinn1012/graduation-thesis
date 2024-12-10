@@ -732,7 +732,7 @@ const PostDetails: React.FunctionComponent = () => {
               </span>
             </div>
 
-            <div className="flex mt-2 gap-2">
+            <div className="flex flex-wrap mt-2 gap-2">
               {[
                 ...post.hashtags,
                 post.difficulty,

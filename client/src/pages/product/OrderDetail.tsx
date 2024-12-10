@@ -275,6 +275,10 @@ const OrderDetails: React.FC = () => {
     }
   };
 
+  const handleClickProduct = (productId: string) => {
+    navigate(`/posts/productDetails/${productId}`);
+  }
+
   const handleChatCustomer = () => {
     console.log("Chatting with customer...");
     console.log(chatGroups);
@@ -326,10 +330,10 @@ const OrderDetails: React.FC = () => {
                 </p>
               </div>
               <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 items-center">
-                <button className="btn btn-primary btn-sm w-full lg:w-auto" onClick={handleChatCustomer}>
+                {/* <button className="btn btn-primary btn-sm w-full lg:w-auto" onClick={handleChatCustomer}>
                   <BsChat className="w-4 h-4 mr-2"/>
                   {lang("message-customer")}
-                </button>
+                </button> */}
                 <span
                   className={`badge ${getStatusBadge(
                     currentOrderDetail.status
@@ -356,7 +360,7 @@ const OrderDetails: React.FC = () => {
                 <div className="flex-1 overflow-auto px-6 py-4">
                   <div className="space-y-4">
                     {currentOrderDetail.products.map((item, index) => (
-                      <div key={index}>
+                      <div key={index} onClick={() => handleClickProduct(item.productId)}>
                         {/* Product Info */}
                         <div className="flex items-center p-4 bg-base-200 rounded-box hover:bg-base-300 transition-colors">
                           <div className="relative">

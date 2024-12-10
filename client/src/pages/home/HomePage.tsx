@@ -27,12 +27,23 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
 	const language = useI18nContext();
 	const lang = language.of("HomePage");
+  const [isI18nReady, setIsI18nReady] = useState(false);
+
+  useEffect(() => {
+    if (lang("for-you") !== "for-you") {
+      setIsI18nReady(true);
+    }
+  }, [lang]);
 
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, 2000);
   }, []);
+
+  if (!isI18nReady) {
+    return <></>;
+  }
 
   return (
     <>

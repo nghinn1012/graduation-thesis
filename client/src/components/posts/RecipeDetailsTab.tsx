@@ -461,7 +461,7 @@ const RecipeDetailsTab: React.FC<RecipeDetailsTabProps> = ({
         </div>
       </div>
       <div className="mt-4">
-        <label className="block text-sm font-semibold mb-1">INSTRUCTIONS<span className="text-red-500 ml-1">*</span></label>
+        <label className="block text-sm font-semibold mb-1 uppercase">{lang("instructions")}<span className="text-red-500 ml-1">*</span></label>
         {instructions.map((instruction, index) => (
           <div key={index} className="mb-4">
             <div className="flex flex-row gap-2">

@@ -97,16 +97,17 @@ const MessageSidebar: React.FC = () => {
     chatGroup: EnhancedChatGroupInfo
   ): AccountInfo | null => {
     if (!account || chatGroup.members.length > 2) return null;
-    return chatGroup?.memberDetails?.find(
+    const otherUser = chatGroup?.memberDetails?.find(
       (member) => member._id !== account._id
-    ) || null;
+    );
+    return otherUser || null;
   };
 
   const getChatDisplayInfo = (
     chatGroup: EnhancedChatGroupInfo
   ): ChatDisplayInfo => {
     const otherUser = getOtherUser(chatGroup);
-
+    // console.log(otherUser);
     if (otherUser) {
       return {
         name: otherUser.name,
@@ -177,7 +178,11 @@ const MessageSidebar: React.FC = () => {
       if (!response) return;
 
       const newChat = response as unknown as EnhancedChatGroupInfo;
-      setChatGroups([...chatGroups, newChat]);
+      console.log(newChat);
+      setChatGroups([...chatGroups, {
+        ...newChat,
+        memberDetails: chatData.memberDetails,
+      }]);
       setChatGroupSelect(newChat);
       setIsModalOpen(false);
     } catch (err) {

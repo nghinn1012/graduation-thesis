@@ -29,7 +29,10 @@ export const getAllProductsService = async (
   try {
     const skip = (page - 1) * limit;
 
-    const products = await productModel.find({isDeleted: false}).skip(skip).limit(limit);
+    const products = await productModel
+      .find({ isDeleted: false })
+      .skip(skip)
+      .limit(limit);
 
     const totalProducts = await productModel.countDocuments({});
 
@@ -322,8 +325,11 @@ export const searchProductsService = async (
   limit: number
 ) => {
   try {
-    const skip = (page - 1) * limit;
+    console.log(limit, page);
+    const skip = (Number(page) - 1) * limit;
+    console.log("skip", skip);
 
+    // Fetch matching posts based on query
     const matchingPosts = await postModel
       .find({
         $or: [
@@ -336,12 +342,14 @@ export const searchProductsService = async (
 
     const postIds = matchingPosts.map((post) => post._id);
 
+    // Fetch products related to the found posts
     const allProducts = await productModel
       .find({
         postId: { $in: postIds },
       })
       .lean();
 
+    // Combine products with their post info
     let productsWithPostInfo = await Promise.all(
       allProducts.map(async (product) => {
         const postInfo = await postModel
@@ -354,10 +362,12 @@ export const searchProductsService = async (
       })
     );
 
+    // Sort products to prioritize those authored by the user
     productsWithPostInfo = productsWithPostInfo.sort((a, b) =>
-      a.postInfo?.author == userId ? 1 : b.postInfo?.author == userId ? -1 : 0
+      a.postInfo?.author === userId ? 1 : b.postInfo?.author === userId ? -1 : 0
     );
 
+    // Filter products based on the specified filter
     let filteredProducts = productsWithPostInfo.filter((product) => {
       if (filter === "") {
         return true;
@@ -367,7 +377,9 @@ export const searchProductsService = async (
 
     const totalFilteredProducts = filteredProducts.length;
 
-    const paginatedProducts = filteredProducts.slice(skip, skip + limit);
+    // Apply pagination
+    const paginatedProducts = filteredProducts.slice(skip, skip + 8);
+    console.log(paginatedProducts.length);
 
     return {
       products: paginatedProducts,
@@ -716,7 +728,6 @@ export const createMomoPaymentService = async ({
   };
 
   console.log("requestData", requestData);
-
   const rawSignature = `accessKey=${config.accessKey}&amount=${amount}&extraData=${requestData.extraData}&ipnUrl=${config.ipnUrl}&orderId=${orderId}&orderInfo=${config.orderInfo}&partnerCode=${config.partnerCode}&redirectUrl=${redirectUrl}&requestId=${orderId}&requestType=${config.requestType}`;
   const signature = crypto.createHmac('sha256', config.secretKey).update(rawSignature).digest('hex');
   try {
@@ -726,7 +737,6 @@ export const createMomoPaymentService = async ({
       storeId: "MomoTestStore",
       signature: signature
     });
-
     return data;
   } catch (error) {
     console.error("Failed to create Momo payment:", error);
@@ -767,7 +777,10 @@ export const updateOrderPaymentData = async (
       paymentMethod: updateData.paymentMethod,
       transactionId: updateData.transactionId,
       amount: updateData.amount,
-      status: updateData.paymentStatus === "SUCCESS" ? "Pending" : "Cancelled By User",
+      status:
+        updateData.paymentStatus === "SUCCESS"
+          ? "Pending"
+          : "Cancelled By User",
       reason: updateData.paymentStatus === "SUCCESS" ? "" : "payment-failed",
       updatedAt: new Date(),
     });

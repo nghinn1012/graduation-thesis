@@ -113,13 +113,13 @@ const SetTime: React.FC<SetTimeProps> = ({ meal, date, onSubmit, onClose, time }
             onChange={(e) => handleEndTimeChange(e.target.value)}
           />
         </div>
-
+{/* 
         <div className="form-control mb-4">
           <label className="label cursor-pointer">
             <span className="label-text">{lang("remind-me")}</span>
             <input type="checkbox" className="toggle toggle-primary" />
           </label>
-        </div>
+        </div> */}
 
         <div className="modal-action">
           <button className="btn btn-primary w-full" onClick={handleSubmit}>

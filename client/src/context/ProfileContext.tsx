@@ -141,7 +141,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (err) {
         console.error("Failed to load posts:", err);
-        error(`Failed to load posts: ${err as Error}`);
       } finally {
         setIsLoading(false);
       }
@@ -377,7 +376,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (err) {
         console.error("Failed to load posts:", err);
-        error(`Failed to load posts: ${(err as Error).message}`);
       } finally {
         setIsLoadingLike(false);
       }
@@ -442,7 +440,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
       )) as unknown as AccountInfo[];
       const followingWithFollowed = response.map((user) => ({
         ...user,
-        followed: true,
+        followed: user.followers?.includes(account?._id as string),
       }));
 
       setUser((prevUser) =>

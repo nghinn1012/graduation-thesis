@@ -51,7 +51,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         limit,
         auth.token
       )) as unknown as searchInfoData;
-      console.log("response:", response);
       const usersWithFollowed = response.users.map((user) => {
         return {
           ...user,
